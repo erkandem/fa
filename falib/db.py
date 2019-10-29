@@ -1,4 +1,5 @@
 from databases import Database
+import asyncpg
 
 
 class PostgresConfig:
@@ -16,6 +17,8 @@ class PostgresConfig:
         return uri
 
 
-price_engine = Database(PostgresConfig().get_uri('prices_intraday'))
-dev_engine = Database(PostgresConfig().get_uri('pymarkets_null'))
-
+pgc = PostgresConfig()
+engines = {
+    'prices': None,
+    'dev': None
+}

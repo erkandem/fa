@@ -8,10 +8,9 @@ http://0.0.0.0:5000/prices/intraday?symbol=ewz&startdate=20191001
 http://0.0.0.0:5000/prices/intraday?symbol=ewz&startdate=20191001&interval=1&iunit=day
 
 """
-
-from typing import List
 from datetime import datetime as dt
-
+from falib.db import engines, pgc
+import asyncpg
 from fastapi import FastAPI
 from pydantic import BaseModel
 from datetime import date
@@ -19,25 +18,22 @@ from src.conti_prices import conti_resolver
 from src.conti_prices import conti_array_resolver
 from src.conti_prices import ContiEodArray
 from src.conti_prices import FuturesEodConti
-
-from src.intraday_prices import prices_intraday_content, PricesIntraday
+from src.intraday_prices import prices_intraday_content
+from src.intraday_prices import PricesIntraday
 
 app = FastAPI()
-
-from falib.db import price_engine
-from falib.db import dev_engine
 
 
 @app.on_event('startup')
 async def startup():
-    await price_engine.connect()
-    await dev_engine.connect()
+    engines['prices'] = await asyncpg.create_pool(pgc.get_uri('prices_intraday'))
+    engines['dev'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_null'))
 
 
 @app.on_event('shutdown')
 async def shutdown():
-    await price_engine.disconnect()
-    await dev_engine.disconnect()
+    await engines['prices'].close()
+    await engines['dev'].close()
 
 
 class Pulse(BaseModel):

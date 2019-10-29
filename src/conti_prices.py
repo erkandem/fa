@@ -10,8 +10,7 @@ from falib.const import conti_futures_choices
 from falib.utils import add_missing_keys
 from falib.utils import guess_exchange_from_symbol_intraday
 from falib.contract import Contract
-from falib.db import price_engine
-from falib.db import dev_engine
+from falib.db import engines
 
 
 class Validator:
@@ -176,11 +175,13 @@ async def eod_continuous_fut_array_sql_delivery(args: dict):
 
 async def conti_resolver(args):
     sql = await eod_continuous_fut_sql_delivery(args)
-    data = await dev_engine.fetch_all(query=sql)
-    return data
+    async with engines['dev'].acquire() as con:
+        data = await con.fetch(query=sql)
+        return data
 
 
 async def conti_array_resolver(args: dict):
     sql = await eod_continuous_fut_array_sql_delivery(args)
-    data = await dev_engine.fetch_all(query=sql)
-    return data
+    async with engines['dev'].acquire() as con:
+        data = await con.fetch(query=sql)
+        return data

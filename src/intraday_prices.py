@@ -11,7 +11,7 @@ from falib.utils import add_missing_keys
 from falib.utils import guess_ust_from_symbol_intraday
 from falib.utils import guess_exchange_from_symbol_intraday
 from falib.contract import Contract
-from falib.db import price_engine
+from falib.db import engines
 from pydantic import BaseModel
 
 prices_intraday_keys = [
@@ -192,5 +192,6 @@ async def __cast_to_sql_b(nt: IntradayPricesParams):
 
 async def prices_intraday_content(args):
     sql = await select_prices_intraday(args)
-    data = await price_engine.fetch_all(query=sql)
-    return data
+    async with engines['prices'].acquire() as con:
+        data = await con.fetch(query=sql)
+        return data
