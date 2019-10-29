@@ -1,10 +1,10 @@
 import os
-from databases import Database
-import asyncpg
 
 
 class PostgresConfig:
     def __init__(self):
+        import dotenv
+        dotenv.load_dotenv('.env')
         config = os.getenv('FA_API_CONFIG')
         if config is None:
             raise ValueError

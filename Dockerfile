@@ -1,7 +1,7 @@
 # https://stackoverflow.com/a/25307587/10124294
 
 # Base Image
-FROM python:3.7.3-slim
+FROM python:3.7-stretch
 RUN mkdir -p /home/pilot
 # Create an app user 'pilot' so our program doesn't run as root.
 RUN groupadd -r pilot &&\
@@ -33,10 +33,10 @@ RUN chown -R pilot:pilot $HOME
 USER pilot
 EXPOSE 5000
 
-
 ENV PATH='/home/pilot/.local/bin':$PATH
 
-CMD ["uvicorn", "app:app"]
+CMD ["/home/pilot/.local/bin/uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000", "--env-file", ".env"]
+
 # further reading at: gunicorn
 # https://docs.gunicorn.org/en/stable/design.html
 # https://docs.gunicorn.org/en/stable/configure.html#configuration
@@ -46,5 +46,5 @@ CMD ["uvicorn", "app:app"]
 # docker build -t <image_name>:<tag> .
 # docker build -t api20:slim-nonroot .
 
-# docker run -p 127.0.0.1:8050:5000 --restart unless-stopped -d api20:slim-nonroot
-# docker run -p 127.0.0.1:8050:5000 api20:slim-nonroot --env-file='/home/pilot/api20/.env'
+# docker run -p 127.0.0.1:8050:5000 --restart unless-stopped -d fast-api:slim-nonroot
+# docker run -p 127.0.0.1:8050:5000 fast-api:slim-nonroot
