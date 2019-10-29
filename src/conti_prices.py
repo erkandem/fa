@@ -1,9 +1,10 @@
-from pydantic import BaseModel
-from datetime import datetime as dt
+from typing import List
+
 from collections import namedtuple
 from datetime import datetime as dt
 from datetime import date
 from datetime import timedelta
+from pydantic import BaseModel
 
 from falib.const import nth_contract_choices
 from falib.const import conti_futures_choices
@@ -13,17 +14,23 @@ from falib.contract import Contract
 from falib.db import engines
 
 
+ContiEodParams = namedtuple(
+    'ContiEodParams',
+    ['schema', 'table', 'startdate', 'enddate', 'order', 'limit']
+)
+
+
 class Validator:
     @staticmethod
-    def order(x): return x.lower() in ['asc', 'desc']
+    async def order(x): return x.lower() in ['asc', 'desc']
     @staticmethod
-    def symbols(x): return x.lower() in conti_futures_choices
+    async def symbols(x): return x.lower() in conti_futures_choices
     @staticmethod
-    def exchange(x): return x.lower() in ['cme', 'ice']
+    async def exchange(x): return x.lower() in ['cme', 'ice']
     @staticmethod
-    def dminus(x): return 1 < x < 365
+    async def dminus(x): return 1 < x < 365
     @staticmethod
-    def nth_contract(x): return x in nth_contract_choices
+    async def nth_contract(x): return x in nth_contract_choices
 
 
 v = Validator()
@@ -41,12 +48,13 @@ query_keys = [
 
 class ContiEodQuery(BaseModel):
     symbol = str
+    ust = str
     exchange = str
+    nthcontract = int
     startdate = date
     enddate = date
     dminus = int
     order = str
-    nthcontract = int
 
 
 class FuturesEodConti(BaseModel):
@@ -115,8 +123,8 @@ async def create_conti_eod_schema_name(security_type: str, exchange: str) -> str
 
 
 async def eod_continuous_fut_sql_delivery(args):
-    args = await add_missing_keys(query_keys, args)
-    args['exchange'] = await guess_exchange_from_symbol_intraday(args['symbol'])
+    if args['exchange'] is None:
+        args['exchange'] = await guess_exchange_from_symbol_intraday(args['symbol'])
     delta_d = timedelta(days=args['dminus'])
     if args['enddate'] is None:
         args['enddate'] = (dt.now()).strftime('%Y%m%d')
@@ -134,13 +142,16 @@ async def eod_continuous_fut_sql_delivery(args):
         contract_number=args['nthcontract']
     )
     limit = 365
-    sql = f'''
-        SELECT * 
-        FROM {schema}.{table} 
-        WHERE dt  BETWEEN '{args['startdate']}' AND '{args['enddate']}' 
-        ORDER BY dt {args['order']} 
-        LIMIT {limit}; 
-    '''
+    sql = await select_all_from(
+        ContiEodParams(
+            schema=schema,
+            table=table,
+            startdate=args['startdate'],
+            enddate=args['enddate'],
+            order=args['order'],
+            limit=limit
+        )
+    )
     return sql
 
 
@@ -163,14 +174,27 @@ async def eod_continuous_fut_array_sql_delivery(args: dict):
         exchange=args['exchange']
     )
     limit = 365
-    sql = f'''
-       SELECT * 
-       FROM {schema}.{table} 
-       WHERE dt  BETWEEN '{args['startdate']}' AND '{args['enddate']}'
-       ORDER BY dt {args['order']} 
-       LIMIT {limit};
-    '''
+    sql = await select_all_from(
+        ContiEodParams(
+            schema=schema,
+            table=table,
+            startdate=args['startdate'],
+            enddate=args['enddate'],
+            order=args['order'],
+            limit=limit
+        )
+    )
     return sql
+
+
+async def select_all_from(nt: ContiEodParams):
+    return f'''
+       SELECT * 
+       FROM {nt.schema}.{nt.table} 
+       WHERE dt  BETWEEN '{nt.startdate}' AND '{nt.enddate}'
+       ORDER BY dt {nt.order} 
+       LIMIT {nt.limit};
+    '''
 
 
 async def conti_resolver(args):

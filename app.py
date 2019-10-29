@@ -6,22 +6,31 @@ http://0.0.0.0:5000/prices/eod/conti/array?symbol=cl
 
 http://0.0.0.0:5000/prices/intraday?symbol=ewz&startdate=20191001
 http://0.0.0.0:5000/prices/intraday?symbol=ewz&startdate=20191001&interval=1&iunit=day
-
+ - custom response statuses: https://fastapi.tiangolo.com/tutorial/response-change-status-code/
+ - JSONResponse is default
+ - can be overwritten with
 """
 from datetime import datetime as dt
-from falib.db import engines, pgc
-import asyncpg
-from fastapi import FastAPI
-from pydantic import BaseModel
 from datetime import date
+from typing import List
+import asyncpg
+from fastapi import FastAPI, Query
+from pydantic import BaseModel
+from falib.db import engines, pgc
 from src.conti_prices import conti_resolver
 from src.conti_prices import conti_array_resolver
 from src.conti_prices import ContiEodArray
 from src.conti_prices import FuturesEodConti
 from src.intraday_prices import prices_intraday_content
 from src.intraday_prices import PricesIntraday
+from starlette.status import *
 
-app = FastAPI()
+app = FastAPI(
+    title='iVolAPI',
+    version='2.0.1',
+    description='implied volatility and price data for selected ETFs and futures',
+
+)
 
 
 @app.on_event('startup')
@@ -40,84 +49,50 @@ class Pulse(BaseModel):
     date: dt
 
 
-@app.get('/', response_model=Pulse)
+@app.get('/', response_model=Pulse, status_code=HTTP_200_OK)
 async def root():
     return {'date': dt.now()}
 
 
-@app.get('/prices/intraday') # response_model=PricesIntraday
+@app.get('/pulse', response_model=Pulse)
+async def pulse():
+    return {'date': dt.now()}
+
+
+@app.get('/prices/intraday', status_code=HTTP_200_OK)
 async def conti_eod_prices(
-    symbol: str,
-    month: int = None,
-    year: int = None,
-    ust: str = None,
-    exc: str = None,
-    startdate: str = None,
-    enddate: str = None,
-    interval: int = 1,
-    iunit: str = 'minutes',
-    dminus: int = 20,
-    order: str = 'asc',
-):
+        symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
+        startdate: str = None, enddate: str = None, dminus: int = 20,
+        interval: int = 1, iunit: str = 'minutes',  order: str = 'asc'):
     args = {
-        'symbol': symbol,
-        'month': month,
-        'year': year,
-        'ust': ust,
-        'exc': exc,
-        'startdate': startdate,
-        'enddate': enddate,
-        'dminus': dminus,
-        'interval': interval,
-        'iunit': iunit,
-        'order': order
+        'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
+        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
+        'interval': interval, 'iunit': iunit, 'order': order
     }
     content = await prices_intraday_content(args)
     return content
 
 
-@app.get('/prices/eod/conti')  # response_model=FuturesEodConti
+@app.get('/prices/eod/conti', status_code=HTTP_200_OK)
 async def conti_eod_prices(
-    symbol: str,
-    exchange: str = None,
-    startdate: str = None,
-    enddate: str = None,
-    dminus:  int = 20,
-    order: str = 'asc',
-    nthcontract: int = 1
-):
+        symbol: str, ust: str = 'fut', exchange: str = None, nthcontract: int = 1,
+        startdate: str = None, enddate: str = None, dminus:  int = 20, order: str = 'asc'):
     args = {
-        'symbol': symbol,
-        'exchange': exchange,
-        'startdate': startdate,
-        'enddate': enddate,
-        'dminus': dminus,
-        'order': order,
-        'nthcontract': nthcontract,
-        'ust': 'fut',
-        'array': 0
+        'symbol': symbol, 'ust': ust, 'exchange': exchange, 'nthcontract': nthcontract,
+        'startdate': startdate, 'enddate': enddate,
+        'dminus': dminus, 'order': order, 'array': 0
     }
     content = await conti_resolver(args)
     return content
 
 
-@app.get('/prices/eod/conti/array')  # response_model=ContiEodArray
+@app.get('/prices/eod/conti/array')
 async def conti_eod_prices(
-    symbol: str,
-    exchange: str = None,
-    startdate: str = None,
-    enddate: str = None,
-    dminus:  int = 20,
-    order: str = 'asc',
-):
+    symbol: str, ust: str = 'fut', exchange: str = None,
+    startdate: str = None, enddate: str = None, dminus:  int = 20, order: str = 'asc'):
     args = {
-        'symbol': symbol,
-        'exchange': exchange,
-        'startdate': startdate,
-        'enddate': enddate,
-        'dminus': dminus,
-        'order': order,
-        'ust': 'fut',
+        'symbol': symbol, 'ust': ust, 'exchange': exchange,
+        'startdate': startdate, 'enddate': enddate, 'dminus': dminus, 'order': order,
         'array': 1
     }
     content = await conti_array_resolver(args)

@@ -44,7 +44,7 @@ class PricesIntradayQuery(BaseModel):
     month = str
     year = int
     ust = str
-    exc = str
+    exchange = str
     startdate = date
     enddate = date
     dminus = int
@@ -84,16 +84,15 @@ IntradayPricesParams = namedtuple('IntradayPricesParams', [
 
 async def select_prices_intraday(args: dict):
     """return an executable SQL statement"""
-    args = await add_missing_keys(prices_intraday_keys, args)
     if args['dminus'] is None:
         args['dminus'] = 20
-    if args['exc'] is None:
-        args['exc'] = await guess_exchange_from_symbol_intraday(args['symbol'])
+    if args['exchange'] is None:
+        args['exchange'] = await guess_exchange_from_symbol_intraday(args['symbol'])
     if args['ust'] is None:
         args['ust'] = await guess_ust_from_symbol_intraday(args['symbol'])
     c = Contract()
     c.symbol = args['symbol']
-    c.exchange = args['exc']
+    c.exchange = args['exchange']
     c.security_type = args['ust']
     if args['year'] is not None:
         c.contract_yyyy = 2000 + args['year']
