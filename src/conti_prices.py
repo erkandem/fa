@@ -12,7 +12,11 @@ from falib.utils import guess_exchange_and_ust
 from falib.utils import eod_ini_logic
 from falib.contract import Contract
 from falib.db import engines
+import fastapi
+from starlette.status import HTTP_200_OK
+from falib.const import OrderChoices
 
+router = fastapi.APIRouter()
 
 ContiEodParams = namedtuple(
     'ContiEodParams',
@@ -31,6 +35,7 @@ class Validator:
     async def dminus(x): return 1 < x < 365
     @staticmethod
     async def nth_contract(x): return x in nth_contract_choices
+
 
 v = Validator()
 
@@ -80,6 +85,38 @@ class ContiEodArray(BaseModel):
     c10: float
     c11: float
     c12: float
+
+
+@router.get('/prices/eod/conti')
+async def conti_eod_prices(
+        symbol: str, ust: str = 'fut', exchange: str = None, nthcontract: int = 1,
+        startdate: str = None, enddate: str = None, dminus:  int = 20,
+        order: OrderChoices = OrderChoices._asc
+):
+    args = {
+        'symbol': symbol, 'ust': ust, 'exchange': exchange, 'nthcontract': nthcontract,
+        'startdate': startdate, 'enddate': enddate,
+        'dminus': dminus,
+        'order': order.value, 'array': 0
+    }
+    content = await conti_resolver(args)
+    return content
+
+
+@router.get('/prices/eod/conti/array')
+async def conti_eod_prices(
+    symbol: str, ust: str = 'fut', exchange: str = None,
+    startdate: str = None, enddate: str = None, dminus:  int = 20,
+    order: OrderChoices = OrderChoices._asc
+):
+    args = {
+        'symbol': symbol, 'ust': ust, 'exchange': exchange,
+        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
+        'order': order.value,
+        'array': 1
+    }
+    content = await conti_array_resolver(args)
+    return content
 
 
 async def create_conti_eod_table_name(

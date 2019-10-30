@@ -35,6 +35,7 @@ from src.atm import router as atm_router
 from src.auth import router as auth_router
 from src.intraday_prices import router as intraday_prices_router
 from src.pvp import router as pvp_router
+from src.conti_prices import router as conti_router
 
 
 app = fastapi.FastAPI(
@@ -46,6 +47,7 @@ app.include_router(atm_router)
 app.include_router(auth_router)
 app.include_router(intraday_prices_router)
 app.include_router(pvp_router)
+app.include_router(conti_router)
 
 origins = [
     "http://localhost",
@@ -101,39 +103,6 @@ async def get_regular_futures_eod(
     }
     content = await resolve_eod_futures(args)
     return content
-
-
-@app.get('/prices/eod/conti')
-async def conti_eod_prices(
-        symbol: str, ust: str = 'fut', exchange: str = None, nthcontract: int = 1,
-        startdate: str = None, enddate: str = None, dminus:  int = 20,
-        order: OrderChoices = OrderChoices._asc
-):
-    args = {
-        'symbol': symbol, 'ust': ust, 'exchange': exchange, 'nthcontract': nthcontract,
-        'startdate': startdate, 'enddate': enddate,
-        'dminus': dminus,
-        'order': order.value, 'array': 0
-    }
-    content = await conti_resolver(args)
-    return content
-
-
-@app.get('/prices/eod/conti/array')
-async def conti_eod_prices(
-    symbol: str, ust: str = 'fut', exchange: str = None,
-    startdate: str = None, enddate: str = None, dminus:  int = 20,
-    order: OrderChoices = OrderChoices._asc
-):
-    args = {
-        'symbol': symbol, 'ust': ust, 'exchange': exchange,
-        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
-        'order': order.value,
-        'array': 1
-    }
-    content = await conti_array_resolver(args)
-    return content
-
 
 if __name__ == '__main__':
     import uvicorn
