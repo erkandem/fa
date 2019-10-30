@@ -31,13 +31,14 @@ from src.auth import validate_user
 from starlette.middleware.cors import CORSMiddleware
 from src.pvp import resolve_pvp
 from src.regular_futures import resolve_eod_futures
-from src.atm import resolve_atm_ivol
+from src.atm import router as atm_router
 
 app = fastapi.FastAPI(
     title='iVolAPI',
     version='2.0.1',
     description='implied volatility and price data for selected ETFs and futures',
 )
+app.include_router(atm_router)
 
 origins = [
     "http://localhost",
@@ -164,35 +165,6 @@ async def get_regular_futures_eod(
         'startdate': startdate, 'enddate': enddate, 'dminus': dminus, 'order': order.value
     }
     content = await resolve_eod_futures(args)
-    return content
-
-
-@app.get('/ivol/atm',
-         summary='Get ATM implied volatility data'
-)
-async def atm_ivol(
-        symbol: str, ust: str = None, exchange: str = None, tte: tteChoices = tteChoices._1m,
-        startdate: str = None, enddate: str = None, dminus: int = 30,
-        order: OrderChoices = OrderChoices._asc
-):
-    """
-    At-the-money implied volatility time series.
-
-    - **symbol**: example: 'SPY' or 'spy' (case insensitive)
-    - **ust**: underlying security type: ['fut', 'eqt', 'ind', 'fx']
-    - **exchange**: one of: ['usetf', 'cme', 'ice', 'eurex']
-    - **tte**: time until expiry. 1m 3m 12m ...
-    - **startdate**: format: yyyymmdd
-    - **enddate**: format: yyyymmdd
-    - **dminus**: indicate the number of days back from `enddate`
-    - **order**:  sorting order with respect to price interval
-    """
-    args = {
-        'symbol': symbol, 'ust': ust, 'exchange': exchange, 'tte': tte._value_,
-        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
-        'order': order.value
-    }
-    content = await resolve_atm_ivol(args)
     return content
 
 

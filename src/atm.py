@@ -9,6 +9,41 @@ from falib.db import engines
 from falib.utils import guess_ust_from_symbol_intraday
 from falib.utils import guess_exchange_and_ust
 from falib.utils import eod_ini_logic
+from falib.const import OrderChoices
+from falib.const import tteChoices
+import fastapi
+
+router = fastapi.APIRouter()
+
+
+@router.get('/ivol/atm',
+            summary='Get ATM implied volatility data'
+)
+async def atm_ivol(
+        symbol: str, ust: str = None, exchange: str = None, tte: tteChoices = tteChoices._1m,
+        startdate: str = None, enddate: str = None, dminus: int = 30,
+        order: OrderChoices = OrderChoices._asc
+):
+    """
+    At-the-money implied volatility time series.
+
+    - **symbol**: example: 'SPY' or 'spy' (case insensitive)
+    - **ust**: underlying security type: ['fut', 'eqt', 'ind', 'fx']
+    - **exchange**: one of: ['usetf', 'cme', 'ice', 'eurex']
+    - **tte**: time until expiry. 1m 3m 12m ...
+    - **startdate**: format: yyyymmdd
+    - **enddate**: format: yyyymmdd
+    - **dminus**: indicate the number of days back from `enddate`
+    - **order**:  sorting order with respect to price interval
+    """
+    args = {
+        'symbol': symbol, 'ust': ust, 'exchange': exchange, 'tte': tte._value_,
+        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
+        'order': order.value
+    }
+    content = await resolve_atm_ivol(args)
+    return content
+
 
 AtmParams = namedtuple(
     'AtmParams',
