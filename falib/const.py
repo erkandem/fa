@@ -243,7 +243,7 @@ def metric_mapper_f(m):
 def time_to_var_func(tte):
     """map a database column name to a more human readable name"""
     if tte in list(time_to_var):
-        return time_to_var[time_to_var]
+        return time_to_var[tte]
     else:
         raise KeyError
 
