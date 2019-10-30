@@ -118,7 +118,21 @@ async def pvp(
         symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
         startdate: str = None, enddate: str = None, dminus: int = 20,
         buckets: int = 100, iunit: str = 'minutes',  order: str = 'asc'):
-    """price volume profile / histogram of intraday price data"""
+    """
+    price volume profile. histogram of intraday price data
+
+    - **symbol**: example: 'SPY' or 'spy' (case insensitive)
+    - **month**: only for futures - one of ['F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z']
+    - **year**: only for futures - example: 2019
+    - **ust**: underlying security type: ['fut', 'eqt', 'ind', 'fx']
+    - **exchange**: one of: ['usetf', 'cme', 'ice', 'eurex']
+    - **startdate**: format: yyyymmdd
+    - **enddate**: format: yyyymmdd
+    - **dminus**: indicate the number of days back from `enddate`
+    - **buckets**: number of intervals in the histogram
+    - **iunit**: one of ['minutes', 'hour, 'day', 'week', 'month']
+    - **order**: one of ['asc', 'desc']
+    """
     args = {
         'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
         'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
