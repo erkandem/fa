@@ -400,6 +400,13 @@ class futuresMonthChars(str, Enum):
     _x = 'x'
     _z = 'z'
 
+
+class OrderChoices(str, Enum):
+    _asc = 'asc'
+    _desc = 'desc'
+
+
+order_choices = get_values(OrderChoices)
 futures_month_chars = get_values(futuresMonthChars)
 prices_etf_sym_choices = get_values(pricesEtfSymChoices)
 conti_futures_choices = get_values(contiFuturesChoices)
