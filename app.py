@@ -27,7 +27,9 @@ from starlette.status import *
 from src.auth import auth_model_input, refresh_model_input, create_jwt_token
 from src.auth import validate_user
 from starlette.middleware.cors import CORSMiddleware
-
+from src.pvp import resolve_pvp
+from src.regular_futures import resolve_eod_futures
+from src.atm import resolve_atm_ivol
 
 app = fastapi.FastAPI(
     title='iVolAPI',
@@ -108,6 +110,47 @@ async def conti_eod_prices(
         'interval': interval, 'iunit': iunit, 'order': order
     }
     content = await prices_intraday_content(args)
+    return content
+
+
+@app.get('/prices/intraday/pvp')
+async def pvp(
+        symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
+        startdate: str = None, enddate: str = None, dminus: int = 20,
+        buckets: int = 100, iunit: str = 'minutes',  order: str = 'asc'):
+    """price volume profile / histogram of intraday price data"""
+    args = {
+        'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
+        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
+        'buckets': buckets, 'iunit': iunit, 'order': order
+    }
+    content = await resolve_pvp(args)
+    return content
+
+
+@app.get('/prices/eod')
+async def pvp(
+        symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
+        startdate: str = None, enddate: str = None, dminus: int = 30, order: str = 'asc'):
+    """prices """
+    args = {
+        'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
+        'startdate': startdate, 'enddate': enddate, 'dminus': dminus, 'order': order
+    }
+    content = await resolve_eod_futures(args)
+    return content
+
+
+@app.get('/ivol/atm')
+async def atm_ivol(
+        symbol: str, ust: str = None, exchange: str = None, tte: str = '1m',
+        startdate: str = None, enddate: str = None, dminus: int = 30, order: str = 'asc'):
+    """prices """
+    args = {
+        'symbol': symbol, 'ust': ust, 'exchange': exchange, 'tte': tte,
+        'startdate': startdate, 'enddate': enddate, 'dminus': dminus, 'order': order
+    }
+    content = await resolve_atm_ivol(args)
     return content
 
 
