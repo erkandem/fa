@@ -1,9 +1,24 @@
-# ----------------------------------------------------------------------
-# --- declare and define commonly used constants, lists, dicts etc here
-# ----------------------------------------------------------------------
+"""
+ declare and define commonly used constants, lists, dicts etc here
+"""
+from enum import Enum
 
 
-tte_choices = ['10d', '20d', '1m', '2m', '3m', '4m', '5m', '6m', '7m', '8m', '9m', '12m']
+class tteChoices(str, Enum):
+    _10d = '10d'
+    _20d = '20d'
+    _1m = '1m'
+    _2m = '2m'
+    _3m = '3m'
+    _4m = '4m'
+    _5m = '5m'
+    _6m = '6m'
+    _7m = '7m'
+    _8m = '8m'
+    _9m = '9m'
+    _12m = '12m'
+
+tte_choices = [elm.value for elm in tteChoices]
 
 exchange_choices = ['cme', 'usetf', 'ice', 'eurex']
 exchange_choices_intraday = ['cme', 'usetf', 'int']
@@ -14,11 +29,15 @@ ust_choices = ['eqt', 'fut', 'ind']
 ust_choices_intraday = ['eqt', 'fut', 'fx']
 
 iv_etf_choices = [
-    'dia', 'eem', 'efa', 'ewj', 'eww', 'ewy', 'ewz', 'fez', 'fxe',
-    'fxi', 'gdx', 'gdxj', 'gld', 'hyg', 'ibb', 'ief', 'iwm', 'iyr',
-    'kre', 'qqq', 'rsx', 'slv', 'smh', 'spy', 'tlt', 'ung', 'uso',
-    'vxx', 'xbi', 'xlb', 'xle', 'xlf', 'xli', 'xlp', 'xlu', 'xlv',
-    'xly', 'xme', 'xop', 'xrt']
+    'dia', 'eem', 'efa', 'ewj', 'eww',
+    'ewy', 'ewz', 'fez', 'fxe', 'fxi',
+    'gdx', 'gdxj', 'gld', 'hyg', 'ibb',
+    'ief', 'iwm', 'iyr', 'kre', 'qqq',
+    'rsx', 'slv', 'smh', 'spy', 'tlt',
+    'ung', 'uso', 'vxx', 'xbi', 'xlb',
+    'xle', 'xlf', 'xli', 'xlp', 'xlu',
+    'xlv', 'xly', 'xme', 'xop', 'xrt'
+]
 
 iv_cme_choices = [
     'ad', 'bo', 'bp', 'bz', 'c', 'cd', 'cl', 'ec', 'es',
@@ -34,7 +53,7 @@ iv_ice_choices = ['b', 'g']
 nth_contract_choices = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 conti_futures_choices = ['cl', 'rb', 'ho', 'b', 'g']
 
-iv_all_sym_choices = iv_etf_choices  + iv_cme_choices + iv_eurex_choices + iv_ice_choices
+iv_all_sym_choices = iv_etf_choices + iv_cme_choices + iv_eurex_choices + iv_ice_choices
 
 RAWOPTION_MAP = {
         'underlying_price': 'undprice',
@@ -86,64 +105,20 @@ time_to_var = {
 }
 
 delta_choices = [
-    'd010',
-    'd015',
-    'd020',
-    'd025',
-    'd030',
-    'd035',
-    'd040',
-    'd045',
+    'd010',  'd015',  'd020',  'd025',  'd030',  'd035',  'd040',  'd045',
     'd050',
-    'd055',
-    'd060',
-    'd065',
-    'd070',
-    'd075',
-    'd080',
-    'd085',
-    'd090',
+    'd055',  'd060',  'd065',  'd070',  'd075',  'd080',  'd085',  'd090',
     'adjPC',
 ]
 
 
 intraday_prices_cme_sym_choices = [
-    'a6',
-    'cl',
-    'd6',
-    'es',
-    'e6',
-    'gc',
-    'ge',
-    'gf',
-    'he',
-    'hg',
-    'ho',
-    'j6',
-    'ke',
-    'le',
-    'm6',
-    'n6',
-    'ng',
-    'nq',
-    'qa',
-    'rb',
-    's6',
-    'si',
-    'tn',
-    'ud',
-    'zb',
-    'zc',
-    'zf',
-    'zk',
-    'zl',
-    'zm',
-    'zn',
-    'zs',
-    'zt',
-    'zw',
+    'a6', 'cl', 'd6', 'es', 'e6', 'gc', 'ge', 'gf', 'he',
+    'hg', 'ho', 'j6', 'ke', 'le', 'm6', 'n6', 'ng', 'nq',
+    'qa', 'rb', 's6', 'si', 'tn', 'ud', 'zb', 'zc', 'zf', 'zk',
+    'zl', 'zm', 'zn', 'zs', 'zt', 'zw',
 ]
-cme_arg_list= [
+cme_arg_list = [
     'symbol',
     'month',
     'year',
@@ -155,18 +130,8 @@ cme_arg_list= [
 ]
 
 prices_fx_sym_choices = [
-    'audusd',
-    'eurusd',
-    'gbpusd',
-    'usdbrl',
-    'usdcad',
-    'usdchf',
-    'usdcny',
-    'usdjpy',
-    'usdmxn',
-    'usdnok',
-    'usdrub',
-    'usdsek',
+    'audusd', 'eurusd', 'gbpusd', 'usdbrl', 'usdcad', 'usdchf',
+    'usdcny', 'usdjpy', 'usdmxn', 'usdnok', 'usdrub', 'usdsek',
     'dxy',
 ]
 
@@ -180,46 +145,13 @@ fx_arg_list= [
 ]
 
 prices_etf_sym_choices = [
-    'dia',
-    'eem',
-    'efa',
-    'ewj',
-    'eww',
-    'ewy',
-    'ewz',
-    'fez',
-    'fxe',
-    'fxi',
-    'gdx',
-    'gdxj',
-    'gld',
-    'hyg',
-    'ibb',
-    'ief',
-    'iwm',
-    'iyr',
-    'kre',
-    'qqq',
-    'rsx',
-    'slv',
-    'smh',
-    'spy',
-    'tlt',
-    'ung',
-    'uso',
-    'vxx',
-    'xbi',
-    'xlb',
-    'xle',
-    'xlf',
-    'xli',
-    'xlp',
-    'xlu',
-    'xlv',
-    'xly',
-    'xme',
-    'xop',
-    'xrt',
+    'dia',  'eem',  'efa',  'ewj',  'eww',  'ewy',
+    'ewz',  'fez',  'fxe',  'fxi',  'gdx',  'gdxj',
+    'gld',  'hyg',  'ibb',  'ief',  'iwm',  'iyr',
+    'kre',  'qqq',  'rsx',  'slv',  'smh',  'spy',
+    'tlt',  'ung',  'uso',  'vxx',  'xbi',  'xlb',
+    'xle',  'xlf',  'xli',  'xlp',  'xlu',  'xlv',
+    'xly',  'xme',  'xop',  'xrt',
 ]
 
 etf_arg_list = fx_arg_list

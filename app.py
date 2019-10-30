@@ -154,16 +154,17 @@ async def get_regular_futures_eod(
     content = await resolve_eod_futures(args)
     return content
 
+from falib.const import tteChoices
 
 @app.get('/ivol/atm',
          summary='Get ATM implied volatility data'
 )
 async def atm_ivol(
-        symbol: str, ust: str = None, exchange: str = None, tte: str = '1m',
+        symbol: str, ust: str = None, exchange: str = None, tte: tteChoices = tteChoices._1m, #tte: str = '1m',
         startdate: str = None, enddate: str = None, dminus: int = 30, order: str = 'asc'):
     """prices """
     args = {
-        'symbol': symbol, 'ust': ust, 'exchange': exchange, 'tte': tte,
+        'symbol': symbol, 'ust': ust, 'exchange': exchange, 'tte': tte._value_,
         'startdate': startdate, 'enddate': enddate, 'dminus': dminus, 'order': order
     }
     content = await resolve_atm_ivol(args)
