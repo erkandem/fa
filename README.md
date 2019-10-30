@@ -1,6 +1,6 @@
 volatility api via FastApi
 
-
+ TODO: finad a way to add explicit example value `(no example available)`
 ```
 api.add_namespace(surface_ns,        path='/ivol')
 api.add_namespace(ivol_at_atm_ns,    path='/ivol/time-series/delta')

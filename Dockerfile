@@ -1,7 +1,7 @@
 # https://stackoverflow.com/a/25307587/10124294
 
 # Base Image
-FROM python:3.7-stretch
+FROM python:3.7-slim
 RUN mkdir -p /home/pilot
 # Create an app user 'pilot' so our program doesn't run as root.
 RUN groupadd -r pilot &&\
@@ -14,6 +14,10 @@ ENV APP_HOME=/home/pilot/fa
 # SETTING UP THE APP ##
 RUN mkdir $APP_HOME
 WORKDIR $APP_HOME
+# install local wheels to avoid GCC error form debian slim image
+RUN mkdir $APP_HOME/wheels
+ADD wheels/httptools-0.0.13-cp37-cp37m-linux_x86_64.whl $APP_HOME/wheels/httptools-0.0.13-cp37-cp37m-linux_x86_64.whl
+RUN pip install --user $APP_HOME/wheels/httptools-0.0.13-cp37-cp37m-linux_x86_64.whl
 
 # set the application directory such that the
 # pip install is skipped if requirements don't change
@@ -44,7 +48,8 @@ CMD ["/home/pilot/.local/bin/uvicorn", "app:app", "--host", "0.0.0.0", "--port",
 # https://docs.gunicorn.org/en/stable/run.html
 
 # docker build -t <image_name>:<tag> .
-# docker build -t api20:slim-nonroot .
+# docker build -t fast-api:slim-nonroot .
 
 # docker run -p 127.0.0.1:8050:5000 --restart unless-stopped -d fast-api:slim-nonroot
 # docker run -p 127.0.0.1:8050:5000 fast-api:slim-nonroot
+# docker tag fast-api:slim-nonroot fast-api:stretch-nonroot
