@@ -7,9 +7,8 @@ from falib.const import ust_choices_intraday
 from falib.const import exchange_choices_intraday
 from falib.const import futures_month_chars
 from falib.const import prices_intraday_all_symbols
-from falib.utils import add_missing_keys
-from falib.utils import guess_ust_from_symbol_intraday
-from falib.utils import guess_exchange_from_symbol_intraday
+from falib.utils import eod_ini_logic
+from falib.utils import guess_exchange_and_ust
 from falib.contract import Contract
 from falib.db import engines
 from pydantic import BaseModel
@@ -84,12 +83,7 @@ IntradayPricesParams = namedtuple('IntradayPricesParams', [
 
 async def select_prices_intraday(args: dict):
     """return an executable SQL statement"""
-    if args['dminus'] is None:
-        args['dminus'] = 20
-    if args['exchange'] is None:
-        args['exchange'] = await guess_exchange_from_symbol_intraday(args['symbol'])
-    if args['ust'] is None:
-        args['ust'] = await guess_ust_from_symbol_intraday(args['symbol'])
+    args = await guess_exchange_and_ust(args)
     c = Contract()
     c.symbol = args['symbol']
     c.exchange = args['exchange']
@@ -100,16 +94,7 @@ async def select_prices_intraday(args: dict):
         c.contract_month = args['month']
     if c.contract_month and c.contract_yyyy:
         c.contract = f'''{args['symbol']}{args['month']}{args['year']}'''.lower()
-    if args['enddate'] is None:
-        args['enddate'] = dt.now().strftime('%Y%m%d')
-    if args['startdate'] is None:
-        delta_d = timedelta(days=args['dminus'])
-        args['startdate'] = (dt.strptime(args['enddate'], '%Y%m%d') - delta_d).strftime('%Y-%m-%d')
-        args['enddate'] = dt.strptime(args['enddate'], '%Y%m%d').strftime('%Y-%m-%d')
-    else:
-        args['startdate'] = dt.strptime(args['startdate'], '%Y%m%d').strftime('%Y-%m-%d')
-        args['enddate'] = dt.strptime(args['enddate'], '%Y%m%d').strftime('%Y-%m-%d')
-
+    args = await eod_ini_logic(args)
     schema = await c.compose_2_part_schema_name()
     table = await c.compose_prices_intraday_table_name()
     limit = 260
