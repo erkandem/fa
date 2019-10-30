@@ -55,6 +55,13 @@ class Pulse(BaseModel):
 
 @app.post('/login')
 async def login_route(login: auth_model_input):
+    """
+    https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
+    https://frankie567.github.io/fastapi-users/usage/routes/
+    https://frankie567.github.io/fastapi-users/configuration/full_example/
+    :param login:
+    :return:
+    """
     if validate_user(login):
         token = await create_jwt_token(login)
         return {'access_token': f'{token}'}
