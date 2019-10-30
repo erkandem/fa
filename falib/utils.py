@@ -44,7 +44,7 @@ async def add_missing_keys(keys: [str], args: dict) -> dict:
     return args
 
 
-def eod_ini_logic(args: {}) -> {}:
+async def eod_ini_logic(args: {}) -> {}:
     """
     assure that the `startdate` and `enddate` keys in the returned dictionary are:
         - ready for postgres which expects `YYYY-MM-DD`
