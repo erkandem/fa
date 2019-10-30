@@ -39,12 +39,14 @@ app = fastapi.FastAPI(
 async def startup():
     engines['prices'] = await asyncpg.create_pool(pgc.get_uri('prices_intraday'))
     engines['dev'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_null'))
+    engines['t2'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_tests_db_two'))
 
 
 @app.on_event('shutdown')
 async def shutdown():
     await engines['prices'].close()
     await engines['dev'].close()
+    await engines['t2'].close()
 
 
 class Pulse(BaseModel):
