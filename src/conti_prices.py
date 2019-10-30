@@ -155,20 +155,17 @@ async def eod_continuous_fut_array_sql_delivery(args: dict):
         exchange=args['exchange']
     )
     limit = 365
-    sql = await select_all_from(
-        ContiEodParams(
-            schema=schema,
-            table=table,
-            startdate=args['startdate'],
-            enddate=args['enddate'],
-            order=args['order'],
-            limit=limit
-        )
+    params = ContiEodParams(
+        schema=schema, table=table,
+        startdate=args['startdate'], enddate=args['enddate'],
+        order=args['order'],
+        limit=limit
     )
+    sql = await select_all_from(params)
     return sql
 
 
-async def select_all_from(nt: ContiEodParams):
+async def select_all_from(nt: ContiEodParams) -> str:
     return f'''
        SELECT * 
        FROM {nt.schema}.{nt.table} 
