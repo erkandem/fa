@@ -14,7 +14,7 @@ from datetime import datetime as dt
 from datetime import date
 from typing import List
 import asyncpg
-from fastapi import FastAPI, Query
+import fastapi
 from pydantic import BaseModel
 from falib.db import engines, pgc
 from src.conti_prices import conti_resolver
@@ -27,7 +27,8 @@ from starlette.status import *
 from src.auth import auth_model_input, refresh_model_input, create_jwt_token
 from src.auth import validate_user
 
-app = FastAPI(
+
+app = fastapi.FastAPI(
     title='iVolAPI',
     version='2.0.1',
     description='implied volatility and price data for selected ETFs and futures',
