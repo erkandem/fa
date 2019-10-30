@@ -13,11 +13,31 @@ from falib.utils import eod_ini_logic
 from falib.contract import Contract
 from falib.db import engines
 from pydantic import BaseModel
+import fastapi
+from starlette.status import HTTP_200_OK
+from falib.const import OrderChoices
+
+
+router = fastapi.APIRouter()
 
 RegularFuturesParams = namedtuple(
     'regularaFuturesParams',
     ['schema', 'table', 'startdate', 'enddate', 'order', 'limit'])
 
+
+@router.get('/prices/eod')
+async def get_regular_futures_eod(
+        symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
+        startdate: str = None, enddate: str = None, dminus: int = 30,
+        order: OrderChoices = OrderChoices._asc
+):
+    """prices """
+    args = {
+        'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
+        'startdate': startdate, 'enddate': enddate, 'dminus': dminus, 'order': order.value
+    }
+    content = await resolve_eod_futures(args)
+    return content
 
 async def eod_sql_delivery(args):
     """TODO fix the table name creation which should be handled by the Contract class"""

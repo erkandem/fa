@@ -12,30 +12,19 @@ http://0.0.0.0:5000/prices/intraday?symbol=ewz&startdate=20191001&interval=1&iun
 """
 from datetime import datetime as dt
 from datetime import date
-from typing import List
 import asyncpg
 import fastapi
-from pydantic import BaseModel
-from falib.db import engines, pgc
-from falib.const import OrderChoices
-from falib.const import tteChoices
-from src.conti_prices import conti_resolver
-from src.conti_prices import conti_array_resolver
-from src.conti_prices import ContiEodArray
-from src.conti_prices import FuturesEodConti
-from src.intraday_prices import prices_intraday_content
-from src.intraday_prices import PricesIntraday
-from starlette.status import *
-from src.auth import auth_model_input, refresh_model_input, create_jwt_token
-from src.auth import validate_user
 from starlette.middleware.cors import CORSMiddleware
-from src.pvp import resolve_pvp
-from src.regular_futures import resolve_eod_futures
+
+from falib.db import engines, pgc
+
 from src.atm import router as atm_router
 from src.auth import router as auth_router
 from src.intraday_prices import router as intraday_prices_router
 from src.pvp import router as pvp_router
 from src.conti_prices import router as conti_router
+from src.regular_futures import router as eod_futures_router
+from src.pulse import router as pulse_router
 
 
 app = fastapi.FastAPI(
@@ -48,6 +37,8 @@ app.include_router(auth_router)
 app.include_router(intraday_prices_router)
 app.include_router(pvp_router)
 app.include_router(conti_router)
+app.include_router(eod_futures_router)
+
 
 origins = [
     "http://localhost",
@@ -75,34 +66,6 @@ async def shutdown():
     await engines['dev'].close()
     await engines['t2'].close()
 
-
-class Pulse(BaseModel):
-    date: dt
-
-
-@app.get('/', response_model=Pulse, status_code=HTTP_200_OK)
-async def root():
-    return {'date': dt.now()}
-
-
-@app.get('/pulse', response_model=Pulse)
-async def pulse():
-    return {'date': dt.now()}
-
-
-@app.get('/prices/eod')
-async def get_regular_futures_eod(
-        symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
-        startdate: str = None, enddate: str = None, dminus: int = 30,
-        order: OrderChoices = OrderChoices._asc
-):
-    """prices """
-    args = {
-        'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
-        'startdate': startdate, 'enddate': enddate, 'dminus': dminus, 'order': order.value
-    }
-    content = await resolve_eod_futures(args)
-    return content
 
 if __name__ == '__main__':
     import uvicorn
