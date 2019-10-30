@@ -3,7 +3,7 @@ from datetime import date
 from datetime import timedelta
 from datetime import datetime as dt, timedelta
 from collections import namedtuple
-from falib.const import time_to_var
+from falib.const import time_to_var_func
 from falib.contract import Contract
 from falib.db import engines
 from falib.utils import guess_ust_from_symbol_intraday
@@ -27,7 +27,7 @@ async def dpyd_atm_dispatcher(args):
     c.exchange = args['exchange']
     c.security_type = args['ust']
     delta = args['delta']
-    varname = time_to_var[args['tte']]
+    varname = time_to_var_func(args['tte'])
     #    if args['exchange'] == 'usetf':
     #        args['exchange'] = 'usmw'
     c.target_table_name_base = await c.compose_ivol_table_name_base()
