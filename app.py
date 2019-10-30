@@ -155,7 +155,9 @@ async def get_regular_futures_eod(
     return content
 
 
-@app.get('/ivol/atm')
+@app.get('/ivol/atm',
+         summary='Get ATM implied volatility data'
+)
 async def atm_ivol(
         symbol: str, ust: str = None, exchange: str = None, tte: str = '1m',
         startdate: str = None, enddate: str = None, dminus: int = 30, order: str = 'asc'):
