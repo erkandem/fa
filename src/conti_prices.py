@@ -8,8 +8,8 @@ from pydantic import BaseModel
 
 from falib.const import nth_contract_choices
 from falib.const import conti_futures_choices
-from falib.utils import add_missing_keys
-from falib.utils import guess_exchange_from_symbol_intraday
+from falib.utils import guess_exchange_and_ust
+from falib.utils import eod_ini_logic
 from falib.contract import Contract
 from falib.db import engines
 
@@ -122,17 +122,8 @@ async def create_conti_eod_schema_name(security_type: str, exchange: str) -> str
 
 
 async def eod_continuous_fut_sql_delivery(args):
-    if args['exchange'] is None:
-        args['exchange'] = await guess_exchange_from_symbol_intraday(args['symbol'])
-    delta_d = timedelta(days=args['dminus'])
-    if args['enddate'] is None:
-        args['enddate'] = (dt.now()).strftime('%Y%m%d')
-    elif args['enddate'] is str:
-        args['enddate'] = dt.strptime(args['enddate'], '%Y%m%d').strftime('%Y-%m-%d')
-    if args['startdate'] is None:
-        args['startdate'] = (dt.strptime(args['enddate'], '%Y%m%d') - delta_d).strftime('%Y-%m-%d')
-    elif type(args['startdate']) is str:
-        args['startdate'] = dt.strptime(args['startdate'], '%Y%m%d').strftime('%Y-%m-%d')
+    args = await guess_exchange_and_ust(args)
+    args = await eod_ini_logic(args)
     schema = await create_conti_eod_schema_name(args['ust'], args['exchange'])
     table = await create_conti_eod_table_name(
         symbol=args['symbol'],
@@ -155,17 +146,8 @@ async def eod_continuous_fut_sql_delivery(args):
 
 
 async def eod_continuous_fut_array_sql_delivery(args: dict):
-    args = await add_missing_keys(query_keys, args)
-    args['exchange'] = await guess_exchange_from_symbol_intraday(args['symbol'])
-    delta_d = timedelta(days=args['dminus'])
-    if args['enddate'] is None:
-        args['enddate'] = (dt.now()).strftime('%Y%m%d')
-    elif args['enddate'] is str:
-        args['enddate'] = dt.strptime(args['enddate'], '%Y%m%d').strftime('%Y-%m-%d')
-    if args['startdate'] is None:
-        args['startdate'] = (dt.strptime(args['enddate'], '%Y%m%d') - delta_d).strftime('%Y-%m-%d')
-    elif type(args['startdate']) is str:
-        args['startdate'] = dt.strptime(args['startdate'], '%Y%m%d').strftime('%Y-%m-%d')
+    args = await guess_exchange_and_ust(args)
+    args = await eod_ini_logic(args)
     schema = await create_conti_eod_schema_name(args['ust'], args['exchange'])
     table = await create_conti_eod_array_table_name(
         symbol=args['symbol'],
