@@ -33,6 +33,7 @@ from src.pvp import resolve_pvp
 from src.regular_futures import resolve_eod_futures
 from src.atm import router as atm_router
 from src.auth import router as auth_router
+from src.intraday_prices import router as intraday_prices_router
 
 
 app = fastapi.FastAPI(
@@ -42,6 +43,7 @@ app = fastapi.FastAPI(
 )
 app.include_router(atm_router)
 app.include_router(auth_router)
+app.include_router(intraday_prices_router)
 
 origins = [
     "http://localhost",
@@ -82,22 +84,6 @@ async def root():
 @app.get('/pulse', response_model=Pulse)
 async def pulse():
     return {'date': dt.now()}
-
-
-@app.get('/prices/intraday', status_code=HTTP_200_OK)
-async def conti_eod_prices(
-        symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
-        startdate: str = None, enddate: str = None, dminus: int = 20,
-        interval: int = 1, iunit: str = 'minutes',
-        order: OrderChoices = OrderChoices._asc
-):
-    args = {
-        'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
-        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
-        'interval': interval, 'iunit': iunit, 'order': order.value
-    }
-    content = await prices_intraday_content(args)
-    return content
 
 
 @app.get('/prices/intraday/pvp')

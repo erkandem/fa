@@ -12,6 +12,11 @@ from falib.utils import guess_exchange_and_ust
 from falib.contract import Contract
 from falib.db import engines
 from pydantic import BaseModel
+import fastapi
+from starlette.status import HTTP_200_OK
+from falib.const import OrderChoices
+
+router = fastapi.APIRouter()
 
 prices_intraday_keys = [
     'symbol',
@@ -80,6 +85,21 @@ IntradayPricesParams = namedtuple('IntradayPricesParams', [
     'limit'
 ])
 
+
+@router.get('/prices/intraday', status_code=HTTP_200_OK)
+async def conti_eod_prices(
+        symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
+        startdate: str = None, enddate: str = None, dminus: int = 20,
+        interval: int = 1, iunit: str = 'minutes',
+        order: OrderChoices = OrderChoices._asc
+):
+    args = {
+        'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
+        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
+        'interval': interval, 'iunit': iunit, 'order': order.value
+    }
+    content = await prices_intraday_content(args)
+    return content
 
 async def select_prices_intraday(args: dict):
     """return an executable SQL statement"""
