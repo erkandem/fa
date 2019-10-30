@@ -1,6 +1,10 @@
 from pydantic import BaseModel
 import random
 import string
+import fastapi
+
+router = fastapi.APIRouter()
+
 
 auth_model = {'access_token': str}
 auth_model_output ={'access_token': str}
@@ -19,6 +23,27 @@ user_database = [
     {'id': 0, 'username': 'guru', 'password': 'urug'}
 ]
 authorized_tokens = [{'id': 0, 'token': 'macceroni'}]
+
+
+@router.post('/login')
+async def login_route(login: auth_model_input):
+    """
+    https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
+    https://frankie567.github.io/fastapi-users/usage/routes/
+    https://frankie567.github.io/fastapi-users/configuration/full_example/
+    :param login:
+    :return:
+    """
+    if validate_user(login):
+        token = await create_jwt_token(login)
+        return {'access_token': f'{token}'}
+    else:
+        return {'error': 'login failed'}
+
+
+@router.post('/refresh')
+async def refresh_route(token: refresh_model_input):
+    return {'refreshed_token': f'fresh_{token.token}'}
 
 
 async def validate_user(login: auth_model_input):

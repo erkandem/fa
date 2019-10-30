@@ -32,6 +32,8 @@ from starlette.middleware.cors import CORSMiddleware
 from src.pvp import resolve_pvp
 from src.regular_futures import resolve_eod_futures
 from src.atm import router as atm_router
+from src.auth import router as auth_router
+
 
 app = fastapi.FastAPI(
     title='iVolAPI',
@@ -39,6 +41,7 @@ app = fastapi.FastAPI(
     description='implied volatility and price data for selected ETFs and futures',
 )
 app.include_router(atm_router)
+app.include_router(auth_router)
 
 origins = [
     "http://localhost",
@@ -69,27 +72,6 @@ async def shutdown():
 
 class Pulse(BaseModel):
     date: dt
-
-
-@app.post('/login')
-async def login_route(login: auth_model_input):
-    """
-    https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
-    https://frankie567.github.io/fastapi-users/usage/routes/
-    https://frankie567.github.io/fastapi-users/configuration/full_example/
-    :param login:
-    :return:
-    """
-    if validate_user(login):
-        token = await create_jwt_token(login)
-        return {'access_token': f'{token}'}
-    else:
-        return {'error': 'login failed'}
-
-
-@app.post('/refresh')
-async def refresh_route(token: refresh_model_input):
-    return {'refreshed_token': f'fresh_{token.token}'}
 
 
 @app.get('/', response_model=Pulse, status_code=HTTP_200_OK)
