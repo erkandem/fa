@@ -129,7 +129,7 @@ async def pvp(
 
 
 @app.get('/prices/eod')
-async def pvp(
+async def get_regular_futures_eod(
         symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
         startdate: str = None, enddate: str = None, dminus: int = 30, order: str = 'asc'):
     """prices """
