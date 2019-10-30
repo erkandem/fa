@@ -17,6 +17,8 @@ import asyncpg
 import fastapi
 from pydantic import BaseModel
 from falib.db import engines, pgc
+from falib.const import OrderChoices
+from falib.const import tteChoices
 from src.conti_prices import conti_resolver
 from src.conti_prices import conti_array_resolver
 from src.conti_prices import ContiEodArray
@@ -103,11 +105,13 @@ async def pulse():
 async def conti_eod_prices(
         symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
         startdate: str = None, enddate: str = None, dminus: int = 20,
-        interval: int = 1, iunit: str = 'minutes',  order: str = 'asc'):
+        interval: int = 1, iunit: str = 'minutes',
+        order: OrderChoices = OrderChoices._asc
+):
     args = {
         'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
         'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
-        'interval': interval, 'iunit': iunit, 'order': order
+        'interval': interval, 'iunit': iunit, 'order': order.value
     }
     content = await prices_intraday_content(args)
     return content
@@ -115,9 +119,15 @@ async def conti_eod_prices(
 
 @app.get('/prices/intraday/pvp')
 async def pvp(
-        symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
-        startdate: str = None, enddate: str = None, dminus: int = 20,
-        buckets: int = 100, iunit: str = 'minutes',  order: str = 'asc'):
+        symbol: str, month: int = None, year: int = None,
+        ust: str = None,
+        exchange: str = None,
+        startdate: str = None, enddate: str = None,
+        dminus: int = 20,
+        buckets: int = 100,
+        iunit: str = 'minutes',
+        order: OrderChoices = OrderChoices._asc
+):
     """
     price volume profile. histogram of intraday price data
 
@@ -131,12 +141,12 @@ async def pvp(
     - **dminus**: indicate the number of days back from `enddate`
     - **buckets**: number of intervals in the histogram
     - **iunit**: one of ['minutes', 'hour, 'day', 'week', 'month']
-    - **order**: one of ['asc', 'desc']
+    - **order**:  sorting order with respect to price interval
     """
     args = {
         'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
         'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
-        'buckets': buckets, 'iunit': iunit, 'order': order
+        'buckets': buckets, 'iunit': iunit, 'order': order.value
     }
     content = await resolve_pvp(args)
     return content
@@ -145,27 +155,42 @@ async def pvp(
 @app.get('/prices/eod')
 async def get_regular_futures_eod(
         symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
-        startdate: str = None, enddate: str = None, dminus: int = 30, order: str = 'asc'):
+        startdate: str = None, enddate: str = None, dminus: int = 30,
+        order: OrderChoices = OrderChoices._asc
+):
     """prices """
     args = {
         'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
-        'startdate': startdate, 'enddate': enddate, 'dminus': dminus, 'order': order
+        'startdate': startdate, 'enddate': enddate, 'dminus': dminus, 'order': order.value
     }
     content = await resolve_eod_futures(args)
     return content
 
-from falib.const import tteChoices
 
 @app.get('/ivol/atm',
          summary='Get ATM implied volatility data'
 )
 async def atm_ivol(
-        symbol: str, ust: str = None, exchange: str = None, tte: tteChoices = tteChoices._1m, #tte: str = '1m',
-        startdate: str = None, enddate: str = None, dminus: int = 30, order: str = 'asc'):
-    """prices """
+        symbol: str, ust: str = None, exchange: str = None, tte: tteChoices = tteChoices._1m,
+        startdate: str = None, enddate: str = None, dminus: int = 30,
+        order: OrderChoices = OrderChoices._asc
+):
+    """
+    At-the-money implied volatility time series.
+
+    - **symbol**: example: 'SPY' or 'spy' (case insensitive)
+    - **ust**: underlying security type: ['fut', 'eqt', 'ind', 'fx']
+    - **exchange**: one of: ['usetf', 'cme', 'ice', 'eurex']
+    - **tte**: time until expiry. 1m 3m 12m ...
+    - **startdate**: format: yyyymmdd
+    - **enddate**: format: yyyymmdd
+    - **dminus**: indicate the number of days back from `enddate`
+    - **order**:  sorting order with respect to price interval
+    """
     args = {
         'symbol': symbol, 'ust': ust, 'exchange': exchange, 'tte': tte._value_,
-        'startdate': startdate, 'enddate': enddate, 'dminus': dminus, 'order': order
+        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
+        'order': order.value
     }
     content = await resolve_atm_ivol(args)
     return content
@@ -174,11 +199,14 @@ async def atm_ivol(
 @app.get('/prices/eod/conti')
 async def conti_eod_prices(
         symbol: str, ust: str = 'fut', exchange: str = None, nthcontract: int = 1,
-        startdate: str = None, enddate: str = None, dminus:  int = 20, order: str = 'asc'):
+        startdate: str = None, enddate: str = None, dminus:  int = 20,
+        order: OrderChoices = OrderChoices._asc
+):
     args = {
         'symbol': symbol, 'ust': ust, 'exchange': exchange, 'nthcontract': nthcontract,
         'startdate': startdate, 'enddate': enddate,
-        'dminus': dminus, 'order': order, 'array': 0
+        'dminus': dminus,
+        'order': order.value, 'array': 0
     }
     content = await conti_resolver(args)
     return content
@@ -187,10 +215,13 @@ async def conti_eod_prices(
 @app.get('/prices/eod/conti/array')
 async def conti_eod_prices(
     symbol: str, ust: str = 'fut', exchange: str = None,
-    startdate: str = None, enddate: str = None, dminus:  int = 20, order: str = 'asc'):
+    startdate: str = None, enddate: str = None, dminus:  int = 20,
+    order: OrderChoices = OrderChoices._asc
+):
     args = {
         'symbol': symbol, 'ust': ust, 'exchange': exchange,
-        'startdate': startdate, 'enddate': enddate, 'dminus': dminus, 'order': order,
+        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
+        'order': order.value,
         'array': 1
     }
     content = await conti_array_resolver(args)
