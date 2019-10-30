@@ -4,10 +4,52 @@ from falib.db import engines
 from falib.utils import guess_exchange_and_ust
 from falib.utils import eod_ini_logic
 from falib.contract import Contract
+import fastapi
+from starlette.status import HTTP_200_OK
+from falib.const import OrderChoices
+
+router = fastapi.APIRouter()
+
+
+@router.get('/prices/intraday/pvp')
+async def pvp(
+        symbol: str, month: int = None, year: int = None,
+        ust: str = None,
+        exchange: str = None,
+        startdate: str = None, enddate: str = None,
+        dminus: int = 20,
+        buckets: int = 100,
+        iunit: str = 'minutes',
+        order: OrderChoices = OrderChoices._asc
+):
+    """
+    price volume profile. histogram of intraday price data
+
+    - **symbol**: example: 'SPY' or 'spy' (case insensitive)
+    - **month**: only for futures - one of ['F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z']
+    - **year**: only for futures - example: 2019
+    - **ust**: underlying security type: ['fut', 'eqt', 'ind', 'fx']
+    - **exchange**: one of: ['usetf', 'cme', 'ice', 'eurex']
+    - **startdate**: format: yyyymmdd
+    - **enddate**: format: yyyymmdd
+    - **dminus**: indicate the number of days back from `enddate`
+    - **buckets**: number of intervals in the histogram
+    - **iunit**: one of ['minutes', 'hour, 'day', 'week', 'month']
+    - **order**:  sorting order with respect to price interval
+    """
+    args = {
+        'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
+        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
+        'buckets': buckets, 'iunit': iunit, 'order': order.value
+    }
+    content = await resolve_pvp(args)
+    return content
+
 
 pvpQueryParams = namedtuple(
     'pvpQueryParams',
     ['schema', 'table', 'startdate', 'enddate', 'buckets'])
+
 
 async def pvp_query(args):
     """start_date end_date symbol c_month c_year exchange ust"""

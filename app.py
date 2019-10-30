@@ -34,6 +34,7 @@ from src.regular_futures import resolve_eod_futures
 from src.atm import router as atm_router
 from src.auth import router as auth_router
 from src.intraday_prices import router as intraday_prices_router
+from src.pvp import router as pvp_router
 
 
 app = fastapi.FastAPI(
@@ -44,6 +45,7 @@ app = fastapi.FastAPI(
 app.include_router(atm_router)
 app.include_router(auth_router)
 app.include_router(intraday_prices_router)
+app.include_router(pvp_router)
 
 origins = [
     "http://localhost",
@@ -84,41 +86,6 @@ async def root():
 @app.get('/pulse', response_model=Pulse)
 async def pulse():
     return {'date': dt.now()}
-
-
-@app.get('/prices/intraday/pvp')
-async def pvp(
-        symbol: str, month: int = None, year: int = None,
-        ust: str = None,
-        exchange: str = None,
-        startdate: str = None, enddate: str = None,
-        dminus: int = 20,
-        buckets: int = 100,
-        iunit: str = 'minutes',
-        order: OrderChoices = OrderChoices._asc
-):
-    """
-    price volume profile. histogram of intraday price data
-
-    - **symbol**: example: 'SPY' or 'spy' (case insensitive)
-    - **month**: only for futures - one of ['F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z']
-    - **year**: only for futures - example: 2019
-    - **ust**: underlying security type: ['fut', 'eqt', 'ind', 'fx']
-    - **exchange**: one of: ['usetf', 'cme', 'ice', 'eurex']
-    - **startdate**: format: yyyymmdd
-    - **enddate**: format: yyyymmdd
-    - **dminus**: indicate the number of days back from `enddate`
-    - **buckets**: number of intervals in the histogram
-    - **iunit**: one of ['minutes', 'hour, 'day', 'week', 'month']
-    - **order**:  sorting order with respect to price interval
-    """
-    args = {
-        'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
-        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
-        'buckets': buckets, 'iunit': iunit, 'order': order.value
-    }
-    content = await resolve_pvp(args)
-    return content
 
 
 @app.get('/prices/eod')
