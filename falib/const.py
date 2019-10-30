@@ -4,9 +4,9 @@
 from enum import Enum
 
 
-def extracted_values_from_enum():
+def get_values(enum_obj):
     """create vanilla list from enum values"""
-    return [elm.value for elm in tteChoices]
+    return [elm.value for elm in enum_obj]
 
 
 def enum_class_string(obj_list, classname=None):
@@ -400,27 +400,27 @@ class futuresMonthChars(str, Enum):
     _x = 'x'
     _z = 'z'
 
-futures_month_chars = extracted_values_from_enum(futuresMonthChars)
-prices_etf_sym_choices = extracted_values_from_enum(pricesEtfSymChoices)
-conti_futures_choices = extracted_values_from_enum(contiFuturesChoices)
-nth_contract_choices = extracted_values_from_enum(nthContractChoices)
-iv_eurex_choices_ind = extracted_values_from_enum(iVolEurexChoicesInd)
-iv_eurex_choices_fut = extracted_values_from_enum(iVolEurexChoicesFut)
-iv_etf_choices = extracted_values_from_enum(iVolEtfChoices)
-ust_choices = extracted_values_from_enum(ustChoices)
-ust_choices_intraday = extracted_values_from_enum(ustChoicesIntraday)
-tte_choices = extracted_values_from_enum(tteChoices)
-exchange_choices = extracted_values_from_enum(ExchangeChoices)
-exchange_choices_intraday = extracted_values_from_enum(ExchangeChoicesIntraday)
-iv_cme_choices = extracted_values_from_enum(iVolCmeChoices)
-intraday_prices_cme_sym_choices = extracted_values_from_enum(intradayPricesCmeSymChoices)
-delta_choices = extracted_values_from_enum(deltaChoices)
-offset_steps = extracted_values_from_enum(offsetSteps)
-iv_eurex_choices = extracted_values_from_enum(iVolEurexChoices)
-iv_ice_choices = extracted_values_from_enum(iVolChoicesIce)
-iv_all_sym_choices = iv_etf_choices + iv_cme_choices + iv_eurex_choices + iv_ice_choices
-prices_fx_sym_choices = extracted_values_from_enum(pricesFxSymChoices)
+futures_month_chars = get_values(futuresMonthChars)
+prices_etf_sym_choices = get_values(pricesEtfSymChoices)
+conti_futures_choices = get_values(contiFuturesChoices)
+nth_contract_choices = get_values(nthContractChoices)
+iv_eurex_choices_ind = get_values(iVolEurexChoicesInd)
+iv_eurex_choices_fut = get_values(iVolEurexChoicesFut)
+iv_etf_choices = get_values(iVolEtfChoices)
+ust_choices = get_values(ustChoices)
+ust_choices_intraday = get_values(ustChoicesIntraday)
+tte_choices = get_values(tteChoices)
+exchange_choices = get_values(ExchangeChoices)
+exchange_choices_intraday = get_values(ExchangeChoicesIntraday)
+iv_cme_choices = get_values(iVolCmeChoices)
+intraday_prices_cme_sym_choices = get_values(intradayPricesCmeSymChoices)
+delta_choices = get_values(deltaChoices)
+offset_steps = get_values(offsetSteps)
+iv_eurex_choices = get_values(iVolEurexChoices)
+iv_ice_choices = get_values(iVolChoicesIce)
+prices_fx_sym_choices = get_values(pricesFxSymChoices)
 
+iv_all_sym_choices = iv_etf_choices + iv_cme_choices + iv_eurex_choices + iv_ice_choices
 
 
 cme_arg_list = [
