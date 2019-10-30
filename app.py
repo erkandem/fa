@@ -26,12 +26,25 @@ from src.intraday_prices import PricesIntraday
 from starlette.status import *
 from src.auth import auth_model_input, refresh_model_input, create_jwt_token
 from src.auth import validate_user
+from starlette.middleware.cors import CORSMiddleware
 
 
 app = fastapi.FastAPI(
     title='iVolAPI',
     version='2.0.1',
     description='implied volatility and price data for selected ETFs and futures',
+)
+
+origins = [
+    "http://localhost",
+    "http://localhost:8080",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
