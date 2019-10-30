@@ -32,7 +32,6 @@ class Validator:
     @staticmethod
     async def nth_contract(x): return x in nth_contract_choices
 
-
 v = Validator()
 
 query_keys = [
@@ -47,40 +46,40 @@ query_keys = [
 
 
 class ContiEodQuery(BaseModel):
-    symbol = str
-    ust = str
-    exchange = str
-    nthcontract = int
-    startdate = date
-    enddate = date
-    dminus = int
-    order = str
+    symbol: str
+    ust: str
+    exchange: str
+    nthcontract: int
+    startdate: date
+    enddate: date
+    dminus: int
+    order: str
 
 
 class FuturesEodConti(BaseModel):
-    dt = dt
-    open = float
-    high = float
-    low = float
-    close = float
-    volume = int
-    oi = int
+    dt: dt
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: int
+    oi: int
 
 
 class ContiEodArray(BaseModel):
-    dt = dt
-    c1 = float
-    c2 = float
-    c3 = float
-    c4 = float
-    c5 = float
-    c6 = float
-    c7 = float
-    c8 = float
-    c9 = float
-    c10 = float
-    c11 = float
-    c12 = float
+    dt: dt
+    c1: float
+    c2: float
+    c3: float
+    c4: float
+    c5: float
+    c6: float
+    c7: float
+    c8: float
+    c9: float
+    c10: float
+    c11: float
+    c12: float
 
 
 async def create_conti_eod_table_name(

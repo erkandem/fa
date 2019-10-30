@@ -24,12 +24,13 @@ from src.conti_prices import FuturesEodConti
 from src.intraday_prices import prices_intraday_content
 from src.intraday_prices import PricesIntraday
 from starlette.status import *
+from src.auth import auth_model_input, refresh_model_input, create_jwt_token
+from src.auth import validate_user
 
 app = FastAPI(
     title='iVolAPI',
     version='2.0.1',
     description='implied volatility and price data for selected ETFs and futures',
-
 )
 
 
@@ -47,6 +48,20 @@ async def shutdown():
 
 class Pulse(BaseModel):
     date: dt
+
+
+@app.post('/login')
+async def login_route(login: auth_model_input):
+    if validate_user(login):
+        token = await create_jwt_token(login)
+        return {'access_token': f'{token}'}
+    else:
+        return {'error': 'login failed'}
+
+
+@app.post('/refresh')
+async def refresh_route(token: refresh_model_input):
+    return {'refreshed_token': f'fresh_{token.token}'}
 
 
 @app.get('/', response_model=Pulse, status_code=HTTP_200_OK)
@@ -73,7 +88,7 @@ async def conti_eod_prices(
     return content
 
 
-@app.get('/prices/eod/conti', status_code=HTTP_200_OK)
+@app.get('/prices/eod/conti')
 async def conti_eod_prices(
         symbol: str, ust: str = 'fut', exchange: str = None, nthcontract: int = 1,
         startdate: str = None, enddate: str = None, dminus:  int = 20, order: str = 'asc'):

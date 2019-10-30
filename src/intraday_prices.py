@@ -30,27 +30,27 @@ prices_intraday_keys = [
 
 
 class PricesIntraday(BaseModel):
-    dt = dt
-    tz = int
-    open = float
-    high = float
-    low = float
-    close = float
-    volume = int
+    dt: dt
+    tz: int
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: int
 
 
 class PricesIntradayQuery(BaseModel):
-    symbol = str
-    month = str
-    year = int
-    ust = str
-    exchange = str
-    startdate = date
-    enddate = date
-    dminus = int
-    interval = int
-    iunit = str
-    order = str
+    symbol: str
+    month: str
+    year: int
+    ust: str
+    exchange: str
+    startdate: date
+    enddate: date
+    dminus: int
+    interval: int
+    iunit: str
+    order: str
 
 
 class Validator:
