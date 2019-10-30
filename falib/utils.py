@@ -6,6 +6,14 @@ from falib.const import iv_ice_choices
 from falib.const import intraday_prices_cme_sym_choices
 
 
+async def guess_exchange_and_ust(args: {}) -> {}:
+    if args['exchange'] is None:
+        args['exchange'] = await guess_exchange_from_symbol_intraday(args['symbol'])
+    if args['ust'] is None:
+        args['ust'] = await guess_ust_from_symbol_intraday(args['symbol'])
+    return args
+
+
 async def guess_exchange_from_symbol_intraday(symbol: str) -> str:
     mapping = {
         'cme': intraday_prices_cme_sym_choices,
