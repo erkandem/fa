@@ -138,7 +138,7 @@ async def __cast_to_sql(args: IntradayPricesParams, *, sc_flag: bool):
     return sql
 
 
-async def __cast_to_sql_a(nt: IntradayPricesParams):
+async def __cast_to_sql_a(nt: IntradayPricesParams) -> str:
     """ case, where we truncate personally"""
     return f'''
     SELECT (to_timestamp(floor((extract('epoch' FROM dt) / {nt.multi})) * {nt.multi}) AT TIME ZONE 'UTC')  AS dt, 
@@ -156,7 +156,7 @@ async def __cast_to_sql_a(nt: IntradayPricesParams):
     '''
 
 
-async def __cast_to_sql_b(nt: IntradayPricesParams):
+async def __cast_to_sql_b(nt: IntradayPricesParams) -> str:
     """case, where the database takes care truncating by date"""
     return f'''
         SELECT   date_trunc('{nt.interval}', dt)                    AS dt, 
