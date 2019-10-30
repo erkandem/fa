@@ -28,11 +28,12 @@ authorized_tokens = [{'id': 0, 'token': 'macceroni'}]
 @router.post('/login')
 async def login_route(login: auth_model_input):
     """
-    https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
-    https://frankie567.github.io/fastapi-users/usage/routes/
-    https://frankie567.github.io/fastapi-users/configuration/full_example/
-    :param login:
-    :return:
+    [fastapi security](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/)
+
+    [user management](https://frankie567.github.io/fastapi-users/)
+
+    [user management example](https://frankie567.github.io/fastapi-users/configuration/full_example/)
+
     """
     if validate_user(login):
         token = await create_jwt_token(login)

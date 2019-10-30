@@ -31,7 +31,9 @@ app = fastapi.FastAPI(
     title='iVolAPI',
     version='2.0.1',
     description='implied volatility and price data for selected ETFs and futures',
+    docs_url='/'
 )
+app.include_router(pulse_router)
 app.include_router(atm_router)
 app.include_router(auth_router)
 app.include_router(intraday_prices_router)
