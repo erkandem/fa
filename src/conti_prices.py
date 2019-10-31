@@ -1,20 +1,19 @@
-from typing import List
-
 from collections import namedtuple
 from datetime import datetime as dt
 from datetime import date
 from datetime import timedelta
+from typing import List
+import fastapi
 from pydantic import BaseModel
-
+from starlette.status import HTTP_200_OK
+from falib.contract import Contract
+from falib.const import OrderChoices
 from falib.const import nth_contract_choices
 from falib.const import conti_futures_choices
 from falib.utils import guess_exchange_and_ust
 from falib.utils import eod_ini_logic
-from falib.contract import Contract
 from falib.db import engines
-import fastapi
-from starlette.status import HTTP_200_OK
-from falib.const import OrderChoices
+
 
 router = fastapi.APIRouter()
 
