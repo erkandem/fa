@@ -32,5 +32,6 @@ class PostgresConfig:
 pgc = PostgresConfig()
 engines = {
     'prices': None,
-    'dev': None
+    'dev': None,
+    't2': None
 }
