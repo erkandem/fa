@@ -1,17 +1,16 @@
+from collections import namedtuple
 from datetime import datetime as dt
 from datetime import date
 from datetime import timedelta
 from datetime import datetime as dt, timedelta
-from collections import namedtuple
-from falib.const import time_to_var_func
+import fastapi
 from falib.contract import Contract
-from falib.db import engines
-from falib.utils import guess_ust_from_symbol_intraday
-from falib.utils import guess_exchange_and_ust
-from falib.utils import eod_ini_logic
+from falib.const import time_to_var_func
 from falib.const import OrderChoices
 from falib.const import tteChoices
-import fastapi
+from falib.utils import guess_exchange_and_ust
+from falib.utils import eod_ini_logic
+from falib.db import engines
 
 router = fastapi.APIRouter()
 
