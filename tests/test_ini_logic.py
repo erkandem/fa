@@ -3,7 +3,7 @@
 """
 from datetime import datetime as dt
 from falib.utils import eod_ini_logic
-
+import asyncio
 
 def test_ini_logic():
     startdate = '20190905'
@@ -11,7 +11,7 @@ def test_ini_logic():
         'symbol': 'ewz', 'month': 'f', 'year': 2019, 'ust': 'eqt', 'exchange': 'usetf',
         'startdate': startdate, 'enddate': '20191005', 'dminus': 20, 'order': 'asc'
     }
-    result = eod_ini_logic(args)
+    result = asyncio.run(eod_ini_logic(args))
     check_me = dt.strptime(result['startdate'], '%Y-%m-%d').strftime('%Y%m%d')
     assert check_me == startdate
 
@@ -22,7 +22,7 @@ def test_ini_logic_2():
         'symbol': 'ewz', 'month': 'f', 'year': 2019, 'ust': 'eqt', 'exchange': 'usetf',
         'startdate': startdate, 'enddate': '20191005', 'dminus': 20, 'order': 'asc'
     }
-    result = eod_ini_logic(args)
+    result = asyncio.run(eod_ini_logic(args))
     check_me = dt.strptime(result['startdate'], '%Y-%m-%d')
     assert type(check_me.strftime('%Y%m%d')) is str
 
@@ -34,7 +34,7 @@ def test_ini_logic_3():
         'symbol': 'ewz', 'month': 'f', 'year': 2019, 'ust': 'eqt', 'exchange': 'usetf',
         'startdate': startdate, 'enddate': enddate, 'dminus': 20, 'order': 'asc'
     }
-    result = eod_ini_logic(args)
+    result = asyncio.run(eod_ini_logic(args))
     check_me = dt.strptime(result['startdate'], '%Y-%m-%d')
     check_me2 = dt.strptime(result['enddate'], '%Y-%m-%d')
     assert type(check_me.strftime('%Y%m%d')) is str
@@ -49,7 +49,7 @@ def test_ini_logic_4():
         'symbol': 'ewz', 'month': 'f', 'year': 2019, 'ust': 'eqt', 'exchange': 'usetf',
         'startdate': startdate, 'enddate': enddate, 'dminus': 20, 'order': 'asc'
     }
-    result = eod_ini_logic(args)
+    result = asyncio.run(eod_ini_logic(args))
     check_me = dt.strptime(result['startdate'], '%Y-%m-%d')
     check_me2 = dt.strptime(result['enddate'], '%Y-%m-%d')
     assert type(check_me.strftime('%Y%m%d')) is str
@@ -64,7 +64,7 @@ def test_ini_logic_5():
         'symbol': 'ewz', 'month': 'f', 'year': 2019, 'ust': 'eqt', 'exchange': 'usetf',
         'startdate': startdate, 'enddate': enddate, 'dminus': 20, 'order': 'asc'
     }
-    result = eod_ini_logic(args)
+    result = asyncio.run(eod_ini_logic(args))
     check_me = dt.strptime(result['startdate'], '%Y-%m-%d')
     check_me2 = dt.strptime(result['enddate'], '%Y-%m-%d')
     assert type(check_me.strftime('%Y%m%d')) is str
@@ -79,7 +79,7 @@ def test_ini_logic_6():
         'symbol': 'ewz', 'month': 'f', 'year': 2019, 'ust': 'eqt', 'exchange': 'usetf',
         'startdate': startdate, 'enddate': enddate, 'dminus': 20, 'order': 'asc'
     }
-    result = eod_ini_logic(args)
+    result = asyncio.run(eod_ini_logic(args))
     check_me = dt.strptime(result['startdate'], '%Y-%m-%d')
     check_me2 = dt.strptime(result['enddate'], '%Y-%m-%d')
     assert type(check_me.strftime('%Y%m%d')) is str
