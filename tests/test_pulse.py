@@ -14,9 +14,4 @@ def test_pulse():
     assert list(response.json()) == ['date']
 
 
-def test_root():
-    response = client.get('/')
-    assert response.status_code == 200
-    assert list(response.json()) == ['date']
-
 
