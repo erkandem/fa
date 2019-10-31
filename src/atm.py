@@ -55,14 +55,15 @@ async def dpyd_atm_dispatcher(args):
     limit = 350
     args = await guess_exchange_and_ust(args)
     args = await eod_ini_logic(args)
+    #if args['exchange'] == 'usetf':
+    #    args['exchange'] = 'usmw'
     c = Contract()
     c.symbol = args['symbol']
     c.exchange = args['exchange']
     c.security_type = args['ust']
     delta = args['delta']
     varname = time_to_var_func(args['tte'])
-    #    if args['exchange'] == 'usetf':
-    #        args['exchange'] = 'usmw'
+
     c.target_table_name_base = await c.compose_ivol_table_name_base()
     schema = await c.compose_2_part_schema_name()
     table = await c.compose_ivol_final_table_name(delta)
