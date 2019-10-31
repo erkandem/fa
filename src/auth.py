@@ -15,6 +15,7 @@ class auth_model_input(BaseModel):
     username: str
     password: str
 
+
 class refresh_model_input(BaseModel):
     token: str
 
