@@ -29,6 +29,14 @@ def enum_class_string(obj_list, classname=None):
     return f'{header}\n    {members}'
 
 
+class IntervalUnits(str, Enum):
+    _minutes = 'minutes'
+    _hour = 'hour'
+    _day = 'day'
+    _week = 'week'
+    _month = 'month'
+
+
 class tteChoices(str, Enum):
     _10d = '10d'
     _20d = '20d'
