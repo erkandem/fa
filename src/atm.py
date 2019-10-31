@@ -2,7 +2,6 @@ from collections import namedtuple
 from datetime import datetime as dt
 from datetime import date
 from datetime import timedelta
-from datetime import datetime as dt, timedelta
 import fastapi
 from falib.contract import Contract
 from falib.const import time_to_var_func
