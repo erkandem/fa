@@ -1,12 +1,14 @@
 from collections import namedtuple
-from datetime import datetime as dt, timedelta
-from falib.db import engines
-from falib.utils import guess_exchange_and_ust
-from falib.utils import eod_ini_logic
-from falib.contract import Contract
+from datetime import datetime as dt
+from datetime import timedelta
 import fastapi
 from starlette.status import HTTP_200_OK
+from falib.contract import Contract
 from falib.const import OrderChoices
+from falib.utils import guess_exchange_and_ust
+from falib.utils import eod_ini_logic
+from falib.db import engines
+
 
 router = fastapi.APIRouter()
 
