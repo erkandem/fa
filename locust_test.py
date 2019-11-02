@@ -5,7 +5,7 @@ import random
 from datetime import datetime as dt, timedelta
 from locust import HttpLocust, TaskSet, task
 from tests.sample_user_agents import ua_strings
-from falib.const import prices_etf_sym_choices
+from src.const import prices_etf_sym_choices
 
 
 local_host = 'http://localhost:5000'

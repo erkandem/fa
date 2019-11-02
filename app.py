@@ -16,7 +16,7 @@ import asyncpg
 import fastapi
 from starlette.middleware.cors import CORSMiddleware
 
-from falib.db import engines, pgc
+from src.db import engines, pgc
 
 from src.atm import router as atm_router
 from src.auth import router as auth_router

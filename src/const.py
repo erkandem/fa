@@ -9,7 +9,7 @@ def get_values(enum_obj):
     return [elm.value for elm in enum_obj]
 
 
-def enum_class_string(obj_list, classname=None):
+def enum_class_string(obj_list, classname=None):  # pragma: no cover
     """ used during code migration from restplus to fast-api """
     if classname is None:
         classname = ''
