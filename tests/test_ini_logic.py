@@ -5,6 +5,7 @@ from datetime import datetime as dt
 from falib.utils import eod_ini_logic
 import asyncio
 
+
 def test_ini_logic():
     startdate = '20190905'
     args = {
