@@ -9,7 +9,7 @@ args = {
 import asyncio
 import pytest
 import random
-from falib import const
+from src import const
 from src import intraday_prices as tm
 
 

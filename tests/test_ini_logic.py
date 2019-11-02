@@ -2,7 +2,7 @@
 
 """
 from datetime import datetime as dt
-from falib.utils import eod_ini_logic
+from src.utils import eod_ini_logic
 import asyncio
 
 
@@ -87,3 +87,13 @@ def test_ini_logic_6():
     assert type(check_me2.strftime('%Y%m%d')) is str
     assert check_me2 >= check_me
 
+
+def test_ini_logic_7():
+    startdate = '20190520'
+    enddate = '20190519'
+    args = {
+        'symbol': 'ewz', 'month': 'f', 'year': 2019, 'ust': 'eqt', 'exchange': 'usetf',
+        'startdate': startdate, 'enddate': enddate, 'dminus': None, 'order': 'asc'
+    }
+    result = asyncio.run(eod_ini_logic(args))
+    assert type(result['dminus']) is int

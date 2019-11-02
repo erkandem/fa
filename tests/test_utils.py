@@ -1,5 +1,5 @@
-from falib import utils
-import  asyncio
+from src import utils
+import asyncio
 import pytest
 
 
@@ -35,3 +35,8 @@ class TestValidators:
         args = {'ust': 'some_str', 'exchange': None}
         with pytest.raises(ValueError):
             asyncio.run(utils.ensure_ust_and_exchange_are_set(args))
+
+    def test_nothing_touched(self):
+        args = {'ust': 'some_str', 'exchange': 'some_str'}
+        asyncio.run(utils.guess_exchange_and_ust(args))
+
