@@ -25,6 +25,8 @@ from src.pvp import router as pvp_router
 from src.conti_prices import router as conti_router
 from src.regular_futures import router as eod_futures_router
 from src.pulse import router as pulse_router
+from fastapi import Depends, FastAPI
+from fastapi.security import OAuth2PasswordBearer
 
 
 app = fastapi.FastAPI(
@@ -33,6 +35,7 @@ app = fastapi.FastAPI(
     description='implied volatility and price data for selected ETFs and futures',
     docs_url='/'
 )
+
 app.include_router(pulse_router)
 app.include_router(atm_router)
 app.include_router(auth_router)
@@ -42,9 +45,11 @@ app.include_router(conti_router)
 app.include_router(eod_futures_router)
 
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/token')
+
 origins = [
-    "http://localhost",
-    "http://localhost:8080",
+    'ttp://localhost',
+    'http://localhost:8080',
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -67,6 +72,11 @@ async def shutdown():
     await engines['prices'].close()
     await engines['dev'].close()
     await engines['t2'].close()
+
+
+@app.get('/items/')
+async def read_items(token: str = Depends(oauth2_scheme)):
+    return {'token': token}
 
 
 if __name__ == '__main__':

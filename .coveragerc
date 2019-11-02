@@ -1,0 +1,6 @@
+[run]
+# coverage of e.g. if-else statements
+branch = True
+[html]
+# (string, default “htmlcov”): where to write the HTML report files.
+directory = htmlcov
