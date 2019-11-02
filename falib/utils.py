@@ -6,6 +6,21 @@ from falib.const import iv_ice_choices
 from falib.const import intraday_prices_cme_sym_choices
 
 
+async def ensure_ust_and_exchange_are_set(args: {}):
+    await ensure_exchange_is_set(args)
+    await ensure_security_type_is_set(args)
+
+
+async def ensure_exchange_is_set(args: {}):
+    if args['exchange'] is None:
+        raise ValueError('Exchange was not set')
+
+
+async def ensure_security_type_is_set(args: {}):
+    if args['ust'] is None:
+        raise ValueError('ust was not set')
+
+
 async def guess_exchange_and_ust(args: {}) -> {}:
     if args['exchange'] is None:
         args['exchange'] = await guess_exchange_from_symbol_intraday(args['symbol'])
