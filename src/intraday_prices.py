@@ -32,7 +32,7 @@ prices_intraday_keys = [
  ]
 
 
-class PricesIntraday(BaseModel):
+class PricesIntradayPy(BaseModel):
     dt: dt
     tz: int
     open: float
@@ -42,7 +42,7 @@ class PricesIntraday(BaseModel):
     volume: int
 
 
-class PricesIntradayQuery(BaseModel):
+class PricesIntradayQueryPy(BaseModel):
     symbol: str
     month: str
     year: int
@@ -76,12 +76,13 @@ class Validator:
 v = Validator()
 
 
-IntradayPricesParams = namedtuple('IntradayPricesParams', [
-    'schema', 'table',
-    'interval', 'multi',
-    'startdate', 'enddate',
-    'order',
-    'limit'
+IntradayPricesParams = namedtuple(
+    'IntradayPricesParams', [
+        'schema', 'table',
+        'iunit', 'multi',
+        'startdate', 'enddate',
+        'order',
+        'limit'
 ])
 
 
@@ -99,6 +100,7 @@ async def conti_eod_prices(
     }
     content = await prices_intraday_content(args)
     return content
+
 
 async def select_prices_intraday(args: dict):
     """return an executable SQL statement"""
@@ -118,7 +120,7 @@ async def select_prices_intraday(args: dict):
     table = await c.compose_prices_intraday_table_name()
     limit = 260
     multi = 60
-    interval = args['iunit']
+    iunit = args['iunit']
 
     sc_flag = False
     if args['interval'] == 1:
@@ -138,27 +140,27 @@ async def select_prices_intraday(args: dict):
     sql_params = IntradayPricesParams(
         schema=schema,
         table=table,
-        interval=interval,
+        iunit=iunit,
         multi=multi,
         startdate=args['startdate'],
         enddate=args['enddate'],
         order=args['order'],
         limit=limit
     )
-    sql_code = await __cast_to_sql(sql_params, sc_flag=sc_flag)
+    sql_code = await _cast_to_sql(sql_params, sc_flag=sc_flag)
     return sql_code
 
 
-async def __cast_to_sql(args: IntradayPricesParams, *, sc_flag: bool):
+async def _cast_to_sql(args: IntradayPricesParams, *, sc_flag: bool):
     if sc_flag:
-        sql = await __cast_to_sql_b(args)
+        sql = await _cast_to_sql_b(args)
     else:
-        sql = await __cast_to_sql_a(args)
+        sql = await _cast_to_sql_a(args)
     return sql
 
 
-async def __cast_to_sql_a(nt: IntradayPricesParams) -> str:
-    """ case, where we truncate personally"""
+async def _cast_to_sql_a(nt: IntradayPricesParams) -> str:
+    """case, where we truncate low level by converting datetime to epochs"""
     return f'''
     SELECT (to_timestamp(floor((extract('epoch' FROM dt) / {nt.multi})) * {nt.multi}) AT TIME ZONE 'UTC')  AS dt, 
            MAX(tz_offset)                                  AS tz, 
@@ -175,10 +177,10 @@ async def __cast_to_sql_a(nt: IntradayPricesParams) -> str:
     '''
 
 
-async def __cast_to_sql_b(nt: IntradayPricesParams) -> str:
-    """case, where the database takes care truncating by date"""
+async def _cast_to_sql_b(nt: IntradayPricesParams) -> str:
+    """case, where the database takes care of truncating data by date"""
     return f'''
-        SELECT   date_trunc('{nt.interval}', dt)                    AS dt, 
+        SELECT   date_trunc('{nt.iunit}', dt)                    AS dt, 
                  MAX(tz_offset)                                  AS tz, 
                  (array_agg(open_value ORDER BY dt ASC))[1]      AS open, 
                  MAX(high_value)                                 AS high, 
@@ -187,7 +189,7 @@ async def __cast_to_sql_b(nt: IntradayPricesParams) -> str:
                  SUM(volume_value)                               AS volume 
         FROM     {nt.schema}.{nt.table} 
         WHERE    dt BETWEEN '{nt.startdate}' AND '{nt.enddate}' 
-        GROUP BY date_trunc('{nt.interval}', dt) 
+        GROUP BY date_trunc('{nt.iunit}', dt) 
         ORDER BY dt  {nt.order} 
         LIMIT    {nt.limit}; 
          '''
