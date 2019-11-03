@@ -1,16 +1,25 @@
-'''
-args = {
-    'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
-    'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
-    'interval': interval, 'iunit': iunit, 'order': order.value
-}
-'''
-
 import asyncio
 import pytest
 import random
 from src import const
 from src import intraday_prices as tm
+
+
+def get_not_valid_value(valid_integers: [int]):
+    k = 0
+    is_valid = True
+    not_valid_int = None
+    while is_valid and k < 50:
+        suggestion = random.randint(0, 60)
+        if suggestion in valid_integers:
+            k += 1
+            continue
+        else:
+            is_valid = False
+            not_valid_int = suggestion
+    if not_valid_int is None:
+        raise ValueError
+    return not_valid_int
 
 
 class TestSelectPricesIntraday:
@@ -19,34 +28,18 @@ class TestSelectPricesIntraday:
 
 
 class TestValidator:
-    def test_interval_1(self):
+    def test_intervals(self):
+        valid_values = [1, 2, 5, 10, 15]
+        not_valid_value = get_not_valid_value(valid_values)
         v = tm.Validator()
-        assert asyncio.run(v.interval(1))
-
-    def test_interval_2(self):
-        v = tm.Validator()
-        assert asyncio.run(v.interval(2))
-
-    def test_interval_5(self):
-        v = tm.Validator()
-        assert asyncio.run(v.interval(5))
-
-    def test_interval_10(self):
-        v = tm.Validator()
-        assert asyncio.run(v.interval(10))
-
-    def test_interval_15(self):
-        v = tm.Validator()
-        assert asyncio.run(v.interval(15))
+        assert all(asyncio.run(v.interval(x)) for x in valid_values)
+        assert not asyncio.run(v.interval(not_valid_value))
 
 
 class TestOrder:
     def test_order_asc(self):
         v = tm.Validator()
         assert asyncio.run(v.order('asc'))
-
-    def test_order_desc(self):
-        v = tm.Validator()
         assert asyncio.run(v.order('desc'))
 
 
@@ -90,6 +83,7 @@ class TestExchange:
         test_exchange = 'sth'
         assert not asyncio.run(v.exchange(test_exchange))
 
+
 class TestUst:
     def test_ust(self):
         v = tm.Validator()
@@ -103,6 +97,8 @@ class TestUst:
 
 
 class TestSqlCasting:
+    test_args: tm.IntradayPricesParams
+
     def setup(self):
         test_args = {key: 'test' for key in tm.IntradayPricesParams._fields}
         self.test_args = tm.IntradayPricesParams(**test_args)
