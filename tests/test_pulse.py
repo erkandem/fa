@@ -13,5 +13,3 @@ def test_pulse():
     assert response.status_code == 200
     assert list(response.json()) == ['date']
 
-
-
