@@ -23,7 +23,10 @@ RegularFuturesParams = namedtuple(
     ['schema', 'table', 'startdate', 'enddate', 'order', 'limit'])
 
 
-@router.get('/prices/eod')
+@router.get(
+    '/prices/eod',
+    operation_id='get_regular_futures_eod'
+)
 async def get_regular_futures_eod(
         symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
         startdate: str = None, enddate: str = None, dminus: int = 30,
@@ -36,6 +39,7 @@ async def get_regular_futures_eod(
     }
     content = await resolve_eod_futures(args)
     return content
+
 
 async def eod_sql_delivery(args):
     """TODO fix the table name creation which should be handled by the Contract class"""
