@@ -10,6 +10,6 @@ class Pulse(BaseModel):
 router = fastapi.APIRouter()
 
 
-@router.get('/pulse', response_model=Pulse)
-async def pulse():
+@router.get('/pulse', operation_id='get_pulse', response_model=Pulse)
+async def get_pulse():
     return {'date': dt.now()}
