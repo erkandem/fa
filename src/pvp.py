@@ -13,8 +13,12 @@ from src.db import engines
 router = fastapi.APIRouter()
 
 
-@router.get('/prices/intraday/pvp')
-async def pvp(
+@router.get(
+    '/prices/intraday/pvp',
+    operation_id='get_pvp_intraday',
+    summary='price volume profile. histogram of intraday price data'
+)
+async def get_pvp_intraday(
         symbol: str, month: int = None, year: int = None,
         ust: str = None,
         exchange: str = None,
