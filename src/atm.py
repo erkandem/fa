@@ -14,8 +14,10 @@ from src.db import engines
 router = fastapi.APIRouter()
 
 
-@router.get('/ivol/atm',
-            summary='Get ATM implied volatility data'
+@router.get(
+    '/ivol/atm',
+    summary='Get ATM implied volatility data',
+    operation_id='get_atm_ivol'
 )
 async def atm_ivol(
         symbol: str, ust: str = None, exchange: str = None, tte: tteChoices = tteChoices._1m,
