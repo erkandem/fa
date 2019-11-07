@@ -25,6 +25,8 @@ from src.pvp import router as pvp_router
 from src.conti_prices import router as conti_router
 from src.regular_futures import router as eod_futures_router
 from src.pulse import router as pulse_router
+from src.surfacebydelta import router as surface_router
+
 from fastapi import Depends, FastAPI
 from fastapi.security import OAuth2PasswordBearer
 
@@ -38,6 +40,7 @@ app = fastapi.FastAPI(
 
 app.include_router(pulse_router)
 app.include_router(atm_router)
+app.include_router(surface_router)
 app.include_router(auth_router)
 app.include_router(intraday_prices_router)
 app.include_router(pvp_router)

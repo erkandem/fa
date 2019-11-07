@@ -86,8 +86,11 @@ IntradayPricesParams = namedtuple(
 ])
 
 
-@router.get('/prices/intraday', status_code=HTTP_200_OK)
-async def conti_eod_prices(
+@router.get(
+    '/prices/intraday',
+    operation_id='get_intraday_prices'
+)
+async def get_intraday_prices(
         symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
         startdate: str = None, enddate: str = None, dminus: int = 20,
         interval: int = 1, iunit: str = 'minutes',
