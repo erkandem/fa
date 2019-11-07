@@ -86,8 +86,11 @@ class ContiEodArray(BaseModel):
     c12: float
 
 
-@router.get('/prices/eod/conti')
-async def conti_eod_prices(
+@router.get(
+    '/prices/eod/conti',
+    operation_id='get_continuous_eod'
+)
+async def get_conti_eod(
         symbol: str, ust: str = 'fut', exchange: str = None, nthcontract: int = 1,
         startdate: str = None, enddate: str = None, dminus:  int = 20,
         order: OrderChoices = OrderChoices._asc
@@ -102,8 +105,11 @@ async def conti_eod_prices(
     return content
 
 
-@router.get('/prices/eod/conti/array')
-async def conti_eod_prices(
+@router.get(
+    '/prices/eod/conti/array',
+    operation_id='get_continuous_eod_as_array'
+)
+async def get_continuous_eod_as_array(
     symbol: str, ust: str = 'fut', exchange: str = None,
     startdate: str = None, enddate: str = None, dminus:  int = 20,
     order: OrderChoices = OrderChoices._asc
