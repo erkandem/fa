@@ -51,7 +51,7 @@ app.include_router(eod_futures_router)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/token')
 
 origins = [
-    'ttp://localhost',
+    'http://localhost',
     'http://localhost:8080',
 ]
 app.add_middleware(
