@@ -275,6 +275,7 @@ time_to_var = {
     '24m': 'var16',
 }
 
+
 class deltaChoices(str, Enum):
     _d010 = 'd010'
     _d015 = 'd015'
@@ -294,6 +295,26 @@ class deltaChoices(str, Enum):
     _d085 = 'd085'
     _d090 = 'd090'
     _adjPC = 'adjPC'
+
+
+class deltaChoicesPractical(str, Enum):
+    _d010 = 'd010'
+    _d015 = 'd015'
+    _d020 = 'd020'
+    _d025 = 'd025'
+    _d030 = 'd030'
+    _d035 = 'd035'
+    _d040 = 'd040'
+    _d045 = 'd045'
+    _d050 = 'd050'
+    _d055 = 'd055'
+    _d060 = 'd060'
+    _d065 = 'd065'
+    _d070 = 'd070'
+    _d075 = 'd075'
+    _d080 = 'd080'
+    _d085 = 'd085'
+    _d090 = 'd090'
 
 
 class intradayPricesCmeSymChoices(str, Enum):
@@ -430,6 +451,7 @@ exchange_choices_intraday = get_values(ExchangeChoicesIntraday)
 iv_cme_choices = get_values(iVolCmeChoices)
 intraday_prices_cme_sym_choices = get_values(intradayPricesCmeSymChoices)
 delta_choices = get_values(deltaChoices)
+delta_choices_practical = get_values(deltaChoicesPractical)
 offset_steps = get_values(offsetSteps)
 iv_eurex_choices = get_values(iVolEurexChoices)
 iv_ice_choices = get_values(iVolChoicesIce)
