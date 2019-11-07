@@ -1,4 +1,5 @@
 import os
+import databases
 
 
 class PostgresConfig:
@@ -33,5 +34,7 @@ pgc = PostgresConfig()
 engines = {
     'prices': None,
     'dev': None,
-    't2': None
+    't2': None,
+    'users': databases.Database(pgc.get_uri('fastapi'))
+
 }

@@ -17,15 +17,19 @@ import fastapi
 from starlette.middleware.cors import CORSMiddleware
 
 from src.db import engines, pgc
+from src.users.users import create_initial_superuser
 
 from src.atm import router as atm_router
-from src.auth import router as auth_router
 from src.intraday_prices import router as intraday_prices_router
 from src.pvp import router as pvp_router
 from src.conti_prices import router as conti_router
 from src.regular_futures import router as eod_futures_router
 from src.pulse import router as pulse_router
 from src.surfacebydelta import router as surface_router
+from src.users.auth import router as auth_router
+from src.users.content import router as content_router
+from src.users.decorated_content import router as dc_router
+from src.users.users import router as users_router
 
 from fastapi import Depends, FastAPI
 from fastapi.security import OAuth2PasswordBearer
@@ -41,26 +45,17 @@ app = fastapi.FastAPI(
 app.include_router(pulse_router)
 app.include_router(atm_router)
 app.include_router(surface_router)
-app.include_router(auth_router)
 app.include_router(intraday_prices_router)
 app.include_router(pvp_router)
 app.include_router(conti_router)
 app.include_router(eod_futures_router)
+app.include_router(auth_router, tags=['Auth'])
+app.include_router(content_router, prefix='/content', tags=['Content'])
+app.include_router(dc_router, prefix='/dc', tags=['Decorated Routes'])
+app.include_router(users_router, tags=['Users'])
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/token')
-
-origins = [
-    'http://localhost',
-    'http://localhost:8080',
-]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 @app.on_event('startup')
@@ -68,6 +63,8 @@ async def startup():
     engines['prices'] = await asyncpg.create_pool(pgc.get_uri('prices_intraday'))
     engines['dev'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_null'))
     engines['t2'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_tests_db_two'))
+    await engines['users'].connect()
+    await create_initial_superuser()
 
 
 @app.on_event('shutdown')
@@ -75,11 +72,7 @@ async def shutdown():
     await engines['prices'].close()
     await engines['dev'].close()
     await engines['t2'].close()
-
-
-@app.get('/items/')
-async def read_items(token: str = Depends(oauth2_scheme)):
-    return {'token': token}
+    await engines['users'].disconnect()
 
 
 if __name__ == '__main__':
