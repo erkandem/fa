@@ -31,8 +31,8 @@ user_database = [{'id': 0, 'username': 'guru', 'password': 'urug'}]
 authorized_tokens = [{'id': 0, 'token': 'macaroni'}]
 
 
-@router.post('/login')
-async def login_route(login: auth_model_input):
+@router.post('/login', operation_id='post_api_login_endpoint', tags=['Auth'])
+async def post_api_login_endpoint(login: auth_model_input):
     """
     [fastapi security](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/)
 
@@ -48,8 +48,8 @@ async def login_route(login: auth_model_input):
         return {'error': 'login failed'}
 
 
-@router.post('/refresh')
-async def refresh_route(token: refresh_model_input):
+@router.post('/refresh', operation_id='post_api_refresh_token', tags=['Auth'])
+async def post_api_refresh_token(token: refresh_model_input):
     return {'refreshed_token': f'fresh_{token.token}'}
 
 
