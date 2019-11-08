@@ -13,8 +13,8 @@ from src.users.auth import get_current_active_user
 from src.users.user_models import UserPy
 
 
-
 router = fastapi.APIRouter()
+
 
 @bouncer.roles_required('user')
 @router.get(
