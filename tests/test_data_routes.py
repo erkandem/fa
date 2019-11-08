@@ -55,3 +55,42 @@ def test_surface():
         assert response.status_code == 200
 
 
+def test_prices_intraday():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        params = {'symbol': 'cl', 'month': 'g', 'year': 19 , 'startdate': '20190101'}
+        response = client.get('/prices/intraday', params=params, headers=headers)
+        assert response.status_code == 200
+
+
+def test_prices_intraday_pvp():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        params = {'symbol': 'cl', 'month': 'g', 'year': 19, 'startdate': '20190101'}
+        response = client.get('/prices/intraday/pvp', params=params, headers=headers)
+        assert response.status_code == 200
+
+
+def test_prices_eod_conti():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        params = {'symbol': 'cl'}
+        response = client.get('/prices/eod/conti', params=params, headers=headers)
+        assert response.status_code == 200
+
+
+def test_prices_eod_conti_array():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        params = {'symbol': 'cl'}
+        response = client.get('/prices/eod/conti/array', params=params, headers=headers)
+        assert response.status_code == 200
+
+
+def test_prices_eod():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        params = {'symbol': 'cl', 'month': 'g', 'year': 2019, 'startdate': '20190101'}
+        response = client.get('/prices/eod', params=params, headers=headers)
+        assert response.status_code == 200
+
