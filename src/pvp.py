@@ -8,11 +8,15 @@ from src.const import OrderChoices
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic
 from src.db import engines
+from src.users.auth import bouncer
+from src.users.auth import get_current_active_user
+from src.users.user_models import UserPy
+
 
 
 router = fastapi.APIRouter()
 
-
+@bouncer.roles_required('user')
 @router.get(
     '/prices/intraday/pvp',
     operation_id='get_pvp_intraday',
@@ -26,7 +30,9 @@ async def get_pvp_intraday(
         dminus: int = 20,
         buckets: int = 100,
         iunit: str = 'minutes',
-        order: OrderChoices = OrderChoices._asc
+        order: OrderChoices = OrderChoices._asc,
+        user: UserPy = fastapi.Depends(get_current_active_user)
+
 ):
     """
     price volume profile. histogram of intraday price data

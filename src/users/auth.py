@@ -70,20 +70,22 @@ def get_pwd_hash(password, salt):
     return get_hash_of_salted_pwd(salted_pwd)
 
 
-async def get_roles(current_user: UserPy):
+def get_roles(current_user: UserPy):
     roles = current_user.roles.split(',')
     return roles
 
 
-async def get_roles_as_set(current_user: UserPy):
-    roles_set = set(n for n in await get_roles(current_user))
+def get_roles_as_set(current_user: UserPy):
+    roles_set = set(n for n in  get_roles(current_user))
     return roles_set
 
 
 async def authenticate_user(username: str, password: str) -> UserPy:
-    if await user_exists_by_username(username):
+    user_does_exists = await user_exists_by_username(username)
+    if user_does_exists :
         user = await get_user_obj_by_username(username)
-        if verify_plain_pwd(password, user.salt, user.hashed_salted_pwd):
+        pw_is_correct = verify_plain_pwd(password, user.salt, user.hashed_salted_pwd)
+        if pw_is_correct:
             return user
 
 
@@ -138,14 +140,13 @@ async def get_current_active_user(current_user: UserPy = Depends(get_current_use
 
 
 async def get_current_super_user(current_user: UserPy = Depends(get_current_user)):
-    roles = await get_roles(current_user)
+    roles = get_roles(current_user)
     if SUPERUSER not in roles:
         raise HTTPException(
             status_code=HTTP_403_FORBIDDEN,
             detail='You must be a superuser to access this endpoint'
         )
     return current_user
-
 
 
 class bouncer:
@@ -156,7 +157,7 @@ class bouncer:
             @functools.wraps(f)
             def wrapper(*args, **kwargs):
                 roles_accepted_set = set([str(n) for n in roles_accepted])
-                roles_granted_set = asyncio.run(get_roles_as_set(kwargs['user']))
+                roles_granted_set = get_roles_as_set(kwargs['user'])
                 if roles_granted_set.isdisjoint(roles_accepted_set):
                     req_str = ' ,'.join(roles_accepted_set)
                     gran_str = ' ,'.join(roles_granted_set)
@@ -175,7 +176,7 @@ class bouncer:
             @functools.wraps(f)
             def wrapper(*args, **kwargs):
                 roles_required_set = set([str(n) for n in roles_required])
-                roles_granted_set = asyncio.run(get_roles_as_set(kwargs['user']))
+                roles_granted_set = get_roles_as_set(kwargs['user'])
                 if not roles_granted_set.issuperset(roles_required_set):
                     req_str = ' ,'.join(roles_required_set)
                     gran_str = ' ,'.join(roles_granted_set)

@@ -14,6 +14,10 @@ from src.const import prices_intraday_all_symbols
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic
 from src.db import engines
+from src.users.auth import bouncer
+from src.users.auth import get_current_active_user
+from src.users.user_models import UserPy
+
 
 
 router = fastapi.APIRouter()
@@ -22,7 +26,7 @@ RegularFuturesParams = namedtuple(
     'regularaFuturesParams',
     ['schema', 'table', 'startdate', 'enddate', 'order', 'limit'])
 
-
+@bouncer.roles_required('user')
 @router.get(
     '/prices/eod',
     operation_id='get_regular_futures_eod'
@@ -30,7 +34,9 @@ RegularFuturesParams = namedtuple(
 async def get_regular_futures_eod(
         symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
         startdate: str = None, enddate: str = None, dminus: int = 30,
-        order: OrderChoices = OrderChoices._asc
+        order: OrderChoices = OrderChoices._asc,
+        user: UserPy = fastapi.Depends(get_current_active_user)
+
 ):
     """prices """
     args = {

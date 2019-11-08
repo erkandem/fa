@@ -10,10 +10,15 @@ from src.const import tteChoices
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic
 from src.db import engines
+from src.users.auth import bouncer
+from src.users.auth import get_current_active_user
+from src.users.user_models import UserPy
+
 
 router = fastapi.APIRouter()
 
 
+@bouncer.roles_required('user')
 @router.get(
     '/ivol/atm',
     summary='Get ATM implied volatility data',
@@ -22,7 +27,8 @@ router = fastapi.APIRouter()
 async def atm_ivol(
         symbol: str, ust: str = None, exchange: str = None, tte: tteChoices = tteChoices._1m,
         startdate: str = None, enddate: str = None, dminus: int = 30,
-        order: OrderChoices = OrderChoices._asc
+        order: OrderChoices = OrderChoices._asc,
+        user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
     At-the-money implied volatility time series.

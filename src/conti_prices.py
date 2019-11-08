@@ -13,6 +13,10 @@ from src.const import conti_futures_choices
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic
 from src.db import engines
+from src.users.auth import bouncer
+from src.users.auth import get_current_active_user
+from src.users.user_models import UserPy
+
 
 
 router = fastapi.APIRouter()
@@ -86,6 +90,7 @@ class ContiEodArray(BaseModel):
     c12: float
 
 
+@bouncer.roles_required('user')
 @router.get(
     '/prices/eod/conti',
     operation_id='get_continuous_eod'
@@ -93,7 +98,9 @@ class ContiEodArray(BaseModel):
 async def get_conti_eod(
         symbol: str, ust: str = 'fut', exchange: str = None, nthcontract: int = 1,
         startdate: str = None, enddate: str = None, dminus:  int = 20,
-        order: OrderChoices = OrderChoices._asc
+        order: OrderChoices = OrderChoices._asc,
+        user: UserPy = fastapi.Depends(get_current_active_user)
+
 ):
     args = {
         'symbol': symbol, 'ust': ust, 'exchange': exchange, 'nthcontract': nthcontract,
@@ -105,6 +112,7 @@ async def get_conti_eod(
     return content
 
 
+@bouncer.roles_required('user')
 @router.get(
     '/prices/eod/conti/array',
     operation_id='get_continuous_eod_as_array'
@@ -112,7 +120,9 @@ async def get_conti_eod(
 async def get_continuous_eod_as_array(
     symbol: str, ust: str = 'fut', exchange: str = None,
     startdate: str = None, enddate: str = None, dminus:  int = 20,
-    order: OrderChoices = OrderChoices._asc
+    order: OrderChoices = OrderChoices._asc,
+    user: UserPy = fastapi.Depends(get_current_active_user)
+
 ):
     args = {
         'symbol': symbol, 'ust': ust, 'exchange': exchange,

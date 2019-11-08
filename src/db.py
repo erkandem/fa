@@ -35,6 +35,6 @@ engines = {
     'prices': None,
     'dev': None,
     't2': None,
-    'users': databases.Database(pgc.get_uri('fastapi'))
+    'users': None
 
 }

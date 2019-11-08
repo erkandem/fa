@@ -15,7 +15,8 @@ from datetime import date
 import asyncpg
 import fastapi
 from starlette.middleware.cors import CORSMiddleware
-
+import databases
+from appconfig import USERDB_URL
 from src.db import engines, pgc
 from src.users.users import create_initial_superuser
 
@@ -30,6 +31,7 @@ from src.users.auth import router as auth_router
 from src.users.content import router as content_router
 from src.users.decorated_content import router as dc_router
 from src.users.users import router as users_router
+from src.users.db import table_creation
 
 from fastapi import Depends, FastAPI
 from fastapi.security import OAuth2PasswordBearer
@@ -63,6 +65,8 @@ async def startup():
     engines['prices'] = await asyncpg.create_pool(pgc.get_uri('prices_intraday'))
     engines['dev'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_null'))
     engines['t2'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_tests_db_two'))
+    table_creation(USERDB_URL)
+    engines['users'] = databases.Database(USERDB_URL)
     await engines['users'].connect()
     await create_initial_superuser()
 

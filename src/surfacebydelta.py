@@ -19,6 +19,10 @@ from src.const import exchange_choices
 from src.const import time_to_var_func
 from src.const import delta_choices
 from typing import List
+from src.users.auth import bouncer
+from src.users.auth import get_current_active_user
+from src.users.user_models import UserPy
+
 
 
 router = fastapi.APIRouter()
@@ -47,6 +51,8 @@ class SurfaceAggregate(BaseModel):
         delta: str
         values: SurfaceValue
 
+
+@bouncer.roles_required('user')
 @router.get(
     '/ivol/surface',
     response_model=List[SurfaceAggregate],
@@ -57,7 +63,9 @@ async def get_surface_by_delta(
         symbol: str,
         date: str = None,
         exchange: str = None,
-        ust: str = None
+        ust: str = None,
+        user: UserPy = fastapi.Depends(get_current_active_user)
+
 ):
     """
     - **symbol**: example: 'SPY' or 'spy' (case insensitive)

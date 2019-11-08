@@ -14,6 +14,10 @@ from src.const import prices_intraday_all_symbols
 from src.utils import eod_ini_logic
 from src.utils import guess_exchange_and_ust
 from src.db import engines
+from src.users.auth import bouncer
+from src.users.auth import get_current_active_user
+from src.users.user_models import UserPy
+
 
 router = fastapi.APIRouter()
 
@@ -85,7 +89,7 @@ IntradayPricesParams = namedtuple(
         'limit'
 ])
 
-
+@bouncer.roles_required('user')
 @router.get(
     '/prices/intraday',
     operation_id='get_intraday_prices'
@@ -94,7 +98,9 @@ async def get_intraday_prices(
         symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
         startdate: str = None, enddate: str = None, dminus: int = 20,
         interval: int = 1, iunit: str = 'minutes',
-        order: OrderChoices = OrderChoices._asc
+        order: OrderChoices = OrderChoices._asc,
+        user: UserPy = fastapi.Depends(get_current_active_user)
+
 ):
     args = {
         'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
