@@ -65,6 +65,7 @@ async def startup():
     engines['prices'] = await asyncpg.create_pool(pgc.get_uri('prices_intraday'))
     engines['dev'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_null'))
     engines['t2'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_tests_db_two'))
+    engines['yh'] = await asyncpg.create_pool(pgc.get_uri('experimental_usyh_rawdata'))
     table_creation(USERDB_URL)
     engines['users'] = databases.Database(USERDB_URL)
     await engines['users'].connect()
@@ -76,6 +77,7 @@ async def shutdown():
     await engines['prices'].close()
     await engines['dev'].close()
     await engines['t2'].close()
+    await engines['experimental_usyh_rawdata'].close()
     await engines['users'].disconnect()
 
 
