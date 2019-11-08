@@ -78,7 +78,7 @@ async def get_surface_by_delta(
 
 
 async def prepare_surface_sql_arguments(args):
-    """ """
+    """Deprecated in favor of JSON delivery via ``surface_json``"""
     args = await guess_exchange_and_ust(args)
     args['date'] = dt.strptime(args['date'], '%Y%m%d').strftime('%Y-%m-%d')
     c = Contract()
