@@ -435,6 +435,19 @@ class OrderChoices(str, Enum):
     _desc = 'desc'
 
 
+class PutCallChoices(str, Enum):
+    _put = 'put'
+    _call = 'call'
+
+
+class TopOiChoices(str, Enum):
+    _volume = 'volume'
+    _oi = 'oi'
+
+
+pc_choices = get_values(PutCallChoices)
+topoi_choices = get_values(TopOiChoices)
+
 order_choices = get_values(OrderChoices)
 futures_month_chars = get_values(futuresMonthChars)
 prices_etf_sym_choices = get_values(pricesEtfSymChoices)
