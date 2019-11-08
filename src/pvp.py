@@ -23,7 +23,7 @@ router = fastapi.APIRouter()
     summary='price volume profile. histogram of intraday price data'
 )
 async def get_pvp_intraday(
-        symbol: str, month: int = None, year: int = None,
+        symbol: str, month: str = None, year: int = None,
         ust: str = None,
         exchange: str = None,
         startdate: str = None, enddate: str = None,
@@ -32,14 +32,13 @@ async def get_pvp_intraday(
         iunit: str = 'minutes',
         order: OrderChoices = OrderChoices._asc,
         user: UserPy = fastapi.Depends(get_current_active_user)
-
 ):
     """
     price volume profile. histogram of intraday price data
 
     - **symbol**: example: 'SPY' or 'spy' (case insensitive)
     - **month**: only for futures - one of ['F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z']
-    - **year**: only for futures - example: 2019
+    - **year**: only for futures - example: 19
     - **ust**: underlying security type: ['fut', 'eqt', 'ind', 'fx']
     - **exchange**: one of: ['usetf', 'cme', 'ice', 'eurex']
     - **startdate**: format: yyyymmdd
@@ -110,7 +109,7 @@ async def final_sql(nt: pvpQueryParams) -> str:
     FROM      {nt.schema}.{nt.table} tab 
     WHERE    tab.dt BETWEEN '{nt.startdate}' AND  '{nt.enddate}' 
     GROUP BY bucket 
-    ORDER BY min_close ASC; 
+    ORDER BY min_close; 
     '''
 
 

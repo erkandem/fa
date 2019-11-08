@@ -122,7 +122,6 @@ async def get_continuous_eod_as_array(
     startdate: str = None, enddate: str = None, dminus:  int = 20,
     order: OrderChoices = OrderChoices._asc,
     user: UserPy = fastapi.Depends(get_current_active_user)
-
 ):
     args = {
         'symbol': symbol, 'ust': ust, 'exchange': exchange,

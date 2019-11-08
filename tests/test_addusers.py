@@ -10,6 +10,7 @@ from src.users.db import table_creation
 from testing_utilities import add_test_users_to_db
 from testing_utilities import delete_test_users_from_db
 
+
 @pytest.mark.first
 def test_add():
     table_creation(USERDB_URL)

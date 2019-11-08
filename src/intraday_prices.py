@@ -89,18 +89,18 @@ IntradayPricesParams = namedtuple(
         'limit'
 ])
 
+
 @bouncer.roles_required('user')
 @router.get(
     '/prices/intraday',
     operation_id='get_intraday_prices'
 )
 async def get_intraday_prices(
-        symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
+        symbol: str, month: str = None, year: int = None, ust: str = None, exchange: str = None,
         startdate: str = None, enddate: str = None, dminus: int = 20,
         interval: int = 1, iunit: str = 'minutes',
         order: OrderChoices = OrderChoices._asc,
         user: UserPy = fastapi.Depends(get_current_active_user)
-
 ):
     args = {
         'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,

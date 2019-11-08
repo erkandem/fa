@@ -65,7 +65,6 @@ async def get_surface_by_delta(
         exchange: str = None,
         ust: str = None,
         user: UserPy = fastapi.Depends(get_current_active_user)
-
 ):
     """
     - **symbol**: example: 'SPY' or 'spy' (case insensitive)

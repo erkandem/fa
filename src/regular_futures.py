@@ -19,12 +19,12 @@ from src.users.auth import get_current_active_user
 from src.users.user_models import UserPy
 
 
-
 router = fastapi.APIRouter()
 
 RegularFuturesParams = namedtuple(
     'regularaFuturesParams',
     ['schema', 'table', 'startdate', 'enddate', 'order', 'limit'])
+
 
 @bouncer.roles_required('user')
 @router.get(
@@ -32,7 +32,7 @@ RegularFuturesParams = namedtuple(
     operation_id='get_regular_futures_eod'
 )
 async def get_regular_futures_eod(
-        symbol: str, month: int = None, year: int = None, ust: str = None, exchange: str = None,
+        symbol: str, month: str = None, year: int = None, ust: str = None, exchange: str = None,
         startdate: str = None, enddate: str = None, dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
         user: UserPy = fastapi.Depends(get_current_active_user)
@@ -57,7 +57,7 @@ async def eod_sql_delivery(args):
     args = await eod_ini_logic(args)
     schema = f"{args['ust']}_{args['exchange']}_eod"
     contract = f"{args['symbol']}{args['month']}{args['year']}".lower()
-    table = f"{args['ust']}_{args['exchange']}_{contract}_eod"
+    table = f"{args['ust']}_{args['exchange']}_{contract}_prices_eod"
     limit = 365
     params = RegularFuturesParams(
         schema=schema, table=table,
