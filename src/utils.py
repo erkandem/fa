@@ -80,3 +80,13 @@ async def eod_ini_logic(args: {}) -> {}:
     args['enddate'] = enddate.strftime('%Y-%m-%d')
     args['startdate'] = startdate.strftime('%Y-%m-%d')
     return args
+
+
+async def put_call_trafo(args: {}) -> {}:
+    if args['put_or_call'] == 'put':
+        args['put_or_call'] = 0
+    elif args['put_or_call'] == 'call':
+        args['put_or_call'] = 1
+    else:
+        raise NotImplementedError()
+    return args
