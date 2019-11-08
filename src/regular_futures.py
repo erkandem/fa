@@ -22,7 +22,7 @@ from src.users.user_models import UserPy
 router = fastapi.APIRouter()
 
 RegularFuturesParams = namedtuple(
-    'regularaFuturesParams',
+    'regularFuturesParams',
     ['schema', 'table', 'startdate', 'enddate', 'order', 'limit'])
 
 
@@ -70,7 +70,7 @@ async def eod_sql_delivery(args):
 
 
 async def final_sql(nt: RegularFuturesParams) -> str:
-    return  f'''
+    return f'''
         SELECT * 
         FROM {nt.schema}.{nt.table}
         WHERE dt  BETWEEN '{nt.startdate}' AND '{nt.enddate}'
