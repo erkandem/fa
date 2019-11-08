@@ -1,6 +1,6 @@
 import os
+import asyncpg
 import databases
-
 
 class PostgresConfig:
     def __init__(self):
@@ -32,9 +32,9 @@ class PostgresConfig:
 
 pgc = PostgresConfig()
 engines = {
-    'prices': None,
-    'dev': None,
-    't2': None,
-    'users': None
-
+    'prices': asyncpg.pool.Pool,
+    'dev': asyncpg.pool.Pool,
+    't2': asyncpg.pool.Pool,
+    'yh': asyncpg.pool.Pool,
+    'users': databases.Database
 }
