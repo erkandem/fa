@@ -34,7 +34,8 @@ from src.users.decorated_content import router as dc_router
 from src.users.users import router as users_router
 from src.users.db import table_creation
 from src.rawoption_data_info import router as info_outer
-from src.topoi import router as topoi_router
+from src.topoi_data import router as topoi_router
+from src.delta_data import router as delta_router
 
 
 from fastapi import Depends, FastAPI
@@ -57,6 +58,7 @@ app.include_router(conti_router, tags=['Data'])
 app.include_router(eod_futures_router, tags=['Data'])
 app.include_router(rawdata_router, tags=['Data'])
 app.include_router(topoi_router, tags=['Data'])
+app.include_router(delta_router, tags=['Data'])
 app.include_router(info_outer, prefix='/info', tags=['Info'])
 app.include_router(auth_router, tags=['Auth'])
 app.include_router(content_router, prefix='/content', tags=['Content'])

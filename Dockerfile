@@ -31,7 +31,7 @@ ADD src $APP_HOME/src/
 RUN mkdir $APP_HOME/falib
 ADD ./falib/* $APP_HOME/falib/
 ADD ./.env.docker $APP_HOME/.env
-
+ADD appconfig.py $APP_HOME/appconfig.py
 USER root
 RUN chown -R pilot:pilot $HOME
 USER pilot
@@ -50,6 +50,6 @@ CMD ["/home/pilot/.local/bin/uvicorn", "app:app", "--host", "0.0.0.0", "--port",
 # docker build -t <image_name>:<tag> .
 # docker build -t fast-api:slim-nonroot .
 
-# docker run -p 127.0.0.1:8050:5000 --restart unless-stopped -d fast-api:slim-nonroot
-# docker run -p 127.0.0.1:8050:5000 fast-api:slim-nonroot
+# docker run -p 127.0.0.1:5000:5000 --restart unless-stopped -d fast-api:slim-nonroot
+# docker run -p 127.0.0.1:5000:5000 fast-api:slim-nonroot
 # docker tag fast-api:slim-nonroot fast-api:stretch-nonroot
