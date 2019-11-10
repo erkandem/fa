@@ -1,4 +1,5 @@
 import psycopg2
+from psycopg2.extras import RealDictCursor
 from collections import namedtuple
 
 DatabaseLink = namedtuple(
@@ -15,11 +16,11 @@ class PgSync:
 
     @staticmethod
     def get_dsn_nt() -> DatabaseLink:
-        dsn_dict = PgSync.get_dsn()
+        dsn_dict = PgSync.get_dsn_dict()
         return DatabaseLink(**dsn_dict)
 
     @staticmethod
-    def get_dsn() -> {}:
+    def get_dsn_dict() -> {}:
         return dict(
             pw='postgres',
             user='postgres',
@@ -32,13 +33,20 @@ class PgSync:
     @staticmethod
     def get_con(dsn: str = None):
         if dsn is None:
-            dsn = PgSync.get_dsn()
+            dsn = PgSync.compose_dsn(PgSync.get_dsn_nt())
         con = psycopg2.connect(dsn)
         return con
 
     @staticmethod
-    def execute_and_fetchall(con, sql: str):
+    def fetch(con, sql: str):
         with con.cursor() as cur:
+            cur.execute(sql)
+            data = cur.fetchall()
+            return data
+
+    @staticmethod
+    def fetch_with_names(con, sql: str):
+        with con.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(sql)
             data = cur.fetchall()
             return data
