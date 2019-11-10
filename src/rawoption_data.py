@@ -88,7 +88,6 @@ class RawOptionPy(BaseModel):
         return v
 
 
-
 @router.post(
     '/option-data',
     operation_id='post_raw_option_data'
@@ -147,28 +146,16 @@ async def final_sql(args):
         '''
 
 
-async def get_schema_and_table_name(args: {}) -> {}:
+def resolve_schema_and_table_name_sql(args):
     if args['ust'] == 'fut':
-        return await get_schema_and_table_name_for_futures(args)
+        sql = CinfoQueries.get_schema_and_table_for_futures_sql(args)
     else:
-        return await get_schema_and_table_for_not_fut(args)
+        sql = CinfoQueries.get_table_and_schema_by_ltd(args)
+    return sql
 
 
-async def get_schema_and_table_name_for_futures(args):
-    sql = CinfoQueries.get_schema_and_table_for_futures_sql(args)
-    async with engines['yh'].acquire() as con:
-        relation = await con.fetch(sql)
-        if len(relation) != 0:
-            return {
-                'schema': relation[0].get('schema_name'),
-                'table': relation[0].get('table_name')
-            }
-        else:
-            return []
-
-
-async def get_schema_and_table_for_not_fut(args):
-    sql = CinfoQueries.get_table_and_schema_by_ltd(args)
+async def get_schema_and_table_name(args: {}) -> {}:
+    sql = resolve_schema_and_table_name_sql(args)
     async with engines['yh'].acquire() as con:
         relation = await con.fetch(sql)
         if len(relation) != 0:
