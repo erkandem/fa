@@ -84,7 +84,7 @@ async def shutdown():
     await engines['prices'].close()
     await engines['dev'].close()
     await engines['t2'].close()
-    await engines['experimental_usyh_rawdata'].close()
+    await engines['yh'].close()
     await engines['users'].disconnect()
 
 
