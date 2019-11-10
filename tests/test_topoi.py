@@ -60,3 +60,23 @@ queries = {
             "order": "desc"
     }
 }
+
+
+def membrane():
+    import json
+    from src.delta_data import delta_query
+    from src.delta_data import delta_query_sql
+    from src.rawoption_data import resolve_schema_and_table_name_sql
+    from testing_utilities.db import PgSync
+
+    con = PgSync.get_con()
+    args = delta_query()
+    relation_sql = resolve_schema_and_table_name_sql(args)
+    relation = PgSync.fetch_with_names(con, relation_sql)
+    if len(relation[0]) != 2:
+        args['schema'] = relation[0]['schema_name']
+        args['table'] = relation[0]['table_name']
+
+    delta_sql = delta_query_sql(**args)
+    data = PgSync.fetch(con, delta_sql)
+    print(json.dumps(data, indent=2))
