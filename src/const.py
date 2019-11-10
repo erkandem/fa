@@ -1,8 +1,10 @@
 """
  declare and define commonly used constants, lists, dicts etc here
 """
+from collections import namedtuple
 from enum import Enum
 
+dminusLimits = namedtuple('dminusLimits', ['start', 'end'])
 
 def get_values(enum_obj):
     """create vanilla list from enum values"""
@@ -223,18 +225,32 @@ class contiFuturesChoices(str, Enum):
     _g = 'g'
 
 
+class RawDataMetricChoices(str, Enum):
+    _underlying_price = 'underlying_price'
+    _settlement_price = 'settlement_price'
+    _volume = 'volume'
+    _open_interest = 'open_interest'
+    _years_until_expiry = 'years_until_expiry'
+    _moneyness = 'moneyness'
+    _dividend_yield = 'dividend_yield'
+    _riskfree_rate = 'riskfree_rate'
+    _rawiv = 'rawiv'
+    _delta = 'delta'
+    _time_value = 'time_value'
+
+
 RAWOPTION_MAP = {
-        'underlying_price': 'undprice',
-        'settlement_price': 'settleprice',
-        'volume': 'volume',
-        'open_interest': 'oi',
-        'years_until_expiry': 'yte',
-        'moneyness': 'moneyness',
-        'dividend_yield': 'divyield',
-        'riskfree_rate': 'rfr',
-        'rawiv': 'rawiv',
-        'delta': 'delta',
-        'time_value': 'tv'
+    'underlying_price': 'undprice',
+    'settlement_price': 'settleprice',
+    'volume': 'volume',
+    'open_interest': 'oi',
+    'years_until_expiry': 'yte',
+    'moneyness': 'moneyness',
+    'dividend_yield': 'divyield',
+    'riskfree_rate': 'rfr',
+    'rawiv': 'rawiv',
+    'delta': 'delta',
+    'time_value': 'tv'
 }
 
 
