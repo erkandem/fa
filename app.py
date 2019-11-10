@@ -27,11 +27,15 @@ from src.conti_prices import router as conti_router
 from src.regular_futures import router as eod_futures_router
 from src.pulse import router as pulse_router
 from src.surfacebydelta import router as surface_router
+from src.rawoption_data import router as rawdata_router
 from src.users.auth import router as auth_router
 from src.users.content import router as content_router
 from src.users.decorated_content import router as dc_router
 from src.users.users import router as users_router
 from src.users.db import table_creation
+from src.rawoption_data_info import router as info_outer
+from src.topoi import router as topoi_router
+
 
 from fastapi import Depends, FastAPI
 from fastapi.security import OAuth2PasswordBearer
@@ -44,13 +48,16 @@ app = fastapi.FastAPI(
     docs_url='/'
 )
 
-app.include_router(pulse_router)
-app.include_router(atm_router)
-app.include_router(surface_router)
-app.include_router(intraday_prices_router)
-app.include_router(pvp_router)
-app.include_router(conti_router)
-app.include_router(eod_futures_router)
+app.include_router(pulse_router, tags=['Data'])
+app.include_router(atm_router, tags=['Data'])
+app.include_router(surface_router, tags=['Data'])
+app.include_router(intraday_prices_router, tags=['Data'])
+app.include_router(pvp_router, tags=['Data'])
+app.include_router(conti_router, tags=['Data'])
+app.include_router(eod_futures_router, tags=['Data'])
+app.include_router(rawdata_router, tags=['Data'])
+app.include_router(topoi_router, tags=['Data'])
+app.include_router(info_outer, prefix='/info', tags=['Info'])
 app.include_router(auth_router, tags=['Auth'])
 app.include_router(content_router, prefix='/content', tags=['Content'])
 app.include_router(dc_router, prefix='/dc', tags=['Decorated Routes'])
@@ -65,7 +72,7 @@ async def startup():
     engines['prices'] = await asyncpg.create_pool(pgc.get_uri('prices_intraday'))
     engines['dev'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_null'))
     engines['t2'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_tests_db_two'))
-    engines['yh'] = await asyncpg.create_pool(pgc.get_uri('experimental_usyh_rawdata'))
+    engines['yh'] = await asyncpg.create_pool(pgc.get_uri('options_rawdata'))
     table_creation(USERDB_URL)
     engines['users'] = databases.Database(USERDB_URL)
     await engines['users'].connect()
