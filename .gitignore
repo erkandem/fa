@@ -199,3 +199,6 @@ dmypy.json
 
 # End of https://www.gitignore.io/api/python,pycharm
 /overhead/
+/db.sqlite
+/appconfig.py
+/README.dev.md
