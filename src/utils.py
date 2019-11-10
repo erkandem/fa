@@ -66,6 +66,8 @@ async def eod_ini_logic(args: {}) -> {}:
         - `startdate` is bigger or equal to `enddate`
         - are not None
     """
+    if 'dminus' not in args:
+        args['dminus'] = 20
     if args['dminus'] is None:
         args['dminus'] = 20
     delta_d = timedelta(days=args['dminus'])
