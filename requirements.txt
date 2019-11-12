@@ -9,3 +9,4 @@ starlette==0.12.9
 uvicorn==0.10.0
 uvloop==0.14.0rc2
 websockets==8.0.2
+databases

@@ -2,6 +2,7 @@ import os
 import asyncpg
 import databases
 
+
 class PostgresConfig:
     def __init__(self):
         import dotenv
@@ -12,6 +13,12 @@ class PostgresConfig:
         if config == 'ubuntu':
             self.user = 'postgres'
             self.pw = 'postgres'
+            self.host = 'localhost'
+            self.port = '5432'
+            self.db = 'postgresql'
+        elif config == 'remote':
+            self.user = os.getenv("PG_USER")
+            self.pw = os.getenv("PG_PW")
             self.host = 'localhost'
             self.port = '5432'
             self.db = 'postgresql'
