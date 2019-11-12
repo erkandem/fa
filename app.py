@@ -70,6 +70,22 @@ app.include_router(users_router, tags=['Users'])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/token')
 
 
+origins = [
+    "http://api.volsurf.com",
+    "https://api.volsurf.com",
+    "http:localhost",
+    "http:localhost:8080",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 @app.on_event('startup')
 async def startup():
     #engines['prices'] = await asyncpg.create_pool(pgc.get_uri('prices_intraday'))
