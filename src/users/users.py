@@ -48,6 +48,23 @@ async def create_initial_superuser():
         await insert_new_user(new_user)
 
 
+async def create_other_default_user():
+    data_str = os.getenv('DEFAULT_API_USER')
+    data = json.loads(data_str)
+    new_user = RegisterPy(**data)
+    exists = await user_exists_by_username(new_user.username)
+    if not exists:
+        salt = get_salt()
+        hashed_and_salted_pwd = get_pwd_hash(new_user.password, salt)
+        new_user = UserPy(
+            username=new_user.username,
+            salt=salt,
+            hashed_salted_pwd=hashed_and_salted_pwd
+        )
+        new_user.roles = f"{new_user.roles},{data['roles']}"
+        await insert_new_user(new_user)
+
+
 @router.post(
     '/users',
     operation_id='post_add_new_api_user'
