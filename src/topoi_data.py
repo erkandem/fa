@@ -30,6 +30,7 @@ from datetime import datetime as dt
 from datetime import timedelta
 import re
 import json
+from starlette.responses import Response
 from starlette.status import HTTP_200_OK
 import fastapi
 import pydantic
@@ -65,9 +66,9 @@ class TopOiQuery(BaseModel):
     option_month: str = None
     underlying_month: str = None
     ltd: str
-    startdate: str
-    enddate: str
-    dminus: int = 30
+    startdate: str = None
+    enddate: str = None
+    dminus: int = 60
     putcall: PutCallChoices
     order: OrderChoices = OrderChoices._asc
     top_n: int = 5
@@ -164,11 +165,7 @@ async def post_top_oi_and_volume(
     """'Returns the open interest development of the top `n` strikes of an option chain"""
     args = query.dict()
     data = await resolve_top_oi_or_volume(args)
-    if len(data) != 0:
-        json_data = json.loads(data[0].get('jsonb_object_agg'))
-        return json_data
-    else:
-        return []
+    return Response(content=data, media_type='application/json')
 
 
 async def resolve_top_oi_or_volume(args: {}):
@@ -182,13 +179,16 @@ async def resolve_top_oi_or_volume(args: {}):
             )
     relation = await get_schema_and_table_name(args)
     if len(relation) != 2:
-        return []  # "Could not find particular option chain.", 404
+        return '[]'  # "Could not find particular option chain.", 404
     args['schema'] = relation['schema']
     args['table'] = relation['table']
     sql = await top_x_oi_query(args)
     async with engines['yh'].acquire() as con:
         data = await con.fetch(sql)
-        return data
+        if len(data) != 0:
+            return data[0].get('jsonb_object_agg')
+        else:
+            return '[]'
 
 
 async def top_x_oi_query(args: {}) -> str:
