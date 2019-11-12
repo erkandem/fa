@@ -39,7 +39,7 @@ EXPOSE 5000
 
 ENV PATH='/home/pilot/.local/bin':$PATH
 
-CMD ["/home/pilot/.local/bin/uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000", "--env-file", ".env"]
+CMD ["/home/pilot/.local/bin/uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000", "--env-file", "/home/pilot/fa/.env"]
 
 # further reading at: gunicorn
 # https://docs.gunicorn.org/en/stable/design.html
@@ -50,5 +50,5 @@ CMD ["/home/pilot/.local/bin/uvicorn", "app:app", "--host", "0.0.0.0", "--port",
 # docker build -t <image_name>:<tag> .
 # docker build -t fast-api:slim-nonroot .
 
-# docker run -p 127.0.0.1:5000:5000 --restart unless-stopped -d fast-api:slim-nonroot
-# docker run -p 127.0.0.1:5000:5000 fast-api:slim-nonroot
+# docker run -p 5000:5000 --restart unless-stopped -d fast-api:slim-nonroot
+# docker run -p 5000:5000 fast-api:slim-nonroot
