@@ -12,7 +12,13 @@ class PostgresConfig:
         if config == 'ubuntu':
             self.user = 'postgres'
             self.pw = 'postgres'
-            self.host = '127.0.0.1'
+            self.host = 'localhost'
+            self.port = '5432'
+            self.db = 'postgresql'
+        elif config == 'remote':
+            self.user = os.getenv("PG_USER")
+            self.pw = os.getenv("PG_PW")
+            self.host = 'localhost'
             self.port = '5432'
             self.db = 'postgresql'
         elif config == 'docker':
