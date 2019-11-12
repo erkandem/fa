@@ -72,9 +72,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/token')
 
 @app.on_event('startup')
 async def startup():
-    engines['prices'] = await asyncpg.create_pool(pgc.get_uri('prices_intraday'))
-    engines['dev'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_null'))
-    engines['t2'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_tests_db_two'))
+    #engines['prices'] = await asyncpg.create_pool(pgc.get_uri('prices_intraday'))
+    #engines['dev'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_null'))
+    #engines['t2'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_tests_db_two'))
     engines['yh'] = await asyncpg.create_pool(pgc.get_uri('options_rawdata'))
     table_creation(USERDB_URL)
     engines['users'] = databases.Database(USERDB_URL)
@@ -85,9 +85,9 @@ async def startup():
 
 @app.on_event('shutdown')
 async def shutdown():
-    await engines['prices'].close()
-    await engines['dev'].close()
-    await engines['t2'].close()
+    #await engines['prices'].close()
+    #await engines['dev'].close()
+    #await engines['t2'].close()
     await engines['yh'].close()
     await engines['users'].disconnect()
 
