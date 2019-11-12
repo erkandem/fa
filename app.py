@@ -19,6 +19,7 @@ import databases
 from appconfig import USERDB_URL
 from src.db import engines, pgc
 from src.users.users import create_initial_superuser
+from src.users.users import create_other_default_user
 
 from src.atm import router as atm_router
 from src.intraday_prices import router as intraday_prices_router
@@ -33,7 +34,7 @@ from src.users.content import router as content_router
 from src.users.decorated_content import router as dc_router
 from src.users.users import router as users_router
 from src.users.db import table_creation
-from src.rawoption_data_info import router as info_outer
+from src.info import router as info_outer
 from src.topoi_data import router as topoi_router
 from src.delta_data import router as delta_router
 
@@ -79,6 +80,7 @@ async def startup():
     engines['users'] = databases.Database(USERDB_URL)
     await engines['users'].connect()
     await create_initial_superuser()
+    await create_other_default_user()
 
 
 @app.on_event('shutdown')

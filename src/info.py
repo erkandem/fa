@@ -35,7 +35,7 @@ class GetStrikesModel(BaseModel):
     @pydantic.validator('putcall')
     def putcall_validator(cls, v):
         if v not in pc_choices:
-            raise ValueError(f'allowd: {pc_choices}, recieved: {v}')
+            raise ValueError(f'allowed: {pc_choices}, received: {v}')
         return v
 
 
@@ -125,6 +125,59 @@ async def get_api_info_ltd(
     async with engines['yh'].acquire() as con:
         res = await con.fetch(sql)
         return res
+
+
+@router.get(
+    '/option-month-and-underlying-month',
+    operation_id='get_api_info_option_month_and_underlying_month'
+)
+async def get_api_info_option_month_and_underlying_month(
+        ust: str,
+        exchange: str,
+        symbol: str,
+        ltd: str
+):
+    query = {
+        'ust': ust,
+        'exchange': exchange,
+        'symbol': symbol,
+        'ltd': ltd
+    }
+    sql = CinfoQueries.option_month_underlying_month_f(query)
+    async with engines['yh'].acquire() as con:
+        data = await con.fetch(sql)
+        return data
+
+
+@router.get(
+    '/first-and-last',
+    operation_id='get_api_info_first_and_last'
+)
+async def get_api_info_first_and_last(
+        ust: str,
+        exchange: str,
+        symbol: str,
+        ltd: str,
+        option_month: str = None,
+        underlying_month: str = None,
+):
+    args = {
+        'ust': ust,
+        'exchange': exchange,
+        'symbol': symbol,
+        'ltd': ltd,
+        'option_month': option_month,
+        'underlying_month': underlying_month,
+    }
+    meta = await get_schema_and_table_name(args)
+    if len(meta) == 0:
+        return []
+    args['schema'] = meta['schema']
+    args['table'] = meta['table']
+    sql = CinfoQueries.first_and_last_f(args)
+    async with engines['yh'].acquire() as con:
+        data = await con.fetch(sql)
+        return data
 
 
 @router.post(
