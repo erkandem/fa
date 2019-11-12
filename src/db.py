@@ -12,7 +12,7 @@ class PostgresConfig:
         if config == 'ubuntu':
             self.user = 'postgres'
             self.pw = 'postgres'
-            self.host = 'localhost'
+            self.host = '127.0.0.1'
             self.port = '5432'
             self.db = 'postgresql'
         elif config == 'docker':
