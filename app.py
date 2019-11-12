@@ -74,7 +74,7 @@ origins = [
     "http://api.volsurf.com",
     "https://api.volsurf.com",
     "http:localhost",
-    "http:localhost:8080",
+    "http:localhost:5000",
 ]
 
 app.add_middleware(
