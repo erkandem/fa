@@ -104,6 +104,34 @@ class CinfoQueries:
         '''
 
     @staticmethod
+    def option_month_underlying_month_f(args):
+        return f'''
+        SELECT option_month, underlying_month
+        FROM cinfo
+        WHERE ust = '{args['ust']}'
+            AND exchange = '{args['exchange']}'
+            AND symbol = '{args['symbol']}'
+            AND ltd = '{args['ltd']}';
+            '''
+
+    @staticmethod
+    def first_and_last_f(args):
+        return f'''
+            SELECT
+              (SELECT DISTINCT bizdt
+               FROM {args['schema']}.{args['table']}
+               ORDER BY bizdt
+               LIMIT 1) AS first,
+            
+              (SELECT DISTINCT bizdt
+               FROM {args['schema']}.{args['table']}
+               ORDER BY bizdt DESC
+               LIMIT 1) AS last
+            FROM {args['schema']}.{args['table']}
+            LIMIT 1;
+        '''
+
+    @staticmethod
     def ust_where_exchange_f(args):
         return f'''
             SELECT DISTINCT ust AS ust
