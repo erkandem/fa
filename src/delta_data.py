@@ -4,6 +4,7 @@ from datetime import timedelta
 import re
 import json
 from starlette.status import HTTP_200_OK
+from starlette.responses import Response
 import fastapi
 import pydantic
 from pydantic import BaseModel
@@ -85,7 +86,10 @@ class DeltaQuery(BaseModel):
 router = fastapi.APIRouter()
 
 
-@router.post('/delta-contour')
+@router.post(
+    '/delta-contour',
+    operation_id='post_delta_data'
+)
 async def post_delta_data(
         query: DeltaQuery = Body(
             ...,
@@ -104,10 +108,7 @@ async def post_delta_data(
 ):
     args = query.dict()
     data = await resolve_delta_query(args)
-    if len(data) != 0:
-        json_data = json.loads(data[0].get('jsonb_object_agg'))
-        return json_data
-    return data
+    return Response(content=data, media_type='application/json')
 
 
 def delta_query():
@@ -128,13 +129,16 @@ async def resolve_delta_query(args: {} = None):
     args = await eod_ini_logic(args)
     relation = await get_schema_and_table_name(args)
     if len(relation) != 2:
-        return []  # "Could not find particular option chain.", 404
+        return '[]'  # "Could not find particular option chain.", 404
     args['schema'] = relation['schema']
     args['table'] = relation['table']
     sql = delta_query_sql(**args)
     async with engines['yh'].acquire() as con:
         data = await con.fetch(sql)
-        return data
+        if len(data) != 0:
+            return data[0].get('jsonb_object_agg')
+        else:
+            return '[]'
 
 
 def delta_query_sql(
