@@ -52,4 +52,3 @@ CMD ["/home/pilot/.local/bin/uvicorn", "app:app", "--host", "0.0.0.0", "--port",
 
 # docker run -p 127.0.0.1:5000:5000 --restart unless-stopped -d fast-api:slim-nonroot
 # docker run -p 127.0.0.1:5000:5000 fast-api:slim-nonroot
-# docker tag fast-api:slim-nonroot fast-api:stretch-nonroot
