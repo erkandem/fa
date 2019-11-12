@@ -12,6 +12,8 @@ from src.utils import put_call_trafo
 from src.const import RawDataMetricChoices, PutCallChoices, OrderChoices
 from src.utils import CinfoQueries
 from src.utils import eod_ini_logic
+from src.users.user_models import UserPy
+from src.users.auth import get_current_active_user
 
 drl = dminusLimits(start=0, end=365)
 
@@ -106,8 +108,8 @@ async def post_raw_option_data(
                 "startdate": "20190101",
                 "enddate": "20190401"
             }
-        )
-        #, user: UserPy = fastapi.Depends(get_current_active_user)
+        ),
+        user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
     time series data related to a single option

@@ -103,8 +103,8 @@ async def post_delta_data(
                 "enddate": "20190401",
                 "ltd": "20191115"
             }
-        )
-        #, user: UserPy = fastapi.Depends(get_current_active_user)
+        ),
+        user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     args = query.dict()
     data = await resolve_delta_query(args)

@@ -158,8 +158,8 @@ async def post_top_oi_and_volume(
                 "top_n": 5,
                 "order": "desc"
             }
-        )
-        # ,user: UserPy = fastapi.Depends(get_current_active_user)
+        ),
+        user: UserPy = fastapi.Depends(get_current_active_user)
 
 ):
     """'Returns the open interest development of the top `n` strikes of an option chain"""

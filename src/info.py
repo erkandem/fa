@@ -135,7 +135,9 @@ async def get_api_info_option_month_and_underlying_month(
         ust: str,
         exchange: str,
         symbol: str,
-        ltd: str
+        ltd: str,
+        user: UserPy = Depends(get_current_active_user)
+
 ):
     query = {
         'ust': ust,
@@ -160,6 +162,8 @@ async def get_api_info_first_and_last(
         ltd: str,
         option_month: str = None,
         underlying_month: str = None,
+        user: UserPy = Depends(get_current_active_user)
+
 ):
     args = {
         'ust': ust,
@@ -194,7 +198,9 @@ async def post_api_info_strikes(
                 "putcall": "call",
                 "ltd": "20200117"
             }
-    )
+        ),
+        user: UserPy = Depends(get_current_active_user)
+
 ):
     """ same as `GET` route, but containing the query within the body"""
     args = data.dict()
