@@ -15,10 +15,10 @@ class PostgresConfig:
             self.host = 'localhost'
             self.port = '5432'
             self.db = 'postgresql'
-        elif config == 'remote':
+        elif config == 'remote_docker':
             self.user = os.getenv("PG_USER")
             self.pw = os.getenv("PG_PW")
-            self.host = 'localhost'
+            self.host = '172.17.0.1'
             self.port = '5432'
             self.db = 'postgresql'
         elif config == 'docker':
