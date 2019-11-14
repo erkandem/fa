@@ -18,6 +18,8 @@ from starlette.status import HTTP_403_FORBIDDEN
 from appconfig import API_SECRET_KEY
 from appconfig import API_HASH_ALGORITHM
 from appconfig import ACCESS_TOKEN_EXPIRE_MINUTES
+from appconfig import ACCESS_TOKEN_EXPIRE_MINUTES_LONGTERM_GRANTEE
+from appconfig import LONGTERM_TOKEN_GRANTEES
 
 from src.users.db import user_exists_by_username
 from src.users.db import get_user_obj_by_username
@@ -198,8 +200,13 @@ async def post_api_user_login(form_data: OAuth2PasswordRequestForm = Depends()):
             detail='Username unknown or password incorrect'
         )
     else:
+        expires_delta = ACCESS_TOKEN_EXPIRES_TDT
+        if user.username in LONGTERM_TOKEN_GRANTEES:
+            expires_delta = timedelta(
+                minutes=ACCESS_TOKEN_EXPIRE_MINUTES_LONGTERM_GRANTEE
+            )
         access_token = create_access_token(
             data={'sub': user.username},
-            expires_delta=ACCESS_TOKEN_EXPIRES_TDT
+            expires_delta=expires_delta
         )
         return {'access_token': access_token, 'token_type': 'bearer'}

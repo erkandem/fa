@@ -15,6 +15,7 @@ class PostgresConfig:
 
     def get_uri(self, db_name):
         uri = f"{self.db}://{self.user}:{self.pw}@{self.host}:{self.port}/{db_name}"
+        print(f"{self.db}://{self.user}:******@{self.host}:{self.port}/{db_name}")
         return uri
 
 

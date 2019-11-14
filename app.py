@@ -20,6 +20,7 @@ from appconfig import USERDB_URL
 from src.db import engines, pgc
 from src.users.users import create_initial_superuser
 from src.users.users import create_other_default_user
+from fastapi.security import OAuth2PasswordBearer
 
 from src.atm import router as atm_router
 from src.intraday_prices import router as intraday_prices_router
@@ -37,10 +38,6 @@ from src.users.db import table_creation
 from src.info import router as info_outer
 from src.topoi_data import router as topoi_router
 from src.delta_data import router as delta_router
-
-
-from fastapi import Depends, FastAPI
-from fastapi.security import OAuth2PasswordBearer
 
 
 app = fastapi.FastAPI(
