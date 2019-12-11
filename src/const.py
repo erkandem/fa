@@ -198,8 +198,14 @@ class iVolEurexChoices(str, Enum):
 
 
 class iVolChoicesIce(str, Enum):
-    _b = 'b'
-    _g = 'g'
+    _b = 'b'  # 254 Brent Crude Futures
+    _t = 't'  # 425 WTI Crude Futures
+    _g = 'g'  # 5817 Gas Oil Futures
+    _n = 'n'  # 495 NYH RBOB Gasoline
+    _cc = 'cc'  # 578 Cocoa Futures
+    _kc = 'kc'  # 580 Coffee C Futures
+    _ct = 'cz'  # 588 Cotton No. 2 Futures
+    _sb = 'sb'  # 582 Sugar No. 11 Futures
 
 
 class nthContractChoices(int, Enum):

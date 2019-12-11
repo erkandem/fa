@@ -228,13 +228,13 @@ async def select_all_from(nt: ContiEodParams) -> str:
 
 async def conti_resolver(args):
     sql = await eod_continuous_fut_sql_delivery(args)
-    async with engines['dev'].acquire() as con:
+    async with engines['prices_intraday'].acquire() as con:
         data = await con.fetch(query=sql)
         return data
 
 
 async def conti_array_resolver(args: dict):
     sql = await eod_continuous_fut_array_sql_delivery(args)
-    async with engines['dev'].acquire() as con:
+    async with engines['prices_intraday'].acquire() as con:
         data = await con.fetch(query=sql)
         return data

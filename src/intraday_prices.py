@@ -206,6 +206,6 @@ async def _cast_to_sql_b(nt: IntradayPricesParams) -> str:
 
 async def prices_intraday_content(args):
     sql = await select_prices_intraday(args)
-    async with engines['prices'].acquire() as con:
+    async with engines['prices_intraday'].acquire() as con:
         data = await con.fetch(query=sql)
         return data

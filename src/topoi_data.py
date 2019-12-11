@@ -183,7 +183,7 @@ async def resolve_top_oi_or_volume(args: {}):
     args['schema'] = relation['schema']
     args['table'] = relation['table']
     sql = await top_x_oi_query(args)
-    async with engines['yh'].acquire() as con:
+    async with engines['options_rawdata'].acquire() as con:
         data = await con.fetch(sql)
         if len(data) != 0:
             return data[0].get('jsonb_object_agg')

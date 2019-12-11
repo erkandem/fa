@@ -52,7 +52,7 @@ async def get_api_info_usts(
     """return available ``ust``"""
     args = {}
     sql = CinfoQueries.ust_f(args)
-    async with engines['yh'].acquire() as con:
+    async with engines['options_rawdata'].acquire() as con:
         res = await con.fetch(sql)
         return res
 
@@ -71,7 +71,7 @@ async def get_api_info_exchanges(
         sql = CinfoQueries.exchange_where_ust_f(args)
     else:
         sql = CinfoQueries.exchange_f(args)
-    async with engines['yh'].acquire() as con:
+    async with engines['options_rawdata'].acquire() as con:
         res = await con.fetch(sql)
         return res
 
@@ -104,7 +104,7 @@ async def get_api_info_symbols(
         sql = CinfoQueries.symbol_where_exchange_f(args)
     else:
         sql = CinfoQueries.symbol_f(args)
-    async with engines['yh'].acquire() as con:
+    async with engines['options_rawdata'].acquire() as con:
         res = await con.fetch(sql)
         return res
 
@@ -122,7 +122,7 @@ async def get_api_info_ltd(
     """return ``ltd`` given ``ust``, ``exchange``, ``symbol``"""
     args = {'ust': ust, 'exchange': exchange, 'symbol': symbol}
     sql = CinfoQueries.ltd_where_ust_exchange_and_symbol_f(args)
-    async with engines['yh'].acquire() as con:
+    async with engines['options_rawdata'].acquire() as con:
         res = await con.fetch(sql)
         return res
 
@@ -146,7 +146,7 @@ async def get_api_info_option_month_and_underlying_month(
         'ltd': ltd
     }
     sql = CinfoQueries.option_month_underlying_month_f(query)
-    async with engines['yh'].acquire() as con:
+    async with engines['options_rawdata'].acquire() as con:
         data = await con.fetch(sql)
         return data
 
@@ -179,7 +179,7 @@ async def get_api_info_first_and_last(
     args['schema'] = meta['schema']
     args['table'] = meta['table']
     sql = CinfoQueries.first_and_last_f(args)
-    async with engines['yh'].acquire() as con:
+    async with engines['options_rawdata'].acquire() as con:
         data = await con.fetch(sql)
         return data
 
@@ -220,6 +220,6 @@ async def resolve_strikes(args: {}):
     args2['schema'] = relation[0]['schema_name']
     args2['table'] = relation[0]['table_name']
     sql = CinfoQueries.strikes_where_table_and_pc_f(args2)
-    async with engines['yh'].acquire() as con:
+    async with engines['options_rawdata'].acquire() as con:
         data = await con.fetch(sql)
         return data

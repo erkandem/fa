@@ -81,6 +81,6 @@ async def final_sql(nt: RegularFuturesParams) -> str:
 
 async def resolve_eod_futures(args):
     sql = await eod_sql_delivery(args)
-    async with engines['prices'].acquire() as con:
+    async with engines['prices_intraday'].acquire() as con:
         data = await con.fetch(query=sql)
         return data

@@ -99,6 +99,6 @@ async def final_sql(nt: AtmParams) -> str:
 
 async def resolve_atm_ivol(args):
     sql = await dpyd_atm_dispatcher(args)
-    async with engines['t2'].acquire() as con:
+    async with engines['pgivbase'].acquire() as con:
         data = await con.fetch(query=sql)
         return data

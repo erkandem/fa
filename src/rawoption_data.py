@@ -158,7 +158,7 @@ def resolve_schema_and_table_name_sql(args):
 
 async def get_schema_and_table_name(args: {}) -> {}:
     sql = resolve_schema_and_table_name_sql(args)
-    async with engines['yh'].acquire() as con:
+    async with engines['options_rawdata'].acquire() as con:
         relation = await con.fetch(sql)
         if len(relation) != 0:
             return {
@@ -180,6 +180,6 @@ async def resolve_single_metric_raw_data(args):
     args['schema'] = relation['schema']
     args['table'] = relation['table']
     sql = await final_sql(args)
-    async with engines['yh'].acquire() as con:
+    async with engines['options_rawdata'].acquire() as con:
         data = await con.fetch(sql)
         return data

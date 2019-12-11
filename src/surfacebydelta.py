@@ -107,7 +107,7 @@ async def resolve_last_date(c: Contract) -> str:
     schema = await c.compose_2_part_schema_name()
     table = await c.compose_ivol_final_table_name('d050')
     sql = f'''SELECT max(dt) FROM {schema}.{table};'''
-    async with engines['t2'].acquire() as con:
+    async with engines['pgivbase'].acquire() as con:
         data = await con.fetch(query=sql)
     return data[0][0].strftime('%Y%m%d')
 
@@ -158,6 +158,6 @@ async def surface_json(args):
 
 async def surface_resolver(args: dict):
     sql = await surface_json(args)
-    async with engines['t2'].acquire() as con:
+    async with engines['pgivbase'].acquire() as con:
         data = await con.fetch(query=sql)
         return data

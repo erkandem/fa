@@ -133,7 +133,7 @@ async def resolve_delta_query(args: {} = None):
     args['schema'] = relation['schema']
     args['table'] = relation['table']
     sql = delta_query_sql(**args)
-    async with engines['yh'].acquire() as con:
+    async with engines['options_rawdata'].acquire() as con:
         data = await con.fetch(sql)
         if len(data) != 0:
             return data[0].get('jsonb_object_agg')

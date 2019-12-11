@@ -115,6 +115,6 @@ async def final_sql(nt: pvpQueryParams) -> str:
 
 async def resolve_pvp(args):
     sql = await pvp_query(args)
-    async with engines['prices'].acquire() as con:
+    async with engines['prices_intraday'].acquire() as con:
         data = await con.fetch(query=sql)
         return data

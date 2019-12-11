@@ -66,6 +66,23 @@ app.include_router(users_router, tags=['Users'])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/token')
 
+st_counter = '''
+    <!-- Default Statcounter code for Api.volsurf.com https://api.volsurf.com -->
+        <script type="text/javascript">
+            var sc_project=12144901; 
+            var sc_invisible=1; 
+            var sc_security="b6ffef77"; 
+        </script>
+        <script type="text/javascript" src="https://www.statcounter.com/counter/counter.js" async></script>
+        <noscript>
+            <div class="statcounter">
+                <a title="Web Analytics" href="https://statcounter.com/" target="_blank">
+                    <img class="statcounter" src="https://c.statcounter.com/12144901/0/b6ffef77/1/" alt="Web Analytics">
+                </a>
+            </div>
+        </noscript>
+    <!-- End of Statcounter Code -->
+'''
 
 origins = [
     "http://api.volsurf.com",
@@ -85,10 +102,9 @@ app.add_middleware(
 
 @app.on_event('startup')
 async def startup():
-    #engines['prices'] = await asyncpg.create_pool(pgc.get_uri('prices_intraday'))
-    #engines['dev'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_null'))
-    #engines['t2'] = await asyncpg.create_pool(pgc.get_uri('pymarkets_tests_db_two'))
-    engines['yh'] = await asyncpg.create_pool(pgc.get_uri('options_rawdata'))
+    engines['prices_intraday'] = await asyncpg.create_pool(pgc.get_uri('prices_intraday'))
+    engines['pgivbase'] = await asyncpg.create_pool(pgc.get_uri('pgivbase'))
+    engines['options_rawdata'] = await asyncpg.create_pool(pgc.get_uri('options_rawdata'))
     table_creation(USERDB_URL)
     engines['users'] = databases.Database(USERDB_URL)
     await engines['users'].connect()
@@ -98,10 +114,9 @@ async def startup():
 
 @app.on_event('shutdown')
 async def shutdown():
-    #await engines['prices'].close()
-    #await engines['dev'].close()
-    #await engines['t2'].close()
-    await engines['yh'].close()
+    await engines['prices_intraday'].close()
+    await engines['pgivbase'].close()
+    await engines['options_rawdata'].close()
     await engines['users'].disconnect()
 
 
