@@ -173,7 +173,7 @@ async def _cast_to_sql_a(nt: IntradayPricesParams) -> str:
     return f'''
     SELECT (to_timestamp(floor((extract('epoch' FROM dt) / {nt.multi})) * {nt.multi}) AT TIME ZONE 'UTC')  AS dt, 
            MAX(tz_offset)                                  AS tz, 
-           (array_agg(open_value ORDER BY dt ASC)) [1]     AS open, 
+           (array_agg(open_value ORDER BY dt)) [1]     AS open, 
            MAX(high_value)                                 AS high, 
            MIN(low_value)                                  AS low, 
            (array_agg(close_value ORDER BY dt DESC))[1]    AS close,  
