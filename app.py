@@ -38,17 +38,23 @@ from src.users.db import table_creation
 from src.info import router as info_outer
 from src.topoi_data import router as topoi_router
 from src.delta_data import router as delta_router
+from src.ivol_fitted_smile import router as smile_router
 
+MAJOR = 2
+MINOR = 0
+PATCH = 2
+__version__ = f'{MAJOR}.{MINOR}.{PATCH}'
 
 app = fastapi.FastAPI(
     title='iVolAPI',
-    version='2.0.1',
+    version=__version__,
     description='implied volatility and price data for selected ETFs and futures',
     docs_url='/'
 )
 
 app.include_router(pulse_router, tags=['Data'])
 app.include_router(atm_router, tags=['Data'])
+app.include_router(smile_router, tags=['Data'])
 app.include_router(surface_router, tags=['Data'])
 app.include_router(intraday_prices_router, tags=['Data'])
 app.include_router(pvp_router, tags=['Data'])
