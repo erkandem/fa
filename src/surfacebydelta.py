@@ -22,7 +22,7 @@ from typing import List
 from src.users.auth import bouncer
 from src.users.auth import get_current_active_user
 from src.users.user_models import UserPy
-
+from starlette.responses import Response
 
 
 router = fastapi.APIRouter()
@@ -74,7 +74,7 @@ async def get_surface_by_delta(
     """
     args = {'date': date, 'symbol': symbol, 'exchange': exchange, 'ust': ust}
     content = await surface_resolver(args)
-    return json.loads(content[0][0])
+    return Response(content=content, media_type='application/json')
 
 
 async def prepare_surface_sql_arguments(args):
@@ -150,7 +150,7 @@ async def surface_json(args):
     WITH level_one AS (
         {sql_code}
     )
-    SELECT json_agg(level_one) as surface
+    SELECT json_agg(level_one) as surface_ts
     FROM level_one;
     '''
     return sql_code
@@ -159,5 +159,8 @@ async def surface_json(args):
 async def surface_resolver(args: dict):
     sql = await surface_json(args)
     async with engines['pgivbase'].acquire() as con:
-        data = await con.fetch(query=sql)
-        return data
+        data = await con.fetch(sql)
+        if len(data) != 0:
+            return data[0].get('surface_ts')
+        else:
+            return '[]'
