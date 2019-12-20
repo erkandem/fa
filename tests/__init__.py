@@ -36,7 +36,6 @@ But at, least check, whether the image can be run as container:
 docker run -p 5000:5000 --restart unless-stopped -d fast-api:slim-nonroot
 ```
 
-
 ```
 git push origin master
 ```
