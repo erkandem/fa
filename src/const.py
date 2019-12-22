@@ -340,14 +340,15 @@ class deltaChoicesPractical(str, Enum):
 
 
 class deltaOffsetChoices(str, Enum):
-    _d5 = 5
-    _d10 = 10
-    _d15 = 15
-    _d20 = 20
-    _d25 = 25
-    _d30 = 30
-    _d35 = 35
-    _d40 = 40
+    _d0 = '0'
+    _d5 = '5'
+    _d10 = '10'
+    _d15 = '15'
+    _d20 = '20'
+    _d25 = '25'
+    _d30 = '30'
+    _d35 = '35'
+    _d40 = '40'
 
 
 class intradayPricesCmeSymChoices(str, Enum):
@@ -502,7 +503,7 @@ offset_steps = get_values(offsetSteps)
 iv_eurex_choices = get_values(iVolEurexChoices)
 iv_ice_choices = get_values(iVolChoicesIce)
 prices_fx_sym_choices = get_values(pricesFxSymChoices)
-delta_offset_choices  = enum_class_string(deltaOffsetChoices)
+delta_offset_choices = get_values(deltaOffsetChoices)
 
 iv_all_sym_choices = iv_etf_choices + iv_cme_choices + iv_eurex_choices + iv_ice_choices
 
