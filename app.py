@@ -39,11 +39,14 @@ from src.info import router as info_outer
 from src.topoi_data import router as topoi_router
 from src.delta_data import router as delta_router
 from src.ivol_fitted_smile import router as smile_router
+from src.risk_reversal import router as risk_reversal_router
+
 
 MAJOR = 2
 MINOR = 0
 PATCH = 2
 __version__ = f'{MAJOR}.{MINOR}.{PATCH}'
+
 
 app = fastapi.FastAPI(
     title='iVolAPI',
@@ -52,22 +55,34 @@ app = fastapi.FastAPI(
     docs_url='/'
 )
 
-app.include_router(pulse_router, tags=['Data'])
-app.include_router(atm_router, tags=['Data'])
-app.include_router(smile_router, tags=['Data'])
-app.include_router(surface_router, tags=['Data'])
-app.include_router(intraday_prices_router, tags=['Data'])
-app.include_router(pvp_router, tags=['Data'])
-app.include_router(conti_router, tags=['Data'])
-app.include_router(eod_futures_router, tags=['Data'])
-app.include_router(rawdata_router, tags=['Data'])
-app.include_router(topoi_router, tags=['Data'])
-app.include_router(delta_router, tags=['Data'])
-app.include_router(info_outer, prefix='/info', tags=['Info'])
+# API overhead
+app.include_router(pulse_router, tags=['Health'])
+app.include_router(users_router, tags=['Users'])
 app.include_router(auth_router, tags=['Auth'])
+
+# implied volatility routes
+app.include_router(atm_router, tags=['ImpliedVolatility'])
+app.include_router(smile_router, tags=['ImpliedVolatility'])
+app.include_router(surface_router, tags=['ImpliedVolatility'])
+
+# price data
+app.include_router(intraday_prices_router, tags=['PriceData'])
+app.include_router(pvp_router, tags=['PriceData'])
+app.include_router(conti_router, tags=['PriceData'])
+app.include_router(eod_futures_router, tags=['PriceData'])
+
+# raw data
+app.include_router(rawdata_router, tags=['RawData'])
+app.include_router(info_outer, prefix='/info', tags=['Info'])
+
+# custom composite routes
+app.include_router(topoi_router, tags=['Composite', 'RawData'])
+app.include_router(delta_router, tags=['Composite', 'RawData'])
+app.include_router(risk_reversal_router, tags=['Composite', 'ImpliedVolatility'])
+
+# auth testing routes, which are removed from the documentation
 app.include_router(content_router, prefix='/content', tags=['Content'])
 app.include_router(dc_router, prefix='/dc', tags=['Decorated Routes'])
-app.include_router(users_router, tags=['Users'])
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/token')
