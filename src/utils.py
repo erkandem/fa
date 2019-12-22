@@ -71,6 +71,10 @@ async def eod_ini_logic(args: {}) -> {}:
     if args['dminus'] is None:
         args['dminus'] = 20
     delta_d = timedelta(days=args['dminus'])
+    if 'enddate' not in args:
+        args['enddate'] = dt.now().date().strftime('%Y%m%d')
+    if 'startdate' not in args:
+        args['startdate'] = (dt.strptime(args['enddate'], '%Y%m%d') - delta_d).strftime('%Y%m%d')
     if args['enddate'] is None:
         args['enddate'] = dt.now().date().strftime('%Y%m%d')
     if args['startdate'] is None:
