@@ -101,3 +101,11 @@ def test_ivol_smile():
         params = {'symbol': 'cl'}
         response = client.get('/ivol/smile', params=params, headers=headers)
         assert response.status_code == 200
+
+
+def test_risk_reversal():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        params = {'symbol': 'hyg'}
+        response = client.get('/ivol/risk-reversal', params=params, headers=headers)
+        assert response.status_code == 200
