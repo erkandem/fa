@@ -26,8 +26,13 @@ router = fastapi.APIRouter()
     operation_id='get_ivol_smile'
 )
 async def get_ivol_smile(
-        symbol: str, ust: str = None, exchange: str = None, tte: tteChoices = tteChoices._1m,
-        startdate: str = None, enddate: str = None, dminus: int = 30,
+        symbol: str,
+        ust: str = None,
+        exchange: str = None,
+        tte: tteChoices = tteChoices._1m,
+        startdate: str = None,
+        enddate: str = None,
+        dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
         user: UserPy = fastapi.Depends(get_current_active_user)
 ):
