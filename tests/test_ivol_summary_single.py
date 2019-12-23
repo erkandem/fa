@@ -1,4 +1,5 @@
 from src.ivol_summary_statistics import select_statistics_single
+import asyncio
 
 
 def test_select_statistics_single():
@@ -12,5 +13,5 @@ def test_select_statistics_single():
         'dminus': 365,
         'delta': 'd050'
     }
-    sql = select_statistics_single(args)
+    sql = asyncio.run(select_statistics_single(args))
     assert type(sql) is str
