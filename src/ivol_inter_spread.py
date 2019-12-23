@@ -27,11 +27,11 @@ router = fastapi.APIRouter()
 
 @bouncer.roles_required('user')
 @router.get(
-    '/ivol/interasset',
+    '/ivol/inter-spread',
     summary='get ivol spread between options with different underlying',
-    operation_id='get_interasset_spread'
+    operation_id='get_inter_spread'
 )
-async def get_interasset_spread(
+async def get_inter_spread(
         symbol1: str,
         symbol2: str,
         ust1: str = None,
@@ -47,8 +47,8 @@ async def get_interasset_spread(
         user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
-    Calculate the difference between two ETFs or any other security types.
-
+    Calculate the difference between two ETFs or generally between
+    two implied volatility series
 
     - **symbol1**: example: 'SPY' or 'spy' (case insensitive)
     - **ust1**: underlying security type: 'eqt' e.g.
@@ -77,11 +77,11 @@ async def get_interasset_spread(
         'dminus': dminus,
         'order': order.value
     }
-    content = await resolve_me(args)
+    content = await resolve_inter_spread(args)
     return Response(content=content, media_type='application/json')
 
 
-async def select_interasset_ivol(args):
+async def select_inter_ivol(args):
     args['tte'] = time_to_var_func(args['tte'])
     args = await eod_ini_logic(args)
 
@@ -131,8 +131,8 @@ async def select_interasset_ivol(args):
     return sql_code
 
 
-async def resolve_me(args):
-    sql = await select_interasset_ivol(args)
+async def resolve_inter_spread(args):
+    sql = await select_inter_ivol(args)
     async with engines['pgivbase'].acquire() as con:
         data = await con.fetch(sql)
         if len(data) != 0:

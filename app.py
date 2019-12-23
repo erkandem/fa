@@ -42,7 +42,7 @@ from src.ivol_smile import router as smile_router
 from src.ivol_risk_reversal import router as risk_reversal_router
 from src.ivol_calendar_spread import router as calendar_router
 from src.ivol_summary_statistics import router as ivol_summary_statistics_router
-from src.ivol_interasset_spread import router as ivol_interasset_spread_router
+from src.ivol_inter_spread import router as ivol_interasset_spread_router
 
 
 MAJOR = 2
