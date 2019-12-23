@@ -58,10 +58,9 @@ async def delete_user_by_username(username: str) -> bool:
 async def insert_new_user(user: UserPy) -> bool:
     values = user.dict()
     query = users_table.insert()
-    try:
+    result = await user_exists_by_username(user.username)
+    if not result:
         await engines['users'].execute(query, values)
-    except:
-        print('User already in database')
     result = await user_exists_by_username(user.username)
     return result
 
