@@ -77,7 +77,7 @@ async def get_risk_reversal(
     - **dminus**: indicate the number of days back from `enddate`
     - **delta1**: manually set the first delta leg
     - **delta2**: manually set the second delta leg
-    - **order**:  sorting order with respect to price interval
+    - **order**:  sorting order with respect to date
     """
     if delta1:
         delta1 = delta1.value
@@ -112,16 +112,6 @@ async def select_risk_reversal(args):
     """
     args = await guess_exchange_and_ust(args)
     args = await eod_ini_logic(args)
-    if args['ust'] is None:
-        return Response(
-            content={'msg': f'Could not identify `ust` form symbol {args["symbol"]}'},
-            status_code=HTTP_400_BAD_REQUEST
-        )
-    if args['exchange'] is None:
-        return Response(
-            content={'msg': f'Could not identify `exchange` form symbol {args["symbol"]}'},
-            status_code=HTTP_400_BAD_REQUEST
-        )
     args['tte'] = time_to_var_func(args['tte'])
 
     c = ContractSync()

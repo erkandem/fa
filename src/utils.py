@@ -1,4 +1,6 @@
 from datetime import timedelta, datetime as dt
+from starlette.responses import Response
+from starlette.status import HTTP_400_BAD_REQUEST
 
 from src.const import prices_etf_sym_choices
 from src.const import prices_fx_sym_choices
@@ -26,6 +28,16 @@ async def guess_exchange_and_ust(args: {}) -> {}:
         args['exchange'] = await guess_exchange_from_symbol_intraday(args['symbol'])
     if args['ust'] is None:
         args['ust'] = await guess_ust_from_symbol_intraday(args['symbol'])
+    if args['ust'] is None:
+        return Response(
+            content={'msg': f'Could not identify `ust` form symbol {args["symbol"]}'},
+            status_code=HTTP_400_BAD_REQUEST
+        )
+    if args['exchange'] is None:
+        return Response(
+            content={'msg': f'Could not identify `exchange` form symbol {args["symbol"]}'},
+            status_code=HTTP_400_BAD_REQUEST
+        )
     return args
 
 
