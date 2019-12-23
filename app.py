@@ -38,8 +38,9 @@ from src.users.db import table_creation
 from src.info import router as info_outer
 from src.topoi_data import router as topoi_router
 from src.delta_data import router as delta_router
-from src.ivol_fitted_smile import router as smile_router
-from src.risk_reversal import router as risk_reversal_router
+from src.ivol_smile import router as smile_router
+from src.ivol_risk_reversal import router as risk_reversal_router
+from src.ivol_calendar_spread import router as calendar_router
 
 
 MAJOR = 2
@@ -64,6 +65,7 @@ app.include_router(auth_router, tags=['Auth'])
 app.include_router(atm_router, tags=['ImpliedVolatility'])
 app.include_router(smile_router, tags=['ImpliedVolatility'])
 app.include_router(surface_router, tags=['ImpliedVolatility'])
+app.include_router(calendar_router, tags=['ImpliedVolatility'])
 
 # price data
 app.include_router(intraday_prices_router, tags=['PriceData'])
