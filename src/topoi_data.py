@@ -31,7 +31,7 @@ from datetime import timedelta
 import re
 import json
 from starlette.responses import Response
-from starlette.status import HTTP_200_OK
+from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 import fastapi
 import pydantic
 from pydantic import BaseModel
@@ -174,7 +174,7 @@ async def resolve_top_oi_or_volume(args: {}):
     if args['ust'] == 'fut':
         if args['option_month'] is None and args['underlying_month'] is None:
             raise HTTPException(
-                status_code=HTTP_200_OK,
+                status_code=HTTP_400_BAD_REQUEST,
                 detail="a query for futures requires `option_month` and `underlying_month`"
             )
     relation = await get_schema_and_table_name(args)
