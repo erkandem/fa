@@ -32,16 +32,28 @@ RegularFuturesParams = namedtuple(
     operation_id='get_regular_futures_eod'
 )
 async def get_regular_futures_eod(
-        symbol: str, month: str = None, year: int = None, ust: str = None, exchange: str = None,
-        startdate: str = None, enddate: str = None, dminus: int = 30,
+        symbol: str,
+        month: str = None,
+        year: int = None,
+        ust: str = None,
+        exchange: str = None,
+        startdate: str = None,
+        enddate: str = None,
+        dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
         user: UserPy = fastapi.Depends(get_current_active_user)
-
 ):
     """prices """
     args = {
-        'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
-        'startdate': startdate, 'enddate': enddate, 'dminus': dminus, 'order': order.value
+        'symbol': symbol,
+        'month': month,
+        'year': year,
+        'ust': ust,
+        'exchange': exchange,
+        'startdate': startdate,
+        'enddate': enddate,
+        'dminus': dminus,
+        'order': order.value
     }
     content = await resolve_eod_futures(args)
     return content

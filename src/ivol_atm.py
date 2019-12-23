@@ -25,8 +25,13 @@ router = fastapi.APIRouter()
     operation_id='get_atm_ivol'
 )
 async def atm_ivol(
-        symbol: str, ust: str = None, exchange: str = None, tte: tteChoices = tteChoices._1m,
-        startdate: str = None, enddate: str = None, dminus: int = 30,
+        symbol: str,
+        ust: str = None,
+        exchange: str = None,
+        tte: tteChoices = tteChoices._1m,
+        startdate: str = None,
+        enddate: str = None,
+        dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
         user: UserPy = fastapi.Depends(get_current_active_user)
 ):
@@ -40,11 +45,16 @@ async def atm_ivol(
     - **startdate**: format: yyyymmdd
     - **enddate**: format: yyyymmdd
     - **dminus**: indicate the number of days back from `enddate`
-    - **order**:  sorting order with respect to price interval
+    - **order**:  sorting order with respect  to date
     """
     args = {
-        'symbol': symbol, 'ust': ust, 'exchange': exchange, 'tte': tte._value_,
-        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
+        'symbol': symbol,
+        'ust': ust,
+        'exchange': exchange,
+        'tte': tte._value_,
+        'startdate': startdate,
+        'enddate': enddate,
+        'dminus': dminus,
         'order': order.value
     }
     content = await resolve_atm_ivol(args)
@@ -53,18 +63,15 @@ async def atm_ivol(
 
 AtmParams = namedtuple(
     'AtmParams',
-    ['schema', 'table', 'varname', 'startdate', 'enddate', 'order', 'limit']
+    ['schema', 'table', 'varname', 'startdate', 'enddate', 'order']
 )
 
 
 async def dpyd_atm_dispatcher(args):
     """ """
     args['delta'] = 'd050'
-    limit = 350
     args = await guess_exchange_and_ust(args)
     args = await eod_ini_logic(args)
-    #if args['exchange'] == 'usetf':
-    #    args['exchange'] = 'usmw'
     c = Contract()
     c.symbol = args['symbol']
     c.exchange = args['exchange']
@@ -81,8 +88,8 @@ async def dpyd_atm_dispatcher(args):
         varname=varname,
         startdate=args['startdate'],
         enddate=args['enddate'],
-        order=args['order'],
-        limit=limit)
+        order=args['order']
+        )
     sql = await final_sql(params)
     return sql
 
@@ -92,8 +99,7 @@ async def final_sql(nt: AtmParams) -> str:
         SELECT dt, {nt.varname} AS value
         FROM {nt.schema}.{nt.table}  
         WHERE dt BETWEEN '{nt.startdate}' AND '{nt.enddate}'
-        ORDER BY dt  {nt.order}
-        LIMIT {nt.limit} ; 
+        ORDER BY dt  {nt.order}; 
     '''
 
 

@@ -22,13 +22,13 @@ from src.users.users import create_initial_superuser
 from src.users.users import create_other_default_user
 from fastapi.security import OAuth2PasswordBearer
 
-from src.atm import router as atm_router
+from src.ivol_atm import router as atm_router
 from src.intraday_prices import router as intraday_prices_router
 from src.pvp import router as pvp_router
 from src.conti_prices import router as conti_router
 from src.regular_futures import router as eod_futures_router
 from src.pulse import router as pulse_router
-from src.surfacebydelta import router as surface_router
+from src.ivol_surface_by_delta import router as surface_router
 from src.rawoption_data import router as rawdata_router
 from src.users.auth import router as auth_router
 from src.users.content import router as content_router

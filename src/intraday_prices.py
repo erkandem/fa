@@ -96,16 +96,31 @@ IntradayPricesParams = namedtuple(
     operation_id='get_intraday_prices'
 )
 async def get_intraday_prices(
-        symbol: str, month: str = None, year: int = None, ust: str = None, exchange: str = None,
-        startdate: str = None, enddate: str = None, dminus: int = 20,
-        interval: int = 1, iunit: str = 'minutes',
+        symbol: str,
+        month: str = None,
+        year: int = None,
+        ust: str = None,
+        exchange: str = None,
+        startdate: str = None,
+        enddate: str = None,
+        dminus: int = 20,
+        interval: int = 1,
+        iunit: str = 'minutes',
         order: OrderChoices = OrderChoices._asc,
         user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     args = {
-        'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
-        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
-        'interval': interval, 'iunit': iunit, 'order': order.value
+        'symbol': symbol,
+        'month': month,
+        'year': year,
+        'ust': ust,
+        'exchange': exchange,
+        'startdate': startdate,
+        'enddate': enddate,
+        'dminus': dminus,
+        'interval': interval,
+        'iunit': iunit,
+        'order': order.value
     }
     content = await prices_intraday_content(args)
     return content

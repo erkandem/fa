@@ -47,11 +47,16 @@ async def get_ivol_smile(
     - **startdate**: format: yyyymmdd
     - **enddate**: format: yyyymmdd
     - **dminus**: indicate the number of days back from `enddate`
-    - **order**:  sorting order with respect to price interval
+    - **order**:  sorting order with respect to date
     """
     args = {
-        'symbol': symbol, 'ust': ust, 'exchange': exchange, 'tte': tte._value_,
-        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
+        'symbol': symbol,
+        'ust': ust,
+        'exchange': exchange,
+        'tte': tte._value_,
+        'startdate': startdate,
+        'enddate': enddate,
+        'dminus': dminus,
         'order': order.value
     }
     data = await resolve_ivol_fitted_smile(args)

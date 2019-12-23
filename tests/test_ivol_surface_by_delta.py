@@ -1,6 +1,6 @@
 # from src.surfacebydelta import prepare_surface_sql_arguments
 import asyncio
-from src.surfacebydelta import prepare_surface_sql_arguments
+from src.ivol_surface_by_delta import prepare_surface_sql_arguments
 
 
 def test_sql_generation():

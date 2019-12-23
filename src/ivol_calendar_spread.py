@@ -62,7 +62,7 @@ async def get_ivol_calendar(
     - **tt2**: time 'til expiry of second leg
     - **delta1**: manually set the first delta leg
     - **delta2**: manually set the second delta leg
-    - **order**:  sorting order with respect to price interval
+    - **order**:  sorting order with respect to date
     """
     if delta1:
         delta1 = delta1.value
