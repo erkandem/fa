@@ -4,6 +4,11 @@ from src.surfacebydelta import prepare_surface_sql_arguments
 
 
 def test_sql_generation():
-    args = {'date': '20190509', 'symbol': 'cl', 'exchange': 'cme', 'ust': 'fut'}
+    args = {
+        'symbol': 'cl',
+        'exchange': 'cme',
+        'ust': 'fut',
+        'date': '20190509'
+    }
     sql = asyncio.run(prepare_surface_sql_arguments(args))
     assert type(sql) is str

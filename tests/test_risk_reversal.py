@@ -1,10 +1,10 @@
 import asyncio
-from src.risk_reversal import select_risk_reversal
+from src.ivol_risk_reversal import select_risk_reversal
 
 
 def test_sql_generation():
     args = {
-        'symbol': 'cl',
+        'symbol': 'spy',
         'dminus': 30,
         'delta1': 'd060',
         'delta2': 'd040',

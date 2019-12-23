@@ -4,7 +4,7 @@ https://docs.python.org/3.7/library/asyncio-task.html
 
 First, run a simple `pytest - x` to get closer to an error
 ```
-pytest - x
+pytest -x
 ```
 
 Second, run with coverage

@@ -109,3 +109,11 @@ def test_risk_reversal():
         params = {'symbol': 'hyg'}
         response = client.get('/ivol/risk-reversal', params=params, headers=headers)
         assert response.status_code == 200
+
+
+def test_calendar_spread():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        params = {'symbol': 'spy'}
+        response = client.get('/ivol/calendar', params=params, headers=headers)
+        assert response.status_code == 200
