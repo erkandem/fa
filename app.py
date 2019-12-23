@@ -46,7 +46,7 @@ from src.ivol_summary_statistics import router as ivol_summary_statistics_router
 
 MAJOR = 2
 MINOR = 0
-PATCH = 4
+PATCH = 5
 __version__ = f'{MAJOR}.{MINOR}.{PATCH}'
 
 
