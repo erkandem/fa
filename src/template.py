@@ -18,6 +18,7 @@ from src.users.auth import bouncer
 from src.users.auth import get_current_active_user
 from src.users.user_models import UserPy
 from starlette.responses import Response
+from src.const import time_to_var_func
 
 
 router = fastapi.APIRouter()
@@ -30,7 +31,8 @@ router = fastapi.APIRouter()
     operation_id='unique_operation_id>'
 )
 async def unique_operatin_id(
-        symbol: str, ust: str = None,
+        symbol: str,
+        ust: str = None,
         exchange: str = None,
         tte: tteChoices = tteChoices._1m,
         startdate: str = None,
@@ -44,8 +46,8 @@ async def unique_operatin_id(
     the already serialized postgres response.
 
     - **symbol**: example: 'SPY' or 'spy' (case insensitive)
-    - **ust**: underlying security type: ['fut', 'eqt', 'ind', 'fx']
-    - **exchange**: one of: ['usetf', 'cme', 'ice', 'eurex']
+    - **ust**: underlying security type: 'eqt' e.g.
+    - **exchange**: one of: 'usetf', e.g.
     - **tte**: time until expiry. 1m 3m 12m ...
     - **startdate**: format: yyyymmdd
     - **enddate**: format: yyyymmdd
