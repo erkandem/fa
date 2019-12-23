@@ -42,7 +42,7 @@ from src.ivol_smile import router as smile_router
 from src.ivol_risk_reversal import router as risk_reversal_router
 from src.ivol_calendar_spread import router as calendar_router
 from src.ivol_summary_statistics import router as ivol_summary_statistics_router
-from src.ivol_inter_spread import router as ivol_interasset_spread_router
+from src.ivol_inter_spread import router as ivol_inter_spread_router
 
 
 MAJOR = 2
@@ -68,7 +68,7 @@ app.include_router(atm_router, tags=['ImpliedVolatility'])
 app.include_router(smile_router, tags=['ImpliedVolatility'])
 app.include_router(surface_router, tags=['ImpliedVolatility'])
 app.include_router(calendar_router, tags=['ImpliedVolatility'])
-app.include_router(ivol_interasset_spread_router, tags=['ImpliedVolatility'])
+app.include_router(ivol_inter_spread_router, tags=['ImpliedVolatility'])
 
 # price data
 app.include_router(intraday_prices_router, tags=['PriceData'])
