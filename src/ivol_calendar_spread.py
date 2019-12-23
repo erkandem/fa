@@ -32,7 +32,8 @@ router = fastapi.APIRouter()
     operation_id='get_ivol_calendar'
 )
 async def get_ivol_calendar(
-        symbol: str, ust: str = None,
+        symbol: str,
+        ust: str = None,
         exchange: str = None,
         startdate: str = None,
         enddate: str = None,

@@ -33,7 +33,8 @@ router = fastapi.APIRouter()
     operation_id='get_risk_reversal'
 )
 async def get_risk_reversal(
-        symbol: str, ust: str = None,
+        symbol: str,
+        ust: str = None,
         exchange: str = None,
         tte: tteChoices = tteChoices._1m,
         startdate: str = None,
