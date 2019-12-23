@@ -125,3 +125,12 @@ def test_summary_route():
         params = {'symbol': 'spy'}
         response = client.get('/ivol/summary/single', params=params, headers=headers)
         assert response.status_code == 200
+
+
+def test_inter_spread_route():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        params = {'symbol1': 'spy', 'symbol2': 'ewz'}
+        response = client.get('/ivol/inter-spread', params=params, headers=headers)
+        assert response.status_code == 200
+
