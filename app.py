@@ -45,7 +45,7 @@ from src.ivol_calendar_spread import router as calendar_router
 
 MAJOR = 2
 MINOR = 0
-PATCH = 3
+PATCH = 4
 __version__ = f'{MAJOR}.{MINOR}.{PATCH}'
 
 
