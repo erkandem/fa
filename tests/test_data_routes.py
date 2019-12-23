@@ -117,3 +117,11 @@ def test_calendar_spread():
         params = {'symbol': 'spy'}
         response = client.get('/ivol/calendar', params=params, headers=headers)
         assert response.status_code == 200
+
+
+def test_summary_route():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        params = {'symbol': 'spy'}
+        response = client.get('/ivol/summary/single', params=params, headers=headers)
+        assert response.status_code == 200

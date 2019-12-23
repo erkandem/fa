@@ -41,6 +41,7 @@ from src.delta_data import router as delta_router
 from src.ivol_smile import router as smile_router
 from src.ivol_risk_reversal import router as risk_reversal_router
 from src.ivol_calendar_spread import router as calendar_router
+from src.ivol_summary_statistics import router as ivol_summary_statistics_router
 
 
 MAJOR = 2
@@ -66,6 +67,7 @@ app.include_router(atm_router, tags=['ImpliedVolatility'])
 app.include_router(smile_router, tags=['ImpliedVolatility'])
 app.include_router(surface_router, tags=['ImpliedVolatility'])
 app.include_router(calendar_router, tags=['ImpliedVolatility'])
+app.include_router(ivol_summary_statistics_router, tags=['ImpliedVolatility'])
 
 # price data
 app.include_router(intraday_prices_router, tags=['PriceData'])
@@ -81,6 +83,7 @@ app.include_router(info_outer, prefix='/info', tags=['Info'])
 app.include_router(topoi_router, tags=['Composite', 'RawData'])
 app.include_router(delta_router, tags=['Composite', 'RawData'])
 app.include_router(risk_reversal_router, tags=['Composite', 'ImpliedVolatility'])
+app.include_router(ivol_summary_statistics_router, tags=['Composite', 'ImpliedVolatility'])
 
 # auth testing routes, which are removed from the documentation
 app.include_router(content_router, prefix='/content', tags=['Content'])
