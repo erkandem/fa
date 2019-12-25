@@ -20,7 +20,8 @@ from src.users.auth import get_current_active_user
 from src.users.user_models import UserPy
 from starlette.responses import Response
 from src.const import time_to_var_func
-from src. const import deltaChoicesPractical
+from src.const import deltaChoicesPractical
+from src.utils import CinfoQueries
 
 
 router = fastapi.APIRouter()
@@ -66,9 +67,122 @@ async def get_ivol_summary_single(
         'dminus': dminus,
         'delta': delta.value
     }
-    print(args)
     content = await resolve_ivol_summary_statistics(args)
-    return Response(content=content, media_type='application/json')
+    return content
+
+
+@bouncer.roles_required('user')
+@router.get(
+    '/ivol/summary/cme',
+    summary='get min, max, std, average and weekly data points for symbols on CME',
+    operation_id='get_ivol_summary_cme'
+)
+async def get_ivol_summary_cme(
+        user: UserPy = fastapi.Depends(get_current_active_user)
+):
+    """
+    Delivers descriptive statistics and some slices of data for CME contracts
+
+    """
+    args = {
+        'ust': 'fut',
+        'exchange': 'cme',
+        'tte': tteChoices._1m.value,
+        'startdate': None,
+        'enddate': None,
+        'dminus': 365,
+        'delta': deltaChoicesPractical._d050.value
+    }
+    content = await resolve_ivol_summary_multi(args)
+    return content
+
+
+@bouncer.roles_required('user')
+@router.get(
+    '/ivol/summary/ice',
+    summary='get min, max, std, average and weekly data points for sybmols on ICE',
+    operation_id='get_ivol_summary_ice'
+)
+async def get_ivol_summary_ice(
+        user: UserPy = fastapi.Depends(get_current_active_user)
+):
+    """
+    Delivers descriptive statistics and some slices of data for ICE contracts
+
+    """
+    args = {
+        'ust': 'fut',
+        'exchange': 'ice',
+        'tte': tteChoices._1m.value,
+        'startdate': None,
+        'enddate': None,
+        'dminus': 365,
+        'delta': deltaChoicesPractical._d050.value
+    }
+    content = await resolve_ivol_summary_multi(args)
+    return content
+
+
+@bouncer.roles_required('user')
+@router.get(
+    '/ivol/summary/usetfs',
+    summary='get min, max, std, average and weekly data points for US ETFs',
+    operation_id='get_ivol_summary_ice'
+)
+async def get_ivol_summary_ice(
+        user: UserPy = fastapi.Depends(get_current_active_user)
+):
+    """
+    Delivers descriptive statistics and some slices of data for US ETFs
+
+    """
+    args = {
+        'ust': 'eqt',
+        'exchange': 'usetf',
+        'tte': tteChoices._1m.value,
+        'startdate': None,
+        'enddate': None,
+        'dminus': 365,
+        'delta': deltaChoicesPractical._d050.value
+    }
+    content = await resolve_ivol_summary_multi(args)
+    return content
+
+
+@bouncer.roles_required('user')
+@router.get(
+    '/ivol/summary/eurex',
+    summary='get min, max, std, average and weekly data points for symbols on EUREX',
+    operation_id='get_ivol_summary_eurex'
+)
+async def get_ivol_summary_eurex(
+        user: UserPy = fastapi.Depends(get_current_active_user)
+):
+    """
+    Delivers descriptive statistics and some slices of data for US ETFs
+
+    """
+    args_futures = {
+        'ust': 'fut',
+        'exchange': 'eurex',
+        'tte': tteChoices._1m.value,
+        'startdate': None,
+        'enddate': None,
+        'dminus': 365,
+        'delta': deltaChoicesPractical._d050.value
+    }
+    args_indices = {
+        'ust': 'ind',
+        'exchange': 'eurex',
+        'tte': tteChoices._1m.value,
+        'startdate': None,
+        'enddate': None,
+        'dminus': 365,
+        'delta': deltaChoicesPractical._d050.value
+    }
+    content = await resolve_ivol_summary_multi(args_indices)
+    content += await resolve_ivol_summary_multi(args_futures)
+    return content
 
 
 async def select_statistics_single(args):
@@ -89,31 +203,58 @@ async def select_statistics_single(args):
 
     schema = c.compose_2_part_schema_name()
     table = c.compose_ivol_final_table_name(args['delta'])
-    return f'''
-        WITH summary AS (
-        SELECT 
-                   '{args['symbol']}'                                 AS    symbol,
-                   (ARRAY_AGG(dt ORDER BY dt ASC))[1]::date           AS    start_date,
-                   (ARRAY_AGG(dt ORDER BY dt DESC))[1]::date          AS    end_date,
-                   '{args['delta']}'                                  AS    delta,
-                   '{tte_human_readable}'                             AS    expiry,
-                   STDDEV_SAMP({args['tte']})                         AS    standard_dev,
-                   AVG({args['tte']})                                 AS    average,
-                   MIN({args['tte']})                                 AS    min,
-                   MAX({args['tte']})                                 AS    max,
-                   (array_agg({args['tte']} ORDER BY dt DESC))[1]     AS    last,
-                   (array_agg({args['tte']} ORDER BY dt DESC))[5*1+1] AS    week_ago_one,
-                   (array_agg({args['tte']} ORDER BY dt DESC))[5*2+1] AS    week_ago_two,
-                   (array_agg({args['tte']} ORDER BY dt DESC))[5*3+1] AS    week_ago_three,
-                   (array_agg({args['tte']} ORDER BY dt DESC))[5*4+1] AS    week_ago_four,
-                   (array_agg({args['tte']} ORDER BY dt DESC))[5*5+1] AS    week_ago_five,
-                   (array_agg({args['tte']} ORDER BY dt DESC))[5*6+1] AS    week_ago_six
-        FROM       {schema}.{table}
-        WHERE      dt
-        BETWEEN    '{args['startdate']}' AND '{args['enddate']}'
-        )
-        SELECT json_agg(summary) from summary;
-    '''
+    return f'''   SELECT 
+               '{args['symbol']}'                                 AS symbol,
+               (ARRAY_AGG(dt ORDER BY dt ASC))[1]::date           AS start_date,
+               (ARRAY_AGG(dt ORDER BY dt DESC))[1]::date          AS end_date,
+               '{args['delta']}'                                  AS delta,
+               '{tte_human_readable}'                             AS expiry,
+               STDDEV_SAMP({args['tte']})                         AS standard_dev,
+               AVG({args['tte']})                                 AS average,
+               MIN({args['tte']})                                 AS min,
+               MAX({args['tte']})                                 AS max,
+               COUNT(dt)                                          AS observations,
+               (array_agg({args['tte']} ORDER BY dt DESC))[1]     AS last,
+               (array_agg({args['tte']} ORDER BY dt DESC))[5*1+1] AS week_ago_one,
+               (array_agg({args['tte']} ORDER BY dt DESC))[5*2+1] AS week_ago_two,
+               (array_agg({args['tte']} ORDER BY dt DESC))[5*3+1] AS week_ago_three,
+               (array_agg({args['tte']} ORDER BY dt DESC))[5*4+1] AS week_ago_four,
+               (array_agg({args['tte']} ORDER BY dt DESC))[5*5+1] AS week_ago_five,
+               (array_agg({args['tte']} ORDER BY dt DESC))[5*6+1] AS week_ago_six
+    FROM       {schema}.{table}
+    WHERE      dt
+    BETWEEN    '{args['startdate']}' AND '{args['enddate']}';'''
+
+
+async def select_ivol_summary_multi(args):
+    sql_info = CinfoQueries.symbol_where_ust_and_exchange_f(args)
+    async with engines['options_rawdata'].acquire() as con:
+        symbols = await con.fetch(sql_info)
+    sql_code = '( '
+    symbols_length = len(symbols)
+    for n, symbol in enumerate(symbols):
+        individual_args = {
+            'symbol': symbol[0],
+            'ust': args['ust'],
+            'exchange': args['exchange'],
+            'tte': args['tte'],
+            'startdate': args['startdate'],
+            'enddate': args['enddate'],
+            'dminus': args['dminus'],
+            'delta': args['delta']
+        }
+        sql_code += (await select_statistics_single(individual_args))[0:-1]
+        if n < symbols_length -1:
+            sql_code += '\n)\n   UNION ALL\n(\n '
+    sql_code += ');'
+    return sql_code
+
+
+async def resolve_ivol_summary_multi(args):
+    sql = await select_ivol_summary_multi(args)
+    async with engines['pgivbase'].acquire() as con:
+        data = await con.fetch(sql)
+        return data
 
 
 async def resolve_ivol_summary_statistics(args):
@@ -121,6 +262,6 @@ async def resolve_ivol_summary_statistics(args):
     async with engines['pgivbase'].acquire() as con:
         data = await con.fetch(sql)
         if len(data) != 0:
-            return data[0].get('json_agg')
+            return dict(data[0])
         else:
-            return '[]'
+            return [{}]
