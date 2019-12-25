@@ -87,8 +87,6 @@ async def select_ivol_fitted_smile(args):
     args = await guess_exchange_and_ust(args)
     args = await eod_ini_logic(args)
     args['tte'] = time_to_var_func(args['tte'])
-    if args['exchange'] == 'usetf':
-        args['exchange'] = 'usmw'
     c = ContractSync()
     c.symbol = args['symbol']
     c.exchange = args['exchange']
