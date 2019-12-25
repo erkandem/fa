@@ -1,6 +1,6 @@
 import databases
 import sqlalchemy as sa
-from appconfig import DATABASE_URL_PG
+from appconfig import USERDB_URL_PG
 from src.db import engines
 from src.db import pgc
 from src.users.user_models import UserPy
@@ -30,14 +30,20 @@ async def user_exists_by_username(username):
     values = {'username': username}
     query = f'SELECT EXISTS (SELECT 1 FROM users WHERE username = :username);'
     row = await engines['users'].fetch_all(query, values)
-    return bool(row[0][0])
+    result = list(dict(row[0]).values())[0]
+    if type(result) is int:
+        result = bool(result)
+    return result
 
 
 async def user_isactive_by_username(username: str) -> bool:
     values = {'username': username}
     query = f'SELECT is_active FROM users WHERE username = :username;'
     row = await engines['users'].fetch_all(query, values)
-    return bool(row[0][0])
+    result = list(dict(row[0]).values())[0]
+    if type(result) is int:
+        result = bool(result)
+    return result
 
 
 async def user_pwd_by_username(username: str) -> str:
