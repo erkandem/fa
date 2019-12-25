@@ -18,7 +18,6 @@ from src.users.auth import get_current_active_user
 from src.users.user_models import UserPy
 
 
-
 router = fastapi.APIRouter()
 
 ContiEodParams = namedtuple(
@@ -141,6 +140,7 @@ async def create_conti_eod_table_name(
         contract_number: int = None,
         nth_contract: str = None
 ) -> str:
+    print('`create_conti_eod_table_name` needs to merged to the `Contract` class')
     if nth_contract is None and contract_number is None:
         raise ValueError('It\'s got to be one of them')
     elif nth_contract is None and contract_number is not None:
@@ -160,6 +160,7 @@ async def create_conti_eod_array_table_name(
         security_type: str,
         exchange: str,
 ) -> str:
+    print('`create_conti_eod_array_table_name` needs to merged to the `Contract` class')
     return (f'{security_type}'
             f'_{exchange}'
             f'_{symbol}'
@@ -167,6 +168,7 @@ async def create_conti_eod_array_table_name(
 
 
 async def create_conti_eod_schema_name(security_type: str, exchange: str) -> str:
+    print('`create_conti_eod_schema_name` needs to merged to the `Contract` class')
     return (f'{security_type}'
             f'_{exchange}'
             f'_eod_conti').lower()
