@@ -215,7 +215,7 @@ class CinfoQueries:
             SELECT DISTINCT symbol AS symbol
             FROM cinfo 
             WHERE exchange = '{args['exchange']}'
-            ORDER BY ust;
+            ORDER BY symbol;
         '''
 
     @staticmethod
