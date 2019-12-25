@@ -1,5 +1,5 @@
 import asyncio
-from src.ivol_atm import dpyd_atm_dispatcher
+from src.ivol_atm import select_ivol
 
 
 def test_dpyd_atm_dispatcher():
@@ -7,11 +7,13 @@ def test_dpyd_atm_dispatcher():
         'symbol': 'spy',
         'ust': 'eqt',
         'exchange': 'usetf',
-        'tte': '1m',
         'startdate': None,
         'enddate': None,
         'dminus': 60,
+        'tte': '1m',
+        'delta': 'd050',
         'order': 'asc'
+
     }
-    sql = asyncio.run(dpyd_atm_dispatcher(args))
+    sql = asyncio.run(select_ivol(args))
     assert type(sql) is str
