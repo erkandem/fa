@@ -29,7 +29,7 @@ def table_creation(uri: str):
 async def user_exists_by_username(username):
     values = {'username': username}
     query = f'SELECT EXISTS (SELECT 1 FROM users WHERE username = :username);'
-    row = await engines['users'].fetch_all(query, values)
+    row = await engines['users'].fetch_all(query, values=values)
     result = list(dict(row[0]).values())[0]
     if type(result) is int:
         result = bool(result)
@@ -39,7 +39,7 @@ async def user_exists_by_username(username):
 async def user_isactive_by_username(username: str) -> bool:
     values = {'username': username}
     query = f'SELECT is_active FROM users WHERE username = :username;'
-    row = await engines['users'].fetch_all(query, values)
+    row = await engines['users'].fetch_all(query, values=values)
     result = list(dict(row[0]).values())[0]
     if type(result) is int:
         result = bool(result)
@@ -49,14 +49,14 @@ async def user_isactive_by_username(username: str) -> bool:
 async def user_pwd_by_username(username: str) -> str:
     values = {'username': username}
     query = f'SELECT hashed_salted_pwd FROM users WHERE username = :username;'
-    row = await engines['users'].fetch_all(query, values)
+    row = await engines['users'].fetch_all(query, values=values)
     return row[0][0]
 
 
 async def delete_user_by_username(username: str) -> bool:
     values = {'username': username}
     query = f'DELETE FROM users WHERE username = :username;'
-    await engines['users'].execute(query, values)
+    await engines['users'].execute(query, values=values)
     result = not await user_exists_by_username(username)
     return result
 
@@ -66,7 +66,7 @@ async def insert_new_user(user: UserPy) -> bool:
     query = users_table.insert()
     result = await user_exists_by_username(user.username)
     if not result:
-        await engines['users'].execute(query, values)
+        await engines['users'].execute(query, values=values)
     result = await user_exists_by_username(user.username)
     return result
 
@@ -74,7 +74,7 @@ async def insert_new_user(user: UserPy) -> bool:
 async def get_roles_by_username(username: str) -> [str]:
     values = {'username': username}
     query = f'SELECT roles FROM users WHERE username = :username;'
-    result = await engines['users'].fetch_all(query, values)
+    result = await engines['users'].fetch_all(query, values=values)
     roles_list = result[0][0].split(',')
     return roles_list
 
@@ -82,7 +82,7 @@ async def get_roles_by_username(username: str) -> [str]:
 async def update_role_by_username(username: str, roles: [str]) -> bool:
     values = {'username': username, 'roles': ','.join(roles)}
     query = f'UPDATE users SET roles = :roles WHERE username = :username;'
-    await engines['users'].execute(query, values)
+    await engines['users'].execute(query, values=values)
     roles_in_db = await get_roles_by_username(username)
     result = False
     if set(roles_in_db) == set(roles):
@@ -93,7 +93,7 @@ async def update_role_by_username(username: str, roles: [str]) -> bool:
 async def update_isactive_by_username(username: str, is_active: bool) -> bool:
     values = {'username': username, 'is_active': is_active}
     query = f'UPDATE users SET is_active = :is_active WHERE username = :username;'
-    await engines['users'].execute(query, values)
+    await engines['users'].execute(query, values=values)
     result = await user_isactive_by_username(username)
     return result == is_active
 
@@ -101,7 +101,7 @@ async def update_isactive_by_username(username: str, is_active: bool) -> bool:
 async def update_password_by_username(username: str, salt: str, hashed_salted_pwd: str) -> bool:
     values = {'username': username, 'salt': salt, 'hashed_salted_pwd': hashed_salted_pwd}
     query = f'UPDATE users SET salt = :salt, hashed_salted_pwd = :hashed_salted_pwd WHERE username = :username;'
-    await engines['users'].execute(query, values)
+    await engines['users'].execute(query, values=values)
     in_db_pwd = await user_pwd_by_username(username)
     return in_db_pwd == hashed_salted_pwd
 
@@ -109,7 +109,7 @@ async def update_password_by_username(username: str, salt: str, hashed_salted_pw
 async def get_user_by_username(username: str) -> [sa.engine.RowProxy]:
     values = {'username': username}
     query = f'SELECT * FROM users WHERE username = :username LIMIT 1;'
-    data = await engines['users'].fetch_all(query, values)
+    data = await engines['users'].fetch_all(query, values=values)
     return data
 
 
