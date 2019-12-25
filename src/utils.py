@@ -205,7 +205,7 @@ class CinfoQueries:
         return f'''
             SELECT DISTINCT symbol AS symbol
             FROM cinfo 
-            WHERE ust = '{args['ust']}']
+            WHERE ust = '{args['ust']}'
             ORDER BY ust;
         '''
 
