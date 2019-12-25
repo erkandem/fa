@@ -13,15 +13,15 @@ http://0.0.0.0:5000/prices/intraday?symbol=ewz&startdate=20191001&interval=1&iun
 from datetime import datetime as dt
 from datetime import date
 import asyncpg
-import fastapi
-from starlette.middleware.cors import CORSMiddleware
 import databases
+import fastapi
+from fastapi.security import OAuth2PasswordBearer
+from starlette.middleware.cors import CORSMiddleware
 from appconfig import USERDB_URL
+from appconfig import USERDB_URL_PG
 from src.db import engines, pgc
 from src.users.users import create_initial_superuser
 from src.users.users import create_other_default_user
-from fastapi.security import OAuth2PasswordBearer
-
 from src.ivol_atm import router as atm_router
 from src.intraday_prices import router as intraday_prices_router
 from src.pvp import router as pvp_router
@@ -112,18 +112,18 @@ st_counter = '''
 '''
 
 origins = [
-    "http://api.volsurf.com",
-    "https://api.volsurf.com",
-    "http:localhost",
-    "http:localhost:5000",
+    'http://api.volsurf.com',
+    'https://api.volsurf.com',
+    'http:localhost',
+    'http:localhost:5000',
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=['*'],
+    allow_headers=['*'],
 )
 
 
