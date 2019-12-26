@@ -31,12 +31,24 @@ def enum_class_string(obj_list, classname=None):  # pragma: no cover
     return f'{header}\n    {members}'
 
 
-class IntervalUnits(str, Enum):
-    _minutes = 'minutes'
+class IntervalUnitChoices(str, Enum):
+    _month = 'month'
+    _week = 'week'
     _hour = 'hour'
     _day = 'day'
-    _week = 'week'
-    _month = 'month'
+    _minutes = 'minutes'
+
+
+class IntervalValueChoices(str, Enum):
+    _1 = '1'
+    _2 = '2'
+    _3 = '3'
+    _4 = '4'
+    _5 = '5'
+    _10 = '10'
+    _15 = '15'
+    _20 = '20'
+    _30 = '30'
 
 
 class tteChoices(str, Enum):
@@ -504,6 +516,8 @@ iv_eurex_choices = get_values(iVolEurexChoices)
 iv_ice_choices = get_values(iVolChoicesIce)
 prices_fx_sym_choices = get_values(pricesFxSymChoices)
 delta_offset_choices = get_values(deltaOffsetChoices)
+interval_value_choices = get_values(IntervalValueChoices)
+interval_unit_choices = get_values(IntervalUnitChoices)
 
 iv_all_sym_choices = iv_etf_choices + iv_cme_choices + iv_eurex_choices + iv_ice_choices
 
