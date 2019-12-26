@@ -125,7 +125,7 @@ async def get_ivol_summary_ice(
 
 @bouncer.roles_required('user')
 @router.get(
-    '/ivol/summary/usetfs',
+    '/ivol/summary/usetf',
     summary='get min, max, std, average and weekly data points for US ETFs',
     operation_id='get_ivol_summary_usetf'
 )
