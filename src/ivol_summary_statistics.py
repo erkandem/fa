@@ -127,9 +127,9 @@ async def get_ivol_summary_ice(
 @router.get(
     '/ivol/summary/usetfs',
     summary='get min, max, std, average and weekly data points for US ETFs',
-    operation_id='get_ivol_summary_ice'
+    operation_id='get_ivol_summary_usetf'
 )
-async def get_ivol_summary_ice(
+async def get_ivol_summary_usetf(
         user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """

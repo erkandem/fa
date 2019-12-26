@@ -49,7 +49,7 @@ class WebsiteTasks(TaskSet):
         )
         self.client.get(url)
 
-    @task(2)
+    @task(3)
     def curve(self):
         self.client.get('/pulse', headers=self.headers)
 
@@ -61,7 +61,7 @@ class WebsiteTasks(TaskSet):
         }
         self.client.get('/prices/eod/conti', headers=self.headers, params=params)
 
-    @task(4)
+    @task(1)
     def curve_multiple(self):
         start_date = dt.now() - timedelta(days=random.SystemRandom().randint(1, 365 * 3))
         delta = (dt.now() - start_date).days
