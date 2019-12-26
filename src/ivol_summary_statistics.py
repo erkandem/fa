@@ -244,7 +244,7 @@ async def select_ivol_summary_multi(args):
             'delta': args['delta']
         }
         sql_code += (await select_statistics_single(individual_args))[0:-1]
-        if n < symbols_length -1:
+        if n < symbols_length - 1:
             sql_code += '\n)\n   UNION ALL\n(\n '
     sql_code += ');'
     return sql_code
