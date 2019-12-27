@@ -114,7 +114,8 @@ async def get_conti_eod(
         'startdate': startdate,
         'enddate': enddate,
         'dminus': dminus,
-        'order': order.value, 'array': 0
+        'order': order.value,
+        'array': 0
     }
     content = await conti_resolver(args)
     return content
