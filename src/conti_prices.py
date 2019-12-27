@@ -95,15 +95,24 @@ class ContiEodArray(BaseModel):
     operation_id='get_continuous_eod'
 )
 async def get_conti_eod(
-        symbol: str, ust: str = 'fut', exchange: str = None, nthcontract: int = 1,
-        startdate: str = None, enddate: str = None, dminus:  int = 20,
+        symbol: str,
+        ust: str = 'fut',
+        exchange: str = None,
+        nthcontract: int = 1,
+        startdate: str = None,
+        enddate: str = None,
+        dminus:  int = 20,
         order: OrderChoices = OrderChoices._asc,
         user: UserPy = fastapi.Depends(get_current_active_user)
 
 ):
     args = {
-        'symbol': symbol, 'ust': ust, 'exchange': exchange, 'nthcontract': nthcontract,
-        'startdate': startdate, 'enddate': enddate,
+        'symbol': symbol,
+        'ust': ust,
+        'exchange': exchange,
+        'nthcontract': nthcontract,
+        'startdate': startdate,
+        'enddate': enddate,
         'dminus': dminus,
         'order': order.value, 'array': 0
     }
@@ -117,14 +126,22 @@ async def get_conti_eod(
     operation_id='get_continuous_eod_as_array'
 )
 async def get_continuous_eod_as_array(
-    symbol: str, ust: str = 'fut', exchange: str = None,
-    startdate: str = None, enddate: str = None, dminus:  int = 20,
-    order: OrderChoices = OrderChoices._asc,
-    user: UserPy = fastapi.Depends(get_current_active_user)
+        symbol: str,
+        ust: str = 'fut',
+        exchange: str = None,
+        startdate: str = None,
+        enddate: str = None,
+        dminus:  int = 20,
+        order: OrderChoices = OrderChoices._asc,
+        user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     args = {
-        'symbol': symbol, 'ust': ust, 'exchange': exchange,
-        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
+        'symbol': symbol,
+        'ust': ust,
+        'exchange': exchange,
+        'startdate': startdate,
+        'enddate': enddate,
+        'dminus': dminus,
         'order': order.value,
         'array': 1
     }
@@ -161,10 +178,12 @@ async def create_conti_eod_array_table_name(
         exchange: str,
 ) -> str:
     print('`create_conti_eod_array_table_name` needs to merged to the `Contract` class')
-    return (f'{security_type}'
-            f'_{exchange}'
-            f'_{symbol}'
-            f'_prices_eod_conti_array').lower()
+    return (
+        f'{security_type}'
+        f'_{exchange}'
+        f'_{symbol}'
+        f'_prices_eod_conti_array'
+    ).lower()
 
 
 async def create_conti_eod_schema_name(security_type: str, exchange: str) -> str:
