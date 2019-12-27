@@ -123,6 +123,39 @@ async def get_conti_eod(
 
 @bouncer.roles_required('user')
 @router.get(
+    '/prices/eod/conti/spread',
+    operation_id='get_continuous_eod_spread'
+)
+async def get_continuous_eod_spread(
+        symbol: str,
+        ust: str = 'fut',
+        exchange: str = None,
+        nthcontract1: int = 1,
+        nthcontract2: int = 2,
+        startdate: str = None,
+        enddate: str = None,
+        dminus:  int = 20,
+        order: OrderChoices = OrderChoices._asc,
+        user: UserPy = fastapi.Depends(get_current_active_user)
+):
+    args = {
+        'symbol': symbol,
+        'ust': ust,
+        'exchange': exchange,
+        'nthcontract1': nthcontract1,
+        'nthcontract2': nthcontract2,
+        'startdate': startdate,
+        'enddate': enddate,
+        'dminus': dminus,
+        'order': order.value,
+        'array': 0
+    }
+    content = await resolve_conti_spread(args)
+    return content
+
+
+@bouncer.roles_required('user')
+@router.get(
     '/prices/eod/conti/array',
     operation_id='get_continuous_eod_as_array'
 )
@@ -246,6 +279,55 @@ async def select_all_from(nt: ContiEodParams) -> str:
        ORDER BY dt {nt.order} 
        LIMIT {nt.limit};
     '''
+
+
+async def nthcontract_to_column_mapping(nthcontract):
+    config = {
+        1: 'c1',
+        2: 'c2',
+        3: 'c3',
+        4: 'c4',
+        5: 'c5',
+        6: 'c6',
+        7: 'c7',
+        8: 'c8',
+        9: 'c9',
+        10: 'c10',
+        11: 'c11',
+        12: 'c12'
+    }
+    return config[int(nthcontract)]
+
+
+async def select_conti_spread(args):
+    args = await eod_ini_logic(args)
+    args = await guess_exchange_and_ust(args)
+    args['limit'] = 365
+    args['schema'] = await create_conti_eod_schema_name(args['ust'], args['exchange'])
+    args['table'] = await create_conti_eod_array_table_name(
+        symbol=args['symbol'],
+        security_type=args['ust'],
+        exchange=args['exchange']
+    )
+    args['nthcontract1'] = await nthcontract_to_column_mapping(args['nthcontract1'])
+    args['nthcontract2'] = await nthcontract_to_column_mapping(args['nthcontract2'])
+
+    return f'''
+        SELECT 
+            dt, 
+            {args['nthcontract1']} - {args['nthcontract2']} AS value
+        FROM {args['schema']}.{args['table']}
+        WHERE dt  BETWEEN '{args['startdate']}' AND '{args['enddate']}'
+        ORDER BY dt {args['order']}
+        LIMIT {args['limit']};
+    '''
+
+
+async def resolve_conti_spread(args):
+    sql = await select_conti_spread(args)
+    async with engines['prices_intraday'].acquire() as con:
+        data = await con.fetch(query=sql)
+        return data
 
 
 async def conti_resolver(args):
