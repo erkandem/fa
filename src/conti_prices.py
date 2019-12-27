@@ -193,7 +193,7 @@ async def create_conti_eod_table_name(
 ) -> str:
     print('`create_conti_eod_table_name` needs to merged to the `Contract` class')
     if nth_contract is None and contract_number is None:
-        raise ValueError('It\'s got to be one of them')
+        raise ValueError('It\'s got to be one of `nth_contract` or `contract_number`')
     elif nth_contract is None and contract_number is not None:
         nth_contract = f'{symbol}{contract_number}'
     elif nth_contract is not None and contract_number is not None:
