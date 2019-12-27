@@ -15,6 +15,7 @@ dotenv.load_dotenv(dotenv.find_dotenv())
 CREDS = json.loads(os.getenv('DEFAULT_API_SUPER_USER'))
 local_host = 'https://api.volsurf.com'
 local_host = 'http://0.0.0.0:5000'
+TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrYW5kYSIsImV4cCI6MTU3NzMyNjI3MH0.zjHjGInwv2MTnV6nQeSArgrn4_QkOWC8Nj4yAlHLXc8'
 
 
 def get_auth_header(creds, local_client):
@@ -35,19 +36,18 @@ class WebsiteTasks(TaskSet):
     headers = {'Accept': 'application/json'}
 
     def on_start(self):
-        auth_header = get_auth_header(CREDS, self.client)
         self.headers['User-Agent'] = random.choices(ua_strings)[0]
-        self.headers = {**self.headers, **auth_header}
+        self.headers['Authorization'] = f'Bearer {TOKEN}'
 
     @task(1)
     def index(self):
         url = '/prices/intraday?symbol={}&iunit={}&interval={}&dminus={}'.format(
             random.choice(prices_etf_sym_choices),
             random.choice(['minutes']),
-            random.choice([1, 10]),
-            random.choice([5, 10, 15, 30, 365])
+            random.choice([5, 10]),
+            random.choice([5])
         )
-        self.client.get(url)
+        self.client.get(url, headers=self.headers)
 
     @task(3)
     def curve(self):
@@ -63,7 +63,7 @@ class WebsiteTasks(TaskSet):
 
     @task(1)
     def curve_multiple(self):
-        start_date = dt.now() - timedelta(days=random.SystemRandom().randint(1, 365 * 3))
+        start_date = dt.now() - timedelta(days=random.SystemRandom().randint(10, 20))
         delta = (dt.now() - start_date).days
         end_date = start_date + timedelta(days=random.SystemRandom().randint(1, delta))
         params = {
