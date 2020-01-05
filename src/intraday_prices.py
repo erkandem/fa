@@ -218,6 +218,7 @@ async def select_regular(args) -> str:
         ORDER BY dt  {args['order']} 
         LIMIT    {args['limit']};'''
 
+
 async def resolve_prices_intraday(args):
     sql = await select_prices_intraday(args)
     async with engines['prices_intraday'].acquire() as con:
