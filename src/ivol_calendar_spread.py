@@ -4,7 +4,7 @@ Route template
 """
 from collections import namedtuple
 from datetime import datetime as dt
-from datetime import date
+from datetime import date as Date
 from datetime import timedelta
 import fastapi
 from falib.contract import ContractSync
@@ -12,7 +12,7 @@ from src.const import OrderChoices
 from src.const import tteChoices
 from starlette.status import HTTP_400_BAD_REQUEST
 from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic
+from src.utils import eod_ini_logic_new
 from src.db import engines
 from src.users.auth import bouncer
 from src.users.auth import get_current_active_user
@@ -35,8 +35,8 @@ async def get_ivol_calendar(
         symbol: str,
         ust: str = None,
         exchange: str = None,
-        startdate: str = None,
-        enddate: str = None,
+        startdate: Date = None,
+        enddate: Date = None,
         dminus: int = 30,
         tte1: tteChoices = tteChoices._1m,
         tte2: tteChoices = tteChoices._2m,
@@ -55,8 +55,8 @@ async def get_ivol_calendar(
     - **ust**: underlying security type: 'eqt' e.g.
     - **exchange**: one of: 'usetf' e.g.
     - **tte**: time until expiry: '1m', '2m', '3m' e.g.
-    - **startdate**: format: yyyymmdd
-    - **enddate**: format: yyyymmdd
+    - **startdate**: format: yyyy-mm-dd
+    - **enddate**: format: yyyy-mm-dd
     - **dminus**: indicate the number of days back from `enddate`
     - **tt1**: time 'til expiry of first leg
     - **tt2**: time 'til expiry of second leg
@@ -87,7 +87,7 @@ async def get_ivol_calendar(
 
 
 async def select_calendar_spread(args):
-    args = await eod_ini_logic(args)
+    args = await eod_ini_logic_new(args)
     args = await guess_exchange_and_ust(args)
     args['tte1'] = time_to_var_func(args['tte1'])
     args['tte2'] = time_to_var_func(args['tte2'])
