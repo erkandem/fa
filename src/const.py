@@ -547,4 +547,5 @@ etf_arg_list = fx_arg_list
 prices_intraday_all_symbols = (
         prices_fx_sym_choices
         + prices_etf_sym_choices
-        + intraday_prices_cme_sym_choices)
+        + intraday_prices_cme_sym_choices
+)
