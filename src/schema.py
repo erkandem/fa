@@ -171,10 +171,10 @@ def validate_config(args: {}):
     if not is_valid:
         raise HTTPException(
             detail=(
-                'could not validate the combo'
-                ' of security type of the underlying (`ust`),'
-                ' `exchange` and `symbol`.'
-                ' Data is probably not available for this symbol.'
+                "Could not validate the combo of"
+                " security type of the underlying `ust`, `exchange` and `symbol`."
+                " Data is probably not available for this symbol."
+                f" symbol: {args['symbol']}, exchange: {args['exchange']}, ust: {args['ust']}"
             ),
             status_code=HTTP_400_BAD_REQUEST
         )
