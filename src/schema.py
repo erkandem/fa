@@ -174,7 +174,7 @@ def validate_config(args: {}):
                 'could not validate the combo'
                 ' of security type of the underlying (`ust`),'
                 ' `exchange` and `symbol`.'
-                ' Data is propably not available for this symbol.'
+                ' Data is probably not available for this symbol.'
             ),
             status_code=HTTP_400_BAD_REQUEST
         )
