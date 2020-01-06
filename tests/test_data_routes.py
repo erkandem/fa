@@ -127,6 +127,34 @@ def test_summary_route():
         assert response.status_code == 200
 
 
+def test_summary_cme_route():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        response = client.get('/ivol/summary/cme', headers=headers)
+        assert response.status_code == 200
+
+
+def test_summary_ice_route():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        response = client.get('/ivol/summary/ice', headers=headers)
+        assert response.status_code == 200
+
+
+def test_summary_usetf_route():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        response = client.get('/ivol/summary/usetf', headers=headers)
+        assert response.status_code == 200
+
+
+def test_summary_eurex_route():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        response = client.get('/ivol/summary/eurex', headers=headers)
+        assert response.status_code == 200
+
+
 def test_inter_spread_route():
     with TestClient(app) as client:
         headers = get_auth_header('simple-active', client)

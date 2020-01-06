@@ -5,23 +5,24 @@ Route template
 """
 from collections import namedtuple
 from datetime import datetime as dt
-from datetime import date
+from datetime import date as Date
 from datetime import timedelta
 import fastapi
+from starlette.status import HTTP_400_BAD_REQUEST
+from starlette.responses import Response
 from falib.contract import ContractSync
 from src.const import OrderChoices
 from src.const import tteChoices
-from starlette.status import HTTP_400_BAD_REQUEST
-from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic
+from src.const import time_to_var_func
+from src.const import deltaChoicesPractical
 from src.db import engines
 from src.users.auth import bouncer
 from src.users.auth import get_current_active_user
 from src.users.user_models import UserPy
-from starlette.responses import Response
-from src.const import time_to_var_func
-from src.const import deltaChoicesPractical
 from src.utils import CinfoQueries
+from src.utils import eod_ini_logic
+from src.utils import eod_ini_logic_new
+from src.utils import guess_exchange_and_ust
 
 
 router = fastapi.APIRouter()
@@ -38,8 +39,8 @@ async def get_ivol_summary_single(
         ust: str = None,
         exchange: str = None,
         tte: tteChoices = tteChoices._1m,
-        startdate: str = None,
-        enddate: str = None,
+        startdate: Date = None,
+        enddate: Date = None,
         dminus: int = 365,
         delta: deltaChoicesPractical = deltaChoicesPractical._d050,
         user: UserPy = fastapi.Depends(get_current_active_user)
@@ -51,8 +52,8 @@ async def get_ivol_summary_single(
     - **symbol**: example: 'SPY' or 'spy' (case insensitive)
     - **ust**: underlying security type: 'eqt' e.g.
     - **exchange**: one of: 'usetf', e.g.
-    - **startdate**: format: yyyymmdd
-    - **enddate**: format: yyyymmdd
+    - **startdate**: format: yyyy-mm-dd
+    - **enddate**: format: yyyy-mm-dd
     - **dminus**: indicate the number of days back from `enddate`
     - **tte**: time 'til expiry: 1m 3m 12m ...
     - **delta**: a single delta. d050 by default.
@@ -190,7 +191,7 @@ async def select_statistics_single(args):
     six_weeks = 5 * 6 + 1
     if args['dminus'] < six_weeks:
         args['dminus'] = str(six_weeks)
-    args = await eod_ini_logic(args)
+    args = await eod_ini_logic_new(args)
     args = await guess_exchange_and_ust(args)
     tte_human_readable = args['tte']
     args['tte'] = time_to_var_func(args['tte'])
