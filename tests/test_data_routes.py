@@ -66,7 +66,7 @@ def test_surface():
 def test_prices_intraday():
     with TestClient(app) as client:
         headers = get_auth_header('simple-active', client)
-        params = {'symbol': 'cl', 'month': 'g', 'year': 19, 'startdate': '20190101'}
+        params = {'symbol': 'cl', 'month': 'g', 'year': 19, 'startdate': '2019-01-01'}
         response = client.get('/prices/intraday', params=params, headers=headers)
         assert response.status_code == 200
 

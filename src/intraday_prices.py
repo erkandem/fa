@@ -1,5 +1,5 @@
 from datetime import datetime as dt
-from datetime import date
+from datetime import date as Date
 from datetime import timedelta
 import fastapi
 from pydantic import BaseModel
@@ -8,7 +8,7 @@ from starlette.status import HTTP_400_BAD_REQUEST
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 from falib.contract import Contract
 from src.const import OrderChoices
-from src.utils import eod_ini_logic
+from src.utils import eod_ini_logic_new
 from src.utils import guess_exchange_and_ust
 from src.db import engines
 from src.users.auth import bouncer
@@ -66,8 +66,8 @@ class PricesIntradayQueryPy(BaseModel):
     year: int
     ust: str
     exchange: str
-    startdate: date
-    enddate: date
+    startdate: Date
+    enddate: Date
     dminus: int
     interval: int
     iunit: str
@@ -85,8 +85,8 @@ async def get_intraday_prices(
         year: int = None,
         ust: str = None,
         exchange: str = None,
-        startdate: str = None,
-        enddate: str = None,
+        startdate: Date = None,
+        enddate: Date = None,
         dminus: int = 20,
         interval: IntervalValueChoices = IntervalValueChoices._1,
         iunit: IntervalUnitChoices = IntervalUnitChoices._minutes,
@@ -113,8 +113,8 @@ async def get_intraday_prices(
 
 async def select_prices_intraday(args: dict):
     """return an executable SQL statement"""
+    args = await eod_ini_logic_new(args)
     args = await guess_exchange_and_ust(args)
-    args = await eod_ini_logic(args)
 
     c = Contract()
     c.symbol = args['symbol']
