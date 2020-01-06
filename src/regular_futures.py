@@ -1,7 +1,7 @@
 from collections import namedtuple
 from datetime import datetime as dt
 from datetime import timedelta
-from datetime import date
+from datetime import date as Date
 import fastapi
 from pydantic import BaseModel
 from starlette.status import HTTP_200_OK
@@ -12,7 +12,7 @@ from src.const import exchange_choices_intraday
 from src.const import futures_month_chars
 from src.const import prices_intraday_all_symbols
 from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic
+from src.utils import eod_ini_logic_new
 from src.db import engines
 from src.users.auth import bouncer
 from src.users.auth import get_current_active_user
@@ -37,13 +37,13 @@ async def get_regular_futures_eod(
         year: int = None,
         ust: str = None,
         exchange: str = None,
-        startdate: str = None,
-        enddate: str = None,
+        startdate: Date = None,
+        enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
         user: UserPy = fastapi.Depends(get_current_active_user)
 ):
-    """prices """
+    """end of day prices """
     args = {
         'symbol': symbol,
         'month': month,
@@ -61,12 +61,12 @@ async def get_regular_futures_eod(
 
 async def eod_sql_delivery(args):
     """TODO fix the table name creation which should be handled by the Contract class"""
+    args = await eod_ini_logic_new(args)
     args = await guess_exchange_and_ust(args)
     c = Contract()
     c.symbol = args['symbol']
     c.exchange = args['exchange']
     c.security_type = args['ust']
-    args = await eod_ini_logic(args)
     schema = f"{args['ust']}_{args['exchange']}_eod"
     contract = f"{args['symbol']}{args['month']}{args['year']}".lower()
     table = f"{args['ust']}_{args['exchange']}_{contract}_prices_eod"
