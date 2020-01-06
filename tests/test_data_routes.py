@@ -170,3 +170,10 @@ def test_inter_spread_route():
         response = client.get('/ivol/inter-spread', params=params, headers=headers)
         assert response.status_code == 200
 
+
+def test_topoi_route():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        params = {'symbol1': 'spy', 'symbol2': 'ewz'}
+        response = client.get('//top-oi-and-volume', params=params, headers=headers)
+        assert response.status_code == 200

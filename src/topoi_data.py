@@ -27,34 +27,37 @@ self explaining way:
 """
 from collections import namedtuple
 from datetime import datetime as dt
+from datetime import date as Date
 from datetime import timedelta
-import re
 import json
-from starlette.responses import Response
-from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
+import re
 import fastapi
-import pydantic
-from pydantic import BaseModel
 from fastapi import Query
 from fastapi import Body
 from fastapi import HTTPException
+import pydantic
+from pydantic import BaseModel
+from starlette.responses import Response
+from starlette.status import HTTP_200_OK
+from starlette.status import HTTP_400_BAD_REQUEST
 from falib.contract import Contract
-from src.db import engines
 from src.const import OrderChoices
 from src.const import TopOiChoices
 from src.const import PutCallChoices
 from src.const import iv_all_sym_choices, exchange_choices
-from src.users.auth import bouncer
-from src.utils import guess_exchange_and_ust
-from src.utils import CinfoQueries
-from src.utils import put_call_trafo
-from src.utils import eod_ini_logic
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
-from src.rawoption_data import get_schema_and_table_name
 from src.const import ust_choices
 from src.const import dminusLimits
 from src.const import futures_month_chars
+from src.db import engines
+from src.utils import guess_exchange_and_ust
+from src.utils import CinfoQueries
+from src.utils import put_call_trafo
+from src.utils import eod_ini_logic_new
+from src.users.auth import bouncer
+from src.users.auth import get_current_active_user
+from src.users.user_models import UserPy
+from src.rawoption_data import get_schema_and_table_name
+
 
 dml = dminusLimits(start=0, end=366)
 
@@ -66,8 +69,8 @@ class TopOiQuery(BaseModel):
     option_month: str = None
     underlying_month: str = None
     ltd: str
-    startdate: str = None
-    enddate: str = None
+    startdate: Date = None
+    enddate: Date = None
     dminus: int = 60
     putcall: PutCallChoices
     order: OrderChoices = OrderChoices._asc
@@ -149,8 +152,8 @@ async def post_top_oi_and_volume(
                 "ust": "eqt",
                 "exchange": "usetf",
                 "symbol": "spy",
-                "startdate": "20190101",
-                "enddate": "20190401",
+                "startdate": "2019-01-01",
+                "enddate": "2019-04-01",
                 "putcall": "call",
                 "ltd": "20200117",
                 "metric": "oi",
@@ -169,7 +172,7 @@ async def post_top_oi_and_volume(
 
 
 async def resolve_top_oi_or_volume(args: {}):
-    args = await eod_ini_logic(args)
+    args = await eod_ini_logic_new(args)
     args = await put_call_trafo(args)
     if args['ust'] == 'fut':
         if args['option_month'] is None and args['underlying_month'] is None:
