@@ -1,5 +1,6 @@
 import json
-from datetime import timedelta, datetime as dt
+from datetime import timedelta
+from datetime import datetime as dt
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_400_BAD_REQUEST
 
@@ -106,6 +107,41 @@ async def eod_ini_logic(args: {}) -> {}:
         startdate = enddate
     args['enddate'] = enddate.strftime('%Y-%m-%d')
     args['startdate'] = startdate.strftime('%Y-%m-%d')
+    return args
+
+
+async def eod_ini_logic_new(args: {}) -> {}:
+    """
+    assure that the `startdate` and `enddate` keys in the returned dictionary are:
+        - ready for postgres which expects `YYYY-MM-DD`
+        - `startdate` is bigger or equal to `enddate`
+        - are not None
+    """
+    if 'dminus' not in args:
+        args['dminus'] = 20
+
+    if args['dminus'] is None:
+        args['dminus'] = 20
+
+    delta_d = timedelta(days=args['dminus'])
+
+    if 'enddate' not in args:
+        args['enddate'] = dt.now().date()
+
+    if args['enddate'] is None:
+        args['enddate'] = dt.now().date()
+
+    if 'startdate' not in args:
+        args['startdate'] = (dt.combine(args['enddate'], dt.min.time()) - delta_d).date()
+
+    if args['startdate'] is None:
+        args['startdate'] = (dt.combine(args['enddate'], dt.min.time()) - delta_d).date()
+
+    if args['startdate'] > args['enddate']:
+        args['startdate'] = args['enddate']
+
+    args['enddate'] = args['enddate'].strftime('%Y-%m-%d')
+    args['startdate'] = args['startdate'].strftime('%Y-%m-%d')
     return args
 
 
@@ -326,4 +362,3 @@ class CinfoQueries:
             GROUP BY strkpx 
             ORDER BY strkpx;
         '''
-
