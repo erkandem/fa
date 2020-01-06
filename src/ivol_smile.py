@@ -1,6 +1,6 @@
 from collections import namedtuple
 from datetime import datetime as dt
-from datetime import date
+from datetime import date as Date
 from datetime import timedelta
 import fastapi
 from falib.contract import Contract
@@ -8,7 +8,7 @@ from src.const import time_to_var_func
 from src.const import OrderChoices
 from src.const import tteChoices
 from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic
+from src.utils import eod_ini_logic_new
 from src.db import engines
 from src.users.auth import bouncer
 from src.users.auth import get_current_active_user
@@ -30,8 +30,8 @@ async def get_ivol_smile(
         ust: str = None,
         exchange: str = None,
         tte: tteChoices = tteChoices._1m,
-        startdate: str = None,
-        enddate: str = None,
+        startdate: Date = None,
+        enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
         user: UserPy = fastapi.Depends(get_current_active_user)
@@ -44,8 +44,8 @@ async def get_ivol_smile(
     - **ust**: underlying security type: ['fut', 'eqt', 'ind', 'fx']
     - **exchange**: one of: ['usetf', 'cme', 'ice', 'eurex']
     - **tte**: time until expiry. 1m 3m 12m ...
-    - **startdate**: format: yyyymmdd
-    - **enddate**: format: yyyymmdd
+    - **startdate**: format: yyyy-mm-dd
+    - **enddate**: format: yyyy-mm-dd
     - **dminus**: indicate the number of days back from `enddate`
     - **order**:  sorting order with respect to date
     """
@@ -84,8 +84,8 @@ async def select_ivol_fitted_smile(args):
         args:
 
     """
+    args = await eod_ini_logic_new(args)
     args = await guess_exchange_and_ust(args)
-    args = await eod_ini_logic(args)
     args['tte'] = time_to_var_func(args['tte'])
     c = ContractSync()
     c.symbol = args['symbol']

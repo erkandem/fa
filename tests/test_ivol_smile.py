@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime as dt
 from src.ivol_smile import select_ivol_fitted_smile
 
 
@@ -7,8 +8,8 @@ def test_sql_generation():
         'symbol': 'cl',
         'exchange': 'cme',
         'ust': 'fut',
-        'startdate': '20190509',
-        'enddate': '20190601',
+        'startdate': dt(2019, 5, 9).date(),
+        'enddate': dt(2019, 6, 1).date(),
         'tte': '1m'
     }
     sql = asyncio.run(select_ivol_fitted_smile(args))
