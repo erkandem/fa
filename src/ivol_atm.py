@@ -3,17 +3,21 @@ from datetime import datetime as dt
 from datetime import date
 from datetime import timedelta
 import fastapi
+from starlette.exceptions import HTTPException
+from starlette.status import HTTP_400_BAD_REQUEST
 from falib.contract import Contract
 from src.const import time_to_var_func
 from src.const import OrderChoices
 from src.const import tteChoices
+from src.const import deltaChoicesPractical
+from src.db import engines
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic
-from src.db import engines
+from src.schema import validate_config
+from src.schema import BaseContract
 from src.users.auth import bouncer
 from src.users.auth import get_current_active_user
 from src.users.user_models import UserPy
-from src.const import deltaChoicesPractical
 
 
 router = fastapi.APIRouter()
