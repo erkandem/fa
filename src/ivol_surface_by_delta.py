@@ -61,7 +61,7 @@ class SurfaceAggregate(BaseModel):
 )
 async def get_surface_by_delta(
         symbol: str,
-        date: str = None,
+        date: Date = None,
         exchange: str = None,
         ust: str = None,
         user: UserPy = fastapi.Depends(get_current_active_user)
@@ -80,7 +80,7 @@ async def get_surface_by_delta(
 async def prepare_surface_sql_arguments(args):
     """Deprecated in favor of JSON delivery via ``surface_json``"""
     args = await guess_exchange_and_ust(args)
-    args['date'] = dt.strptime(args['date'], '%Y%m%d').strftime('%Y-%m-%d')
+    args['date'] = dt.strptime(args['date'], '%Y-%m-%d').strftime('%Y-%m-%d')
     c = Contract()
     c.symbol = args['symbol']
     c.exchange = args['exchange']
@@ -106,10 +106,10 @@ async def prepare_surface_sql_arguments(args):
 async def resolve_last_date(c: Contract) -> str:
     schema = await c.compose_2_part_schema_name()
     table = await c.compose_ivol_final_table_name('d050')
-    sql = f'''SELECT max(dt) FROM {schema}.{table};'''
+    sql = f'SELECT max(dt) FROM {schema}.{table};'
     async with engines['pgivbase'].acquire() as con:
         data = await con.fetch(query=sql)
-    return data[0][0].strftime('%Y%m%d')
+    return data[0][0].strftime('%Y-%m-%d')
 
 
 async def surface_json(args):
@@ -122,7 +122,7 @@ async def surface_json(args):
     c.target_table_name_base = await c.compose_ivol_table_name_base()
     if args['date'] is None:
         args['date'] = await resolve_last_date(c)
-    args['date'] = dt.strptime(args['date'], '%Y%m%d').strftime('%Y-%m-%d')
+    args['date'] = dt.strptime(args['date'], '%Y-%m-%d').strftime('%Y-%m-%d')
     schema = await c.compose_2_part_schema_name()
     vars = ', '.join([f'var{n}' for n in range(1, 16 + 1, 1)])
     union = ' UNION ALL '
