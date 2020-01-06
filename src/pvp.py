@@ -1,12 +1,13 @@
 from collections import namedtuple
 from datetime import datetime as dt
+from datetime import date as Date
 from datetime import timedelta
 import fastapi
 from starlette.status import HTTP_200_OK
 from falib.contract import Contract
 from src.const import OrderChoices
 from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic
+from src.utils import eod_ini_logic_new
 from src.db import engines
 from src.users.auth import bouncer
 from src.users.auth import get_current_active_user
@@ -26,7 +27,8 @@ async def get_pvp_intraday(
         symbol: str, month: str = None, year: int = None,
         ust: str = None,
         exchange: str = None,
-        startdate: str = None, enddate: str = None,
+        startdate: Date = None,
+        enddate: Date = None,
         dminus: int = 20,
         buckets: int = 100,
         iunit: str = 'minutes',
@@ -41,17 +43,25 @@ async def get_pvp_intraday(
     - **year**: only for futures - example: 19
     - **ust**: underlying security type: ['fut', 'eqt', 'ind', 'fx']
     - **exchange**: one of: ['usetf', 'cme', 'ice', 'eurex']
-    - **startdate**: format: yyyymmdd
-    - **enddate**: format: yyyymmdd
+    - **startdate**: format: yyyy-mm-dd
+    - **enddate**: format: yyyy-mm-dd
     - **dminus**: indicate the number of days back from `enddate`
     - **buckets**: number of intervals in the histogram
     - **iunit**: one of ['minutes', 'hour, 'day', 'week', 'month']
     - **order**:  sorting order with respect to price interval
     """
     args = {
-        'symbol': symbol, 'month': month, 'year': year, 'ust': ust, 'exchange': exchange,
-        'startdate': startdate, 'enddate': enddate, 'dminus': dminus,
-        'buckets': buckets, 'iunit': iunit, 'order': order.value
+        'symbol': symbol,
+        'month': month,
+        'year': year,
+        'ust': ust,
+        'exchange': exchange,
+        'startdate': startdate,
+        'enddate': enddate,
+        'dminus': dminus,
+        'buckets': buckets,
+        'iunit': iunit,
+        'order': order.value
     }
     content = await resolve_pvp(args)
     return content
@@ -64,12 +74,13 @@ pvpQueryParams = namedtuple(
 
 async def pvp_query(args):
     """start_date end_date symbol c_month c_year exchange ust"""
+    args = await eod_ini_logic_new(args)
     args = await guess_exchange_and_ust(args)
     c = Contract()
     c.symbol = args['symbol']
     c.exchange = args['exchange']
     c.security_type = args['ust']
-    args = await eod_ini_logic(args)
+
     if args['year'] is not None:
         c.contract_yyyy = 2000 + args['year']
     if args['month'] is not None:
