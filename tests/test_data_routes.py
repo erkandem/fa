@@ -13,7 +13,7 @@ def test_pulse():
 
 def test_atm_ivol_without_params():
     with TestClient(app) as client:
-        headers = get_auth_header('simple-active',client)
+        headers = get_auth_header('simple-active', client)
         response = client.get('/ivol/atm', headers=headers)
         assert response.status_code == 422
 
@@ -30,6 +30,14 @@ def test_atm_ivol():
         headers = get_auth_header('simple-active', client)
         params = {'symbol': 'cl'}
         response = client.get('/ivol/atm', params=params, headers=headers)
+        assert response.status_code == 200
+
+
+def test_general_ivol():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        params = {'symbol': 'cl'}
+        response = client.get('/ivol', params=params, headers=headers)
         assert response.status_code == 200
 
 

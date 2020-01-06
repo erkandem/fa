@@ -1,6 +1,6 @@
 from collections import namedtuple
 from datetime import datetime as dt
-from datetime import date
+from datetime import date as Date
 from datetime import timedelta
 import fastapi
 from starlette.exceptions import HTTPException
@@ -12,7 +12,7 @@ from src.const import tteChoices
 from src.const import deltaChoicesPractical
 from src.db import engines
 from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic
+from src.utils import eod_ini_logic_new
 from src.schema import validate_config
 from src.schema import BaseContract
 from src.users.auth import bouncer
@@ -33,8 +33,8 @@ async def get_ivol(
         symbol: str,
         ust: str = None,
         exchange: str = None,
-        startdate: str = None,
-        enddate: str = None,
+        startdate: Date = None,
+        enddate: Date = None,
         dminus: int = 30,
         tte: tteChoices = tteChoices._1m,
         delta: deltaChoicesPractical = deltaChoicesPractical._d050,
@@ -49,8 +49,8 @@ async def get_ivol(
     - **symbol**: example: 'SPY' or 'spy' (case insensitive)
     - **ust**: underlying security type: ['fut', 'eqt', 'ind', 'fx']
     - **exchange**: one of: ['usetf', 'cme', 'ice', 'eurex']
-    - **startdate**: format: yyyymmdd
-    - **enddate**: format: yyyymmdd
+    - **startdate**: format: yyyy-mm-dd
+    - **enddate**: format: yyyy-mm-dd
     - **dminus**: indicate the number of days back from `enddate`
     - **tte**: time until expiry. 1m 3m 12m ...
     - **delta**: e.g. d050 (default)
@@ -82,8 +82,8 @@ async def atm_ivol(
         ust: str = None,
         exchange: str = None,
         tte: tteChoices = tteChoices._1m,
-        startdate: str = None,
-        enddate: str = None,
+        startdate: Date = None,
+        enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
         user: UserPy = fastapi.Depends(get_current_active_user)
@@ -95,10 +95,10 @@ async def atm_ivol(
     - **ust**: underlying security type: ['fut', 'eqt', 'ind', 'fx']
     - **exchange**: one of: ['usetf', 'cme', 'ice', 'eurex']
     - **tte**: time until expiry. 1m 3m 12m ...
-    - **startdate**: format: yyyymmdd
-    - **enddate**: format: yyyymmdd
+    - **startdate**: format: yyyy-mm-dd
+    - **enddate**: format: yyyy-mm-dd
     - **dminus**: indicate the number of days back from `enddate`
-    - **order**:  sorting order with respect  to date
+    - **order**:  sorting order with respect to date
     """
     args = {
         'symbol': symbol,
@@ -117,8 +117,8 @@ async def atm_ivol(
 
 async def select_ivol(args):
     """ """
+    args = await eod_ini_logic_new(args)
     args = await guess_exchange_and_ust(args)
-    args = await eod_ini_logic(args)
     c = Contract()
     c.symbol = args['symbol']
     c.exchange = args['exchange']
