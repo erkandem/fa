@@ -8,7 +8,7 @@ from src.const import prices_etf_sym_choices
 from src.const import prices_fx_sym_choices
 from src.const import iv_ice_choices
 from src.const import intraday_prices_cme_sym_choices
-
+from src.schema import validate_config
 
 async def ensure_ust_and_exchange_are_set(args: {}):
     await ensure_exchange_is_set(args)
@@ -48,6 +48,7 @@ async def guess_exchange_and_ust(args: {}) -> {}:
             ),
             status_code=HTTP_400_BAD_REQUEST
         )
+    validate_config(args)
     return args
 
 
