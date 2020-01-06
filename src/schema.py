@@ -160,11 +160,12 @@ def _validate_config(config: BaseContract):
 
 
 def validate_config(args: {}):
-    is_valid = validate_config(
+    """ check whether ust, exchange, symbol are valid """
+    is_valid = _validate_config(
         BaseContract(
-            ust=args['ust'],
-            exchange=args['exchange'],
-            symbol=args['symbol']
+            ust=args['ust'].lower(),
+            exchange=args['exchange'].lower(),
+            symbol=args['symbol'].lower()
         )
     )
     if not is_valid:
