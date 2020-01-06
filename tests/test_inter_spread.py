@@ -2,7 +2,7 @@ from src.ivol_inter_spread import select_inter_ivol
 import asyncio
 
 
-def test_select_interasset_ivol():
+def test_select_inter_ivol():
     args = {
         'symbol1': 'spy',
         'ust1': None,

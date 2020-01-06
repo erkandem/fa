@@ -4,7 +4,7 @@ Route template
 """
 from collections import namedtuple
 from datetime import datetime as dt
-from datetime import date
+from datetime import date as Date
 from datetime import timedelta
 import fastapi
 from falib.contract import ContractSync
@@ -12,7 +12,7 @@ from src.const import OrderChoices
 from src.const import tteChoices
 from starlette.status import HTTP_400_BAD_REQUEST
 from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic
+from src.utils import eod_ini_logic_new
 from src.db import engines
 from src.users.auth import bouncer
 from src.users.auth import get_current_active_user
@@ -40,8 +40,8 @@ async def get_inter_spread(
         exchange2: str = None,
         tte: tteChoices = tteChoices._1m,
         delta:  deltaChoicesPractical = deltaChoicesPractical._d050,
-        startdate: str = None,
-        enddate: str = None,
+        startdate: Date = None,
+        enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
         user: UserPy = fastapi.Depends(get_current_active_user)
@@ -58,8 +58,8 @@ async def get_inter_spread(
     - **exchange2**: one of: 'usetf', e.g.
     - **tte**: time 'til expiry. 1m 3m 12m ...
     - **delta**: the delta at which to calculate the spread
-    - **startdate**: format: yyyymmdd
-    - **enddate**: format: yyyymmdd
+    - **startdate**: format: yyyy-mm-dd
+    - **enddate**: format: yyyy-mm-dd
     - **dminus**: indicate the number of days back from `enddate`
     - **order**:  sorting order with respect to date
     """
@@ -82,9 +82,8 @@ async def get_inter_spread(
 
 
 async def select_inter_ivol(args):
+    args = await eod_ini_logic_new(args)
     args['tte'] = time_to_var_func(args['tte'])
-    args = await eod_ini_logic(args)
-
     c_one_args = {
         'symbol': args['symbol1'],
         'exchange': args['exchange1'],
