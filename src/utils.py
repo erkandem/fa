@@ -31,13 +31,21 @@ async def guess_exchange_and_ust(args: {}) -> {}:
         args['ust'] = await guess_ust_from_symbol_intraday(args['symbol'])
     if args['ust'] is None:
         raise HTTPException(
-            detail=json.dumps({'msg': f'Could not identify `ust` form symbol {args["symbol"]}'}),
-            status_code=HTTP_400_BAD_REQUEST,
+            detail=(
+                f'Could not identify `ust` from symbol {args["symbol"]}.'
+                f' Is the symbol covered at all?'
+                f' Try adding the exchange of the underlying `exchange`.'
+            ),
+            status_code=HTTP_400_BAD_REQUEST
         )
     if args['exchange'] is None:
         raise HTTPException(
-            detail=json.dumps({'msg': f'Could not identify `exchange` form symbol {args["symbol"]}'}),
-            status_code=HTTP_400_BAD_REQUEST,
+            detail=(
+                f'Could not identify `exchange` from symbol {args["symbol"]}.'
+                f' Is the symbol covered at all?'
+                f' Try adding the security type of the underlying `ust`.'
+            ),
+            status_code=HTTP_400_BAD_REQUEST
         )
     return args
 
