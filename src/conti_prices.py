@@ -11,7 +11,7 @@ from src.const import OrderChoices
 from src.const import nth_contract_choices
 from src.const import conti_futures_choices
 from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic
+from src.utils import eod_ini_logic, eod_ini_logic_new
 from src.db import engines
 from src.users.auth import bouncer
 from src.users.auth import get_current_active_user
@@ -99,13 +99,13 @@ async def get_conti_eod(
         ust: str = 'fut',
         exchange: str = None,
         nthcontract: int = 1,
-        startdate: str = None,
-        enddate: str = None,
+        startdate: date = None,
+        enddate: date = None,
         dminus:  int = 20,
         order: OrderChoices = OrderChoices._asc,
         user: UserPy = fastapi.Depends(get_current_active_user)
-
 ):
+    """ """
     args = {
         'symbol': symbol,
         'ust': ust,
@@ -132,12 +132,13 @@ async def get_continuous_eod_spread(
         exchange: str = None,
         nthcontract1: int = 1,
         nthcontract2: int = 2,
-        startdate: str = None,
-        enddate: str = None,
+        startdate: date = None,
+        enddate: date = None,
         dminus:  int = 20,
         order: OrderChoices = OrderChoices._asc,
         user: UserPy = fastapi.Depends(get_current_active_user)
 ):
+    """ """
     args = {
         'symbol': symbol,
         'ust': ust,
@@ -163,12 +164,13 @@ async def get_continuous_eod_as_array(
         symbol: str,
         ust: str = 'fut',
         exchange: str = None,
-        startdate: str = None,
-        enddate: str = None,
+        startdate: date = None,
+        enddate: date = None,
         dminus:  int = 20,
         order: OrderChoices = OrderChoices._asc,
         user: UserPy = fastapi.Depends(get_current_active_user)
 ):
+    """ """
     args = {
         'symbol': symbol,
         'ust': ust,
@@ -228,8 +230,8 @@ async def create_conti_eod_schema_name(security_type: str, exchange: str) -> str
 
 
 async def eod_continuous_fut_sql_delivery(args):
+    args = await eod_ini_logic_new(args)
     args = await guess_exchange_and_ust(args)
-    args = await eod_ini_logic(args)
     schema = await create_conti_eod_schema_name(args['ust'], args['exchange'])
     table = await create_conti_eod_table_name(
         symbol=args['symbol'],
@@ -252,8 +254,8 @@ async def eod_continuous_fut_sql_delivery(args):
 
 
 async def eod_continuous_fut_array_sql_delivery(args: dict):
+    args = await eod_ini_logic_new(args)
     args = await guess_exchange_and_ust(args)
-    args = await eod_ini_logic(args)
     schema = await create_conti_eod_schema_name(args['ust'], args['exchange'])
     table = await create_conti_eod_array_table_name(
         symbol=args['symbol'],
@@ -300,7 +302,7 @@ async def nthcontract_to_column_mapping(nthcontract):
 
 
 async def select_conti_spread(args):
-    args = await eod_ini_logic(args)
+    args = await eod_ini_logic_new(args)
     args = await guess_exchange_and_ust(args)
     args['limit'] = 365
     args['schema'] = await create_conti_eod_schema_name(args['ust'], args['exchange'])
