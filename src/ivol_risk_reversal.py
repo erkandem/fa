@@ -4,7 +4,7 @@ Route template
 """
 from collections import namedtuple
 from datetime import datetime as dt
-from datetime import date
+from datetime import date as Date
 from datetime import timedelta
 import fastapi
 from falib.contract import ContractSync
@@ -15,7 +15,7 @@ from src.const import deltaChoicesPractical
 from src.const import deltaOffsetChoices
 from starlette.status import HTTP_400_BAD_REQUEST
 from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic
+from src.utils import eod_ini_logic_new
 from src.db import engines
 from src.users.auth import bouncer
 from src.users.auth import get_current_active_user
@@ -37,8 +37,8 @@ async def get_risk_reversal(
         ust: str = None,
         exchange: str = None,
         tte: tteChoices = tteChoices._1m,
-        startdate: str = None,
-        enddate: str = None,
+        startdate: Date = None,
+        enddate: Date = None,
         dminus: int = 30,
         delta1: deltaChoicesPractical = deltaChoicesPractical._d060,
         delta2: deltaChoicesPractical = deltaChoicesPractical._d040,
@@ -72,8 +72,8 @@ async def get_risk_reversal(
     - **ust**: underlying security type: ['fut', 'eqt', 'ind', 'fx']
     - **exchange**: one of: ['usetf', 'cme', 'ice', 'eurex']
     - **tte**: time until expiry. 1m 3m 12m ...
-    - **startdate**: format: yyyymmdd
-    - **enddate**: format: yyyymmdd
+    - **startdate**: format: yyyy-mm-dd
+    - **enddate**: format: yyyy-mm-dd
     - **dminus**: indicate the number of days back from `enddate`
     - **delta1**: manually set the first delta leg
     - **delta2**: manually set the second delta leg
@@ -110,8 +110,8 @@ async def select_risk_reversal(args):
         args: parsed arguments from API call
 
     """
+    args = await eod_ini_logic_new(args)
     args = await guess_exchange_and_ust(args)
-    args = await eod_ini_logic(args)
     args['tte'] = time_to_var_func(args['tte'])
 
     c = ContractSync()
