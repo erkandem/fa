@@ -208,3 +208,22 @@ def test_delta_contour_data():
         }
         response = client.post('/delta-contour', json=body, headers=headers)
         assert response.status_code == 200
+
+
+def test_raw_option_data():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        headers['Content-Type'] = 'application/json'
+        body = {
+            "ust": "eqt",
+            "exchange": "usetf",
+            "symbol": "spy",
+            "putcall": "put",
+            "ltd": "20200117",
+            "metric": "rawiv",
+            "strkpx": 250,
+            "startdate": "2019-01-01",
+            "enddate": "2019-04-01"
+        }
+        response = client.post('/option-data', json=body, headers=headers)
+        assert response.status_code == 200

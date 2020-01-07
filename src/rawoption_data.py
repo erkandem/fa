@@ -1,6 +1,7 @@
+from datetime import datetime as dt
 import re
-import fastapi
 from fastapi import Query
+import fastapi
 import pydantic
 from pydantic import BaseModel
 from src.db import engines
@@ -11,7 +12,7 @@ from src.const import iv_all_sym_choices
 from src.utils import put_call_trafo
 from src.const import RawDataMetricChoices, PutCallChoices, OrderChoices
 from src.utils import CinfoQueries
-from src.utils import eod_ini_logic
+from src.utils import eod_ini_logic_new
 from src.users.user_models import UserPy
 from src.users.auth import get_current_active_user
 
@@ -67,14 +68,14 @@ class RawOptionPy(BaseModel):
 
     @pydantic.validator('enddate')
     def enddate_validator(cls, v):
-        if len(re.findall(r'^(\d{8})$', v)) == 0:
-            raise ValueError('expected format:  yyyymmdd')
+        if len(re.findall(r'^(\d{4}-\d{2}-\d{2})$', v)) == 0:
+            raise ValueError('expected format:  yyyy-mm-dd')
         return v
 
     @pydantic.validator('startdate')
     def startdate_validator(cls, v):
-        if len(re.findall(r'^(\d{8})$', v)) == 0:
-            raise ValueError('expected format:  yyyymmdd')
+        if len(re.findall(r'^(\d{4}-\d{2}-\d{2})$', v)) == 0:
+            raise ValueError('expected format:  yyyy-mm-dd')
         return v
 
     @pydantic.validator('option_month')
@@ -105,8 +106,8 @@ async def post_raw_option_data(
                 "ltd": "20200117",
                 "metric": "rawiv",
                 "strkpx": 250,
-                "startdate": "20190101",
-                "enddate": "20190401"
+                "startdate": "2019-01-01",
+                "enddate": "2019-04-01"
             }
         ),
         user: UserPy = fastapi.Depends(get_current_active_user)
@@ -120,8 +121,8 @@ async def post_raw_option_data(
     - **exchange**: one of: ['usetf', 'cme', 'ice', 'eurex']
     - **option_month**: expiry month of the option chain format: yyyymm
     - **underlying_month**: maturity month of the underlying contract format: yyyymm
-    - **startdate**: format: yyyymmdd
-    - **enddate**: format: yyyymmdd
+    - **startdate**: format: yyyy-mm-dd
+    - **enddate**: format: yyyy-mm-dd
     - **dminus**: indicate the number of days back from `enddate`
     - **ltd**: last trading day of option chain. see info endpoint for choices. format: yyyymmdd
     - **putcall**: `put` or `call`
@@ -131,6 +132,13 @@ async def post_raw_option_data(
 
     """
     args = query.dict()
+
+    if 'enddate' in args:
+        args['enddate'] = dt.strptime(args['enddate'], '%Y-%m-%d')
+
+    if 'startdate' in args:
+        args['startdate'] = dt.strptime(args['startdate'], '%Y-%m-%d')
+
     data = await resolve_single_metric_raw_data(args)
     return data
 
@@ -174,7 +182,7 @@ async def resolve_single_metric_raw_data(args):
     relation = await get_schema_and_table_name(args)
     if len(relation) != 2:
         return []
-    args = await eod_ini_logic(args)
+    args = await eod_ini_logic_new(args)
     args['metric_out'] = args['metric']
     args['metric'] = metric_mapper_f(args['metric'])
     args['schema'] = relation['schema']
