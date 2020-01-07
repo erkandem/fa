@@ -27,7 +27,7 @@ from src.intraday_prices import router as intraday_prices_router
 from src.pvp import router as pvp_router
 from src.conti_prices import router as conti_router
 from src.regular_futures import router as eod_futures_router
-from src.pulse import router as pulse_router
+from src.heartbeat import router as heartbeat_router
 from src.ivol_surface_by_delta import router as surface_router
 from src.rawoption_data import router as rawdata_router
 from src.users.auth import router as auth_router
@@ -59,7 +59,7 @@ app = fastapi.FastAPI(
 )
 
 # API overhead
-app.include_router(pulse_router, tags=['Health'])
+app.include_router(heartbeat_router, tags=['API Health'])
 app.include_router(users_router, tags=['Users'])
 app.include_router(auth_router, tags=['Auth'])
 
