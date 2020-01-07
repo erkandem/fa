@@ -45,9 +45,9 @@ from src.ivol_summary_statistics import router as ivol_summary_statistics_router
 from src.ivol_inter_spread import router as ivol_inter_spread_router
 
 
-MAJOR = 2
+MAJOR = 3
 MINOR = 0
-PATCH = 9
+PATCH = 0
 __version__ = f'{MAJOR}.{MINOR}.{PATCH}'
 
 
