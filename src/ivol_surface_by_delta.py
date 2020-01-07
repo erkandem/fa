@@ -122,7 +122,7 @@ async def surface_json(args):
     c.target_table_name_base = await c.compose_ivol_table_name_base()
     if args['date'] is None:
         args['date'] = await resolve_last_date(c)
-    args['date'] = dt.strptime(args['date'], '%Y-%m-%d').strftime('%Y-%m-%d')
+    args['date'] = args['date'].strftime('%Y-%m-%d')
     schema = await c.compose_2_part_schema_name()
     vars = ', '.join([f'var{n}' for n in range(1, 16 + 1, 1)])
     union = ' UNION ALL '
