@@ -3,13 +3,13 @@ from datetime import datetime as dt
 import fastapi
 
 
-class Pulse(BaseModel):
+class HeartBeat(BaseModel):
     date: dt
 
 
 router = fastapi.APIRouter()
 
 
-@router.get('/pulse', operation_id='get_pulse', response_model=Pulse)
-async def get_pulse():
+@router.get('/heartbeat', operation_id='get_pulse', response_model=HeartBeat)
+async def get_heartbeat():
     return {'date': dt.now()}

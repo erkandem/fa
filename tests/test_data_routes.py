@@ -7,7 +7,7 @@ mclient = TestClient(app)
 
 
 def test_pulse():
-    response = mclient.get('/pulse')
+    response = mclient.get('/heartbeat')
     assert response.status_code == 200
 
 
