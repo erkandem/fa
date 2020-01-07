@@ -21,7 +21,7 @@ from appconfig import USERDB_URL
 from appconfig import USERDB_URL_PG
 from src.db import engines, pgc
 from src.users.users import create_initial_superuser
-from src.users.users import create_other_default_user
+from src.users.users import create_other_default_users
 from src.ivol_atm import router as atm_router
 from src.intraday_prices import router as intraday_prices_router
 from src.pvp import router as pvp_router
@@ -136,7 +136,7 @@ async def startup():
     engines['users'] = databases.Database(USERDB_URL)
     await engines['users'].connect()
     await create_initial_superuser()
-    await create_other_default_user()
+    await create_other_default_users()
 
 
 @app.on_event('shutdown')
