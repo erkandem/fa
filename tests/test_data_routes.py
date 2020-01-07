@@ -174,6 +174,37 @@ def test_inter_spread_route():
 def test_topoi_route():
     with TestClient(app) as client:
         headers = get_auth_header('simple-active', client)
-        params = {'symbol1': 'spy', 'symbol2': 'ewz'}
-        response = client.get('//top-oi-and-volume', params=params, headers=headers)
+        headers['Content-Type'] = 'application/json'
+        body = {
+            "ust": "eqt",
+            "exchange": "usetf",
+            "symbol": "spy",
+            "startdate": "2019-01-01",
+            "enddate": "2019-04-01",
+            "putcall": "call",
+            "ltd": "20200117",
+            "metric": "oi",
+            "dminus": 60,
+            "top_n": 5,
+            "order": "desc"
+            }
+        response = client.post('/top-oi-and-volume', json=body, headers=headers)
+        assert response.status_code == 200
+
+
+def test_delta_contour_data():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        headers['Content-Type'] = 'application/json'
+        body = {
+            "ust": "fut",
+            "exchange": "cme",
+            "symbol": "cl",
+            "option_month": "201912",
+            "underlying_month": "201912",
+            "startdate": "2019-01-01",
+            "enddate": "2019-04-01",
+            "ltd": "20191115"
+        }
+        response = client.post('/delta-contour', json=body, headers=headers)
         assert response.status_code == 200

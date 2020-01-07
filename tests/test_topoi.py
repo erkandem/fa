@@ -64,7 +64,7 @@ SAMPLE_QUERIES = {
 
 def membrane():
     import json
-    from src.delta_data import delta_query
+    from tests.test_delta_data import delta_query
     from src.delta_data import delta_query_sql
     from src.rawoption_data import resolve_schema_and_table_name_sql
     from testing_utilities.db import PgSync

@@ -1,33 +1,17 @@
-from collections import namedtuple
 from datetime import datetime as dt
-from datetime import timedelta
 import re
-import json
-from starlette.status import HTTP_200_OK
 from starlette.responses import Response
 import fastapi
 import pydantic
 from pydantic import BaseModel
-from fastapi import Query
 from fastapi import Body
-from fastapi import HTTPException
-from falib.contract import Contract
 from src.db import engines
-from src.const import OrderChoices
-from src.const import TopOiChoices
-from src.const import PutCallChoices
 from src.const import iv_all_sym_choices, exchange_choices
-from src.users.auth import bouncer
-from src.utils import guess_exchange_and_ust
-from src.utils import CinfoQueries
-from src.utils import put_call_trafo
-from src.utils import eod_ini_logic
+from src.utils import eod_ini_logic_new
 from src.users.auth import get_current_active_user
 from src.users.user_models import UserPy
 from src.rawoption_data import get_schema_and_table_name
 from src.const import ust_choices
-from src.const import dminusLimits
-from src.const import futures_month_chars
 
 
 class DeltaQuery(BaseModel):
@@ -60,14 +44,14 @@ class DeltaQuery(BaseModel):
 
     @pydantic.validator('startdate')
     def startdate_validator(cls, v):
-        if len(re.findall(r'^(\d{8})$', v)) == 0:
-            raise ValueError('expected format:  yyyymmdd')
+        if len(re.findall(r'^(\d{4}-\d{2}-\d{2})$', v)) == 0:
+            raise ValueError('expected format:  yyyy-mm-dd')
         return v
 
     @pydantic.validator('enddate')
     def enddate_validator(cls, v):
-        if len(re.findall(r'^(\d{8})$', v)) == 0:
-            raise ValueError('expected format:  yyyymmdd')
+        if len(re.findall(r'^(\d{4}-\d{2}-\d{2})$', v)) == 0:
+            raise ValueError('expected format:  yyyy-mm-dd')
         return v
 
     @pydantic.validator('option_month')
@@ -99,34 +83,26 @@ async def post_delta_data(
                 "symbol": "cl",
                 "option_month": "201912",
                 "underlying_month": "201912",
-                "startdate": "20190101",
-                "enddate": "20190401",
+                "startdate": "2019-01-01",
+                "enddate": "2019-04-01",
                 "ltd": "20191115"
             }
         ),
         user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     args = query.dict()
+    if 'enddate' in args:
+        args['enddate'] = dt.strptime(args['enddate'], '%Y-%m-%d')
+
+    if 'startdate' in args:
+        args['startdate'] = dt.strptime(args['startdate'], '%Y-%m-%d')
+
     data = await resolve_delta_query(args)
     return Response(content=data, media_type='application/json')
 
 
-def delta_query():
-    """ devtool """
-    args = {}
-    args["symbol"] = 'cl'
-    args["ust"] = 'fut'
-    args["exchange"] = 'cme'
-    args["underlying_month"] = '201912'
-    args["option_month"] = '201912'
-    args["ltd"] = '20191115'
-    args['startdate'] = dt(2019, 1, 1).date().strftime('%Y-%m-%d')
-    args['enddate'] = dt(2019, 4, 1).date().strftime('%Y-%m-%d')
-    return args
-
-
 async def resolve_delta_query(args: {} = None):
-    args = await eod_ini_logic(args)
+    args = await eod_ini_logic_new(args)
     relation = await get_schema_and_table_name(args)
     if len(relation) != 2:
         return '[]'  # "Could not find particular option chain.", 404
