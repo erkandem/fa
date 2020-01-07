@@ -10,6 +10,6 @@ class HeartBeat(BaseModel):
 router = fastapi.APIRouter()
 
 
-@router.get('/heartbeat', operation_id='get_pulse', response_model=HeartBeat)
+@router.get('/heartbeat', operation_id='get_heartbeat', response_model=HeartBeat)
 async def get_heartbeat():
     return {'date': dt.now()}
