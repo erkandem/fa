@@ -69,8 +69,8 @@ class TopOiQuery(BaseModel):
     option_month: str = None
     underlying_month: str = None
     ltd: str
-    startdate: Date = None
-    enddate: Date = None
+    startdate: str = None
+    enddate: str = None
     dminus: int = 60
     putcall: PutCallChoices
     order: OrderChoices = OrderChoices._asc
@@ -115,14 +115,14 @@ class TopOiQuery(BaseModel):
 
     @pydantic.validator('enddate')
     def enddate_validator(cls, v):
-        if len(re.findall(r'^(\d{8})$', v)) == 0:
-            raise ValueError('expected format:  yyyymmdd')
+        if len(re.findall(r'^(\d{4}-\d{2}-\d{2})$', v)) == 0:
+            raise ValueError('expected format:  yyyy-mm-dd')
         return v
 
     @pydantic.validator('startdate')
     def startdate_validator(cls, v):
-        if len(re.findall(r'^(\d{8})$', v)) == 0:
-            raise ValueError('expected format:  yyyymmdd')
+        if len(re.findall(r'^(\d{4}-\d{2}-\d{2})$', v)) == 0:
+            raise ValueError('expected format:  yyyy-mm-dd')
         return v
 
     @pydantic.validator('option_month')
@@ -167,6 +167,12 @@ async def post_top_oi_and_volume(
 ):
     """'Returns the open interest development of the top `n` strikes of an option chain"""
     args = query.dict()
+    if 'enddate' in args:
+        args['enddate'] = dt.strptime(args['enddate'], '%Y-%m-%d')
+
+    if 'startdate' in args:
+        args['startdate'] = dt.strptime(args['startdate'], '%Y-%m-%d')
+
     data = await resolve_top_oi_or_volume(args)
     return Response(content=data, media_type='application/json')
 
