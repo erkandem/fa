@@ -32,7 +32,7 @@ router = APIRouter()
 
 
 async def create_initial_superuser():
-    data_str = os.getenv('DEFAULT_API_SUPER_USER')
+    data_str = os.getenv('DEFAULT_API_SUPER_USERS')
     data = json.loads(data_str)
     new_user = RegisterPy(**data)
     exists = await user_exists_by_username(new_user.username)
