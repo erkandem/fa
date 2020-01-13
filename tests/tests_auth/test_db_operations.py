@@ -10,7 +10,11 @@ from src.users.db import user_isactive_by_username
 from src.users.db import user_pwd_by_username
 from src.users.db import update_isactive_by_username
 from src.users.db import get_user_obj_by_username
+from src.users.db import get_all_usernames
 from src.users.users import create_initial_superuser
+from src.users.users import load_other_default_users
+from src.users.users import load_superuser
+
 from appconfig import USERDB_URL
 
 from src.users.user_models import UserPy
@@ -135,4 +139,8 @@ class TestOperations:
         user_in_db = asyncio.run(get_user_obj_by_username(username))
         assert user_in_db is None
 
-
+    def test_get_all_users(self):
+        username = 'superuser'
+        user = UserPy(**tu.test_users[username])
+        users_in_db = asyncio.run(get_all_usernames())
+        assert len([dict(elm) for elm in users_in_db]) > 0

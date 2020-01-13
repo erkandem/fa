@@ -58,6 +58,11 @@ class TestUserRoutes:
     def teardown_class(cls):
         asyncio.run(tu.delete_test_users_from_db())
 
+    def test_get_all_users(self):
+        auth_headers = tu.get_auth_header(username, client)
+        response = client.get('/users', headers=auth_headers)
+        assert response.status_code == HTTP_200_OK
+
     def test_create_new_user(self):
         auth_headers = tu.get_auth_header(username, client)
         body = {'username': new_user.username, 'password': tu.test_users_pwd}

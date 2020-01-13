@@ -24,6 +24,7 @@ from src.users.db import update_role_by_username
 from src.users.db import user_exists_by_username
 from src.users.db import get_roles_by_username
 from src.users.db import update_password_by_username
+from src.users.db import get_all_usernames
 from src.users.user_models import RegisterPy
 from src.users.user_models import UserPy
 from src.users.user_models import UpdatePassword
@@ -31,9 +32,26 @@ from src.users.user_models import UpdatePassword
 router = APIRouter()
 
 
-async def create_initial_superuser():
+def load_superuser() -> {}:
     data_str = os.getenv('DEFAULT_API_SUPER_USER')
     data = json.loads(data_str)
+    return data
+
+
+def load_other_default_users() -> [{}]:
+    data_str = os.getenv('DEFAULT_API_USERS')
+    data = json.loads(data_str)
+    return data
+
+
+def combine_all_default_users():
+    su = load_superuser()
+    du = load_other_default_users()
+    return [su] + du
+
+
+async def create_initial_superuser():
+    data = load_superuser()
     new_user = RegisterPy(**data)
     exists = await user_exists_by_username(new_user.username)
     if not exists:
@@ -49,8 +67,7 @@ async def create_initial_superuser():
 
 
 async def create_other_default_users():
-    data_str = os.getenv('DEFAULT_API_USERS')
-    data = json.loads(data_str)
+    data = load_other_default_users()
     for elm in data:
         new_user = RegisterPy(**elm)
         exists = await user_exists_by_username(new_user.username)
@@ -64,6 +81,18 @@ async def create_other_default_users():
             )
             new_user.roles = f"{new_user.roles},{elm['roles']}"
             await insert_new_user(new_user)
+
+
+@router.get(
+    '/users',
+    operation_id='get_api_users'
+)
+async def get_api_users(
+        response: Response,
+        ss: UserPy = Depends(get_current_super_user)
+):
+    result = await get_all_usernames()
+    return result
 
 
 @router.post(

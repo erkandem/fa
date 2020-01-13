@@ -113,6 +113,11 @@ async def get_user_by_username(username: str) -> [sa.engine.RowProxy]:
     return data
 
 
+async def get_all_usernames() -> [sa.engine.RowProxy]:
+    data = await engines['users'].fetch_all(f'SELECT username FROM users;')
+    return data
+
+
 async def get_user_obj_by_username(username: str) -> UserPy:
     data = await get_user_by_username(username)
     if len(data) > 0:
