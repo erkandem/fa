@@ -54,7 +54,7 @@ __version__ = f'{MAJOR}.{MINOR}.{PATCH}'
 app = fastapi.FastAPI(
     title='iVolAPI',
     version=__version__,
-    description='implied volatility and price data for selected ETFs and futures',
+    description='implied volatility and price data for selected ETFs and futures. Contact: info at volsurf.com',
     docs_url='/'
 )
 
