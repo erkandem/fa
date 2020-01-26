@@ -483,11 +483,3 @@ class ContractSync:
         if self.target_table_name_base is None:
             raise ValueError(
                 f'Value of `target_table_name_base` ({self.target_table_name_base}) was not set')
-
-
-def get_day_index_table_name(schema_name: str) -> str:
-    return f'{schema_name}_bizdt_to_table_name_mapping'
-
-
-def get_day_index_schema_name() -> str:
-    return 'public'
