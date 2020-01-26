@@ -168,10 +168,12 @@ async def post_top_oi_and_volume(
     """'Returns the open interest development of the top `n` strikes of an option chain"""
     args = query.dict()
     if 'enddate' in args:
-        args['enddate'] = dt.strptime(args['enddate'], '%Y-%m-%d')
+        if args['enddate']:
+            args['enddate'] = dt.strptime(args['enddate'], '%Y-%m-%d')
 
     if 'startdate' in args:
-        args['startdate'] = dt.strptime(args['startdate'], '%Y-%m-%d')
+        if args['startdate']:
+            args['startdate'] = dt.strptime(args['startdate'], '%Y-%m-%d')
 
     data = await resolve_top_oi_or_volume(args)
     return Response(content=data, media_type='application/json')
