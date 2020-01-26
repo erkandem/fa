@@ -307,6 +307,16 @@ class CinfoQueries:
         '''
 
     @staticmethod
+    def get_table_and_schema_by_symbol(args):
+        return f'''
+            SELECT schema_name, table_name 
+            FROM    cinfo
+            WHERE   ust = '{args['ust']}'
+                AND exchange = '{args['exchange']}'
+                AND symbol = '{args['symbol']}';
+        '''
+
+    @staticmethod
     def get_schema_and_table_for_futures_sql(args):
         return f'''
         SELECT schema_name, table_name
