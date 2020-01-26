@@ -43,6 +43,7 @@ from src.ivol_risk_reversal import router as risk_reversal_router
 from src.ivol_calendar_spread import router as calendar_router
 from src.ivol_summary_statistics import router as ivol_summary_statistics_router
 from src.ivol_inter_spread import router as ivol_inter_spread_router
+from src.rawdata_all_options import router as all_options_single_day_router
 
 
 MAJOR = 3
@@ -52,6 +53,7 @@ __version__ = f'{MAJOR}.{MINOR}.{PATCH}'
 
 
 app = fastapi.FastAPI(
+    # https://fastapi.tiangolo.com/advanced/extending-openapi/
     title='iVolAPI',
     version=__version__,
     description='implied volatility and price data for selected ETFs and futures. Contact: info at volsurf.com',
@@ -79,6 +81,7 @@ app.include_router(eod_futures_router, tags=['PriceData'])
 # raw data
 app.include_router(rawdata_router, tags=['RawData'])
 app.include_router(info_outer, prefix='/info', tags=['Info'])
+app.include_router(all_options_single_day_router, tags=['RawData'])
 
 # custom composite routes
 app.include_router(topoi_router, tags=['Composite', 'RawData'])
