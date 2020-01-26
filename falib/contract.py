@@ -91,7 +91,7 @@ class Contract:
     def __hash__(self):
         return hash(f'{self.security_type}{self.exchange}{self.symbol}{self.contract}')
 
-    def compose_obj_name(self):
+    async def compose_obj_name(self):
         if self.security_type.lower() == 'fut':
             if self.symbol is None:
                 raise ValueError()
@@ -123,20 +123,21 @@ class Contract:
         return f'{self.security_type}_{self.exchange}_eod'
 
     async def compose_3_part_schema_name(self):
-        if (self.security_type is not None
-           and self.exchange is not None
-           and self.symbol is not None):
-            return f'{self.security_type}_{self.exchange}_{self.symbol}'.lower()
-        else:
-            raise ValueError(
-                f'One ore more properties are None:\n'
-                f'security_type: {self.security_type}\n'
-                f'exchange: {self.exchange}\n'
-                f'symbol: {self.symbol}')
+        if self.security_type is None:
+            raise ValueError(f'security_type not set: `{self.security_type}`')
+        if self.exchange is None:
+            raise ValueError(f'exchange not set: `{self.exchange}`')
+        if self.symbol is None:
+            raise ValueError(f'symbol not set: `{self.symbol}`')
+        return (
+            f'{self.security_type}'
+            f'_{self.exchange}'
+            f'_{self.symbol}'
+        ).lower()
 
     async def compose_2_part_schema_name(self):
         if self.security_type is None:
-            raise KeyError('security_type  not set')
+            raise KeyError('security_type not set')
         if self.exchange is None:
             raise KeyError('exchange not set')
         return f'{self.security_type}_{self.exchange}'.lower()
@@ -192,19 +193,20 @@ class Contract:
 
     async def compose_rawdata_table_name(self):
         if self.chain_id is None:
-            raise ValueError('chain_id not set')
+            raise ValueError(f'chain_id not set: `{self.chain_id}`')
         if self.security_type is None:
-            raise ValueError('security_type not set')
+            raise ValueError(f'security_type not set `{self.security_type}`')
         if self.exchange is None:
-            raise ValueError('exchange not set')
+            raise ValueError(f'exchange not set `{self.exchange}`')
         if self.symbol is None:
-            raise ValueError('symbol not set')
+            raise ValueError(f'symbol not set `{self.symbol}`')
         return (
             f'{self.security_type}'
             f'_{self.exchange}'
             f'_{self.symbol}'
             f'_{self.chain_id}'
-            f'_raw').lower()
+            f'_raw'
+        ).lower()
 
     async def compose_quandl_dataset_code(self):
         if self.exchange is None:
@@ -270,29 +272,29 @@ class ContractSync:
         self.security_type = security_type
         self.exchange = exchange
         self.symbol = symbol
-        #%% in case of futures
+        # %% in case of futures
         self.contract = None  # e.g.: CLF19 {symbol}{month}{YY}
         self.quandl_symbol = None
         self.contract_yyyy = None  # reference year in 4 digit format
         self.contract_month = None  # reference month in single letter format
         self.quandl_dataset_code = None
-        #%% optional
+        # %% optional
         self.bday = None
-        #%% used for yh and qn queries
+        # %% used for yh and qn queries
         self.start_dt = None
         self.end_dt = None
-        #%% transaction related variables
+        # %% transaction related variables
         self.source_schema_name = None
         self.target_schema_name = None
         self.source_table_name = None
         self.target_table_name = None
-        #%% ivol db related
+        # %% ivol db related
         self.target_table_name_base = None
-        #%% raw options data relevant
+        # %% raw options data relevant
         self.chain_id = None
-        #%% sql generation
+        # %% sql generation
         self.create_table = None
-        #%% eod futures prices
+        # %% eod futures prices
         self.quandl_set_name = None
         self.qq = None
         self.__dict__.update(kwargs)
@@ -364,34 +366,35 @@ class ContractSync:
         return f'{self.security_type}_{self.exchange}_eod'
 
     def compose_3_part_schema_name(self):
-        if (self.security_type is not None
-           and self.exchange is not None
-           and self.symbol is not None):
-            return f'{self.security_type}_{self.exchange}_{self.symbol}'.lower()
-        else:
-            raise ValueError(
-                f'One ore more properties are None:\n'
-                f'security_type: {self.security_type}\n'
-                f'exchange: {self.exchange}\n'
-                f'symbol: {self.symbol}')
+        if self.security_type is None:
+            raise ValueError(f'security_type not set: `{self.security_type}`')
+        if self.exchange is None:
+            raise ValueError(f'exchange not set: `{self.exchange}`')
+        if self.symbol is None:
+            raise ValueError(f'symbol not set: `{self.symbol}`')
+        return (
+            f'{self.security_type}'
+            f'_{self.exchange}'
+            f'_{self.symbol}'
+        ).lower()
 
     def compose_2_part_schema_name(self):
         if self.security_type is None:
-            raise KeyError('security_type  not set')
+            raise KeyError('security_type not set')
         if self.exchange is None:
             raise KeyError('exchange not set')
         return f'{self.security_type}_{self.exchange}'.lower()
 
     def compose_ivol_table_name_base(self):
-        return f'{    self.compose_3_part_schema_name()}_dpyd_'.lower()
+        return f'{self.compose_3_part_schema_name()}_dpyd_'.lower()
 
     def compose_prices_intraday_table_name(self):
         if self.security_type == 'eqt':
-            table_name = f'{    self.compose_2_part_schema_name()}_{self.symbol}_prices_intraday'.lower()
+            table_name = f'{self.compose_2_part_schema_name()}_{self.symbol}_prices_intraday'.lower()
         elif self.security_type == 'fut':
-            table_name = f'{    self.compose_2_part_schema_name()}_{self.contract}_prices_intraday'.lower()
+            table_name = f'{self.compose_2_part_schema_name()}_{self.contract}_prices_intraday'.lower()
         elif self.security_type == 'fx':
-            table_name = f'{    self.compose_2_part_schema_name()}_{self.symbol}_prices_intraday'.lower()
+            table_name = f'{self.compose_2_part_schema_name()}_{self.symbol}_prices_intraday'.lower()
         else:
             raise NotImplementedError
         return table_name
@@ -399,7 +402,7 @@ class ContractSync:
     def compose_prices_eod_index_table_name(self):
         if self.security_type != 'ind':
             raise KeyError('only for indeces')
-        schema =     self.compose_2_part_schema_name()
+        schema = self.compose_2_part_schema_name()
         return f'{schema}_{self.symbol}_prices_eod'.lower()
 
     def compose_prices_eod_fut_table_name(self):
@@ -407,7 +410,7 @@ class ContractSync:
             raise KeyError('only for futures')
         if self.quandl_set_name is None:
             raise KeyError('quandl_set_name was not set')
-        schema =     self.compose_2_part_schema_name()
+        schema = self.compose_2_part_schema_name()
         return f'{schema}_{self.quandl_set_name}_prices_eod'.lower()
 
     def compose_prices_eod_eqt_table_name(self):
@@ -429,23 +432,24 @@ class ContractSync:
             y=self.contract_yyyy).upper()
 
     def set_quandl_set_name(self):
-        self.quandl_set_name =     self.compose_quandl_set_name()
+        self.quandl_set_name = self.compose_quandl_set_name()
 
     def compose_rawdata_table_name(self):
         if self.chain_id is None:
-            raise ValueError('chain_id not set')
+            raise ValueError(f'chain_id not set: `{self.chain_id}`')
         if self.security_type is None:
-            raise ValueError('security_type not set')
+            raise ValueError(f'security_type not set `{self.security_type}`')
         if self.exchange is None:
-            raise ValueError('exchange not set')
+            raise ValueError(f'exchange not set `{self.exchange}`')
         if self.symbol is None:
-            raise ValueError('symbol not set')
+            raise ValueError(f'symbol not set `{self.symbol}`')
         return (
             f'{self.security_type}'
             f'_{self.exchange}'
             f'_{self.symbol}'
             f'_{self.chain_id}'
-            f'_raw').lower()
+            f'_raw'
+        ).lower()
 
     def compose_quandl_dataset_code(self):
         if self.exchange is None:
@@ -480,3 +484,10 @@ class ContractSync:
             raise ValueError(
                 f'Value of `target_table_name_base` ({self.target_table_name_base}) was not set')
 
+
+def get_day_index_table_name(schema_name: str) -> str:
+    return f'{schema_name}_bizdt_to_table_name_mapping'
+
+
+def get_day_index_schema_name() -> str:
+    return 'public'
