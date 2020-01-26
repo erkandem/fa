@@ -43,8 +43,7 @@ from src.ivol_risk_reversal import router as risk_reversal_router
 from src.ivol_calendar_spread import router as calendar_router
 from src.ivol_summary_statistics import router as ivol_summary_statistics_router
 from src.ivol_inter_spread import router as ivol_inter_spread_router
-# suspend src.rawdata_all_options until tests are written
-# from src.rawdata_all_options import router as all_options_single_day_router
+from src.rawdata_all_options import router as all_options_single_day_router
 
 
 MAJOR = 3
@@ -82,8 +81,7 @@ app.include_router(eod_futures_router, tags=['PriceData'])
 # raw data
 app.include_router(rawdata_router, tags=['RawData'])
 app.include_router(info_outer, prefix='/info', tags=['Info'])
-# suspend src.rawdata_all_options until tests are written
-# app.include_router(all_options_single_day_router, tags=['RawData'])
+app.include_router(all_options_single_day_router, tags=['RawData'])
 
 # custom composite routes
 app.include_router(topoi_router, tags=['Composite', 'RawData'])
@@ -99,7 +97,7 @@ app.include_router(dc_router, prefix='/dc', tags=['Decorated Routes'])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/token')
 
 st_counter = '''
-    <!-- Default Statcounter code for Api.volsurf.com https://api.volsurf.com -->
+    <!-- Default Statcounter code for api.volsurf.com https://api.volsurf.com -->
         <script type="text/javascript">
             var sc_project=12144901; 
             var sc_invisible=1; 

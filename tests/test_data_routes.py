@@ -227,3 +227,29 @@ def test_raw_option_data():
         }
         response = client.post('/option-data', json=body, headers=headers)
         assert response.status_code == 200
+
+
+def test_rawdata_all_options_csv():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        headers['Accept'] = 'application/csv'
+        params = {'symbol': 'ewz', 'date': '2020-01-24'}
+        response = client.get(
+            url='/option-data/single-underlying-single-day',
+            headers=headers,
+            params=params
+        )
+        assert response.status_code == 200
+
+
+def test_rawdata_all_options_json():
+    with TestClient(app) as client:
+        headers = get_auth_header('simple-active', client)
+        headers['Accept'] = 'application/json'
+        params = {'symbol': 'ewz', 'date': '2020-01-24'}
+        response = client.get(
+            url='/option-data/single-underlying-single-day',
+            params=params,
+            headers=headers
+        )
+        assert response.status_code == 200
