@@ -48,7 +48,7 @@ from src.rawdata_all_options import router as all_options_single_day_router
 
 MAJOR = 3
 MINOR = 0
-PATCH = 2
+PATCH = 3
 __version__ = f'{MAJOR}.{MINOR}.{PATCH}'
 
 
