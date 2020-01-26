@@ -13,6 +13,7 @@ from src.const import tteChoices
 from starlette.status import HTTP_400_BAD_REQUEST
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic
+from src.utils import CinfoQueries
 from src.db import engines
 from src.users.auth import bouncer
 from src.users.auth import get_current_active_user
