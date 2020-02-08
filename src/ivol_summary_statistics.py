@@ -7,6 +7,7 @@ from collections import namedtuple
 from datetime import datetime as dt
 from datetime import date as Date
 from datetime import timedelta
+from typing import List
 import fastapi
 from starlette.status import HTTP_400_BAD_REQUEST
 from starlette.responses import Response
@@ -23,6 +24,27 @@ from src.utils import CinfoQueries
 from src.utils import eod_ini_logic
 from src.utils import eod_ini_logic_new
 from src.utils import guess_exchange_and_ust
+from pydantic import BaseModel
+
+
+class VolaSummary(BaseModel):
+    symbol: str
+    start_date: str
+    end_date: str
+    delta: str
+    expiry: str
+    standard_dev: float
+    average: float
+    min: float
+    max: float
+    observations: float
+    last: float
+    week_ago_one: float
+    week_ago_two: float
+    week_ago_three: float
+    week_ago_four: float
+    week_ago_five: float
+    week_ago_six: float
 
 
 router = fastapi.APIRouter()
@@ -32,7 +54,8 @@ router = fastapi.APIRouter()
 @router.get(
     '/ivol/summary/single',
     summary='get min, max, std, average and weekly data points',
-    operation_id='get_ivol_summary_single'
+    operation_id='get_ivol_summary_single',
+    response_model=VolaSummary
 )
 async def get_ivol_summary_single(
         symbol: str,
@@ -102,7 +125,8 @@ async def get_ivol_summary_cme(
 @router.get(
     '/ivol/summary/ice',
     summary='get min, max, std, average and weekly data points for sybmols on ICE',
-    operation_id='get_ivol_summary_ice'
+    operation_id='get_ivol_summary_ice',
+    response_model=List[VolaSummary]
 )
 async def get_ivol_summary_ice(
         user: UserPy = fastapi.Depends(get_current_active_user)
@@ -128,7 +152,8 @@ async def get_ivol_summary_ice(
 @router.get(
     '/ivol/summary/usetf',
     summary='get min, max, std, average and weekly data points for US ETFs',
-    operation_id='get_ivol_summary_usetf'
+    operation_id='get_ivol_summary_usetf',
+    response_model=List[VolaSummary]
 )
 async def get_ivol_summary_usetf(
         user: UserPy = fastapi.Depends(get_current_active_user)
@@ -154,7 +179,8 @@ async def get_ivol_summary_usetf(
 @router.get(
     '/ivol/summary/eurex',
     summary='get min, max, std, average and weekly data points for symbols on EUREX',
-    operation_id='get_ivol_summary_eurex'
+    operation_id='get_ivol_summary_eurex',
+    response_model=List[VolaSummary]
 )
 async def get_ivol_summary_eurex(
         user: UserPy = fastapi.Depends(get_current_active_user)
