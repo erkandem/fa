@@ -69,7 +69,7 @@ async def get_ivol_summary_single(
         user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
-    Delivers descriptive statistics and some slices of data
+    Returns descriptive statistics and some slices of implied volatility data
     last, 1 week, 2 week, 3 week, 4 week, 5 week and 6 week ago
 
     - **symbol**: example: 'SPY' or 'spy' (case insensitive)
@@ -105,7 +105,7 @@ async def get_ivol_summary_cme(
         user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
-    Delivers descriptive statistics and some slices of data for CME contracts
+    Returns descriptive statistics and some slices of data for for selected symbols traded at CME
 
     """
     args = {
@@ -132,8 +132,7 @@ async def get_ivol_summary_ice(
         user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
-    Delivers descriptive statistics and some slices of data for ICE contracts
-
+    Returns descriptive statistics and some slices of data for symbols traded at ICE
     """
     args = {
         'ust': 'fut',
@@ -159,8 +158,7 @@ async def get_ivol_summary_usetf(
         user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
-    Delivers descriptive statistics and some slices of data for US ETFs
-
+    Returns descriptive statistics and some slices of data for selected US ETFs
     """
     args = {
         'ust': 'eqt',
@@ -186,8 +184,7 @@ async def get_ivol_summary_eurex(
         user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
-    Delivers descriptive statistics and some slices of data for US ETFs
-
+    Returns descriptive statistics and some slices of data for selected symbols traded at EUREX
     """
     args_futures = {
         'ust': 'fut',
