@@ -29,8 +29,8 @@ from pydantic import BaseModel
 
 class VolaSummary(BaseModel):
     symbol: str
-    start_date: str
-    end_date: str
+    start_date: Date
+    end_date: Date
     delta: str
     expiry: str
     standard_dev: float
