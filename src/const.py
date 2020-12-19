@@ -6,6 +6,7 @@ from enum import Enum
 
 dminusLimits = namedtuple('dminusLimits', ['start', 'end'])
 
+
 def get_values(enum_obj):
     """create vanilla list from enum values"""
     return [elm.value for elm in enum_obj]
@@ -414,8 +415,6 @@ class pricesFxSymChoices(str, Enum):
     _usdrub = 'usdrub'
     _usdsek = 'usdsek'
     _dxy = 'dxy'
-
-
 
 
 class pricesEtfSymChoices(str, Enum):

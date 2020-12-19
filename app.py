@@ -17,8 +17,8 @@ import databases
 import fastapi
 from fastapi.security import OAuth2PasswordBearer
 from starlette.middleware.cors import CORSMiddleware
-from appconfig import USERDB_URL
-from appconfig import USERDB_URL_PG
+
+import appconfig
 from src.db import engines, pgc
 from src.users.users import create_initial_superuser
 from src.users.users import create_other_default_users
@@ -47,8 +47,8 @@ from src.rawdata_all_options import router as all_options_single_day_router
 
 
 MAJOR = 3
-MINOR = 0
-PATCH = 3
+MINOR = 1
+PATCH = 0
 __version__ = f'{MAJOR}.{MINOR}.{PATCH}'
 
 
@@ -57,7 +57,8 @@ app = fastapi.FastAPI(
     title='iVolAPI',
     version=__version__,
     description='implied volatility and price data for selected ETFs and futures. Contact: info at volsurf.com',
-    docs_url='/'
+    docs_url='/',
+    servers=appconfig.OPENAPI_SERVERS,
 )
 
 # API overhead
@@ -96,29 +97,34 @@ app.include_router(dc_router, prefix='/dc', tags=['Decorated Routes'])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/token')
 
-st_counter = '''
-    <!-- Default Statcounter code for api.volsurf.com https://api.volsurf.com -->
-        <script type="text/javascript">
-            var sc_project=12144901; 
-            var sc_invisible=1; 
-            var sc_security="b6ffef77"; 
-        </script>
-        <script type="text/javascript" src="https://www.statcounter.com/counter/counter.js" async></script>
-        <noscript>
-            <div class="statcounter">
-                <a title="Web Analytics" href="https://statcounter.com/" target="_blank">
-                    <img class="statcounter" src="https://c.statcounter.com/12144901/0/b6ffef77/1/" alt="Web Analytics">
-                </a>
-            </div>
-        </noscript>
-    <!-- End of Statcounter Code -->
-'''
 
 origins = [
+    # prod
     'http://api.volsurf.com',
     'https://api.volsurf.com',
-    'http:localhost',
-    'http:localhost:5000',
+
+    # dev
+    'http://localhost',
+    'https://localhost',
+
+    'http://0.0.0.0:5000',
+    'https://0.0.0.0:5000',
+
+    'http://127.0.0.1:5000',
+    'https://127.0.0.1:5000',
+
+    'http://localhost:5000',
+    'https://localhost:5000',
+
+    # default react/node port
+    'http://0.0.0.0:3000',
+    'https://0.0.0.0:3000',
+
+    'http://127.0.0.1:3000',
+    'https://127.0.0.1:3000',
+
+    'http://localhost:3000',
+    'https://localhost:3000',
 ]
 
 app.add_middleware(
@@ -135,8 +141,8 @@ async def startup():
     engines['prices_intraday'] = await asyncpg.create_pool(pgc.get_uri('prices_intraday'))
     engines['pgivbase'] = await asyncpg.create_pool(pgc.get_uri('pgivbase'))
     engines['options_rawdata'] = await asyncpg.create_pool(pgc.get_uri('options_rawdata'))
-    table_creation(USERDB_URL)
-    engines['users'] = databases.Database(USERDB_URL)
+    table_creation(appconfig.USERDB_URL)
+    engines['users'] = databases.Database(appconfig.USERDB_URL)
     await engines['users'].connect()
     await create_initial_superuser()
     await create_other_default_users()
@@ -152,4 +158,9 @@ async def shutdown():
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=5000)
+    uvicorn.run(
+        app,
+        host=appconfig.FASTAPI_HOST,
+        port=appconfig.FASTAPI_PORT,
+        debug=appconfig.DEBUG,
+    )

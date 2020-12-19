@@ -3,7 +3,7 @@ from typing import Optional
 import uuid
 import pydantic
 from pydantic import BaseModel
-from pydantic.types import EmailStr
+from pydantic import EmailStr
 
 
 class UserPy(BaseModel):

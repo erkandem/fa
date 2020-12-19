@@ -1,21 +1,36 @@
 """
  $ locust -f locust_test.py --host=http://0.0.0.0:5000
 """
+import dotenv
+from datetime import(
+    datetime as dt,
+    timedelta,
+)
+import json
+import os
 import random
-from datetime import datetime as dt, timedelta
-from locust import HttpLocust, TaskSet, task
+
+from locust import (
+    HttpUser,
+    TaskSet,
+    task,
+)
+
 from tests.sample_user_agents import ua_strings
 from src.const import prices_etf_sym_choices
-import os
-import json
-import dotenv
 
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 CREDS = json.loads(os.getenv('DEFAULT_API_SUPER_USER'))
-local_host = 'https://api.volsurf.com'
-local_host = 'http://0.0.0.0:5000'
-TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrYW5kYSIsImV4cCI6MTU3NzMyNjI3MH0.zjHjGInwv2MTnV6nQeSArgrn4_QkOWC8Nj4yAlHLXc8'
+
+
+# which full URL to run against (i.e. sth like the base URL)
+HOST = 'https://api.volsurf.com'
+HOST = 'http://0.0.0.0:5000'
+
+# bypass login just
+# TODO: Debug this out, so that login works
+TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrYW5kYSIsImV4cCI6MTU4MDg0OTkyM30.ce1b94RsRDni3oQ0_bGV3iOkz7rgvWPf44Zeuqky9WY"
 
 
 def get_auth_header(creds, local_client):
@@ -39,6 +54,10 @@ class WebsiteTasks(TaskSet):
         self.headers['User-Agent'] = random.choices(ua_strings)[0]
         self.headers['Authorization'] = f'Bearer {TOKEN}'
 
+    @task(3)
+    def heartbeat(self):
+        self.client.get('/heartbeat', headers=self.headers)
+
     @task(1)
     def index(self):
         url = '/prices/intraday?symbol={}&iunit={}&interval={}&dminus={}'.format(
@@ -48,10 +67,6 @@ class WebsiteTasks(TaskSet):
             random.choice([5])
         )
         self.client.get(url, headers=self.headers)
-
-    @task(3)
-    def curve(self):
-        self.client.get('/pulse', headers=self.headers)
 
     @task(3)
     def single(self):
@@ -78,11 +93,11 @@ class WebsiteTasks(TaskSet):
         )
 
 
-class WebsiteUser(HttpLocust):
-    host = local_host
+class WebsiteUser(HttpUser):
+    host = HOST
     task_set = WebsiteTasks
-    min_wait = 1000
+    min_wait = 500
     max_wait = 2000
 
 
-print('http://localhost:8089')
+print('server running at: http://localhost:8089')

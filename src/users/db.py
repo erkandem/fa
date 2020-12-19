@@ -1,8 +1,5 @@
-import databases
 import sqlalchemy as sa
-from appconfig import USERDB_URL_PG
 from src.db import engines
-from src.db import pgc
 from src.users.user_models import UserPy
 
 

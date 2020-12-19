@@ -1,4 +1,9 @@
 
+# ignore complete PyCharm folder
+.idea
+problem_container.odp
+docker-compose.yml
+
 # Created by https://www.gitignore.io/api/python,pycharm
 # Edit at https://www.gitignore.io/?templates=python,pycharm
 .env
@@ -198,7 +203,20 @@ dmypy.json
 .pyre/
 
 # End of https://www.gitignore.io/api/python,pycharm
+
+
+# devy things
 /overhead/
+
+# dev DB
 /db.sqlite
-/appconfig.py
+
+# me notes
 /README.dev.md
+
+# used for testing
+/falib/pg11_hba.conf
+/falib/pg_hba.conf
+/falib/postgresql.conf
+/falib/postgresql11.conf
+/data/
