@@ -1,5 +1,5 @@
 """
- $ locust -f locust_test.py --host=http://0.0.0.0:5000
+ $ locust -f locust_file.py --host=http://0.0.0.0:5000
 """
 import dotenv
 from datetime import(
