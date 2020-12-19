@@ -3,5 +3,6 @@
 pytest  # test runner
 requests  # test client needs "requests"
 pytest-ordering  # provides markers
+pytest-cov # test coverage
 pip-tools  # python environment management
 locust  # performance/load testing

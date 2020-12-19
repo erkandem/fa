@@ -30,7 +30,7 @@ HOST = 'http://0.0.0.0:5000'
 
 # bypass login just
 # TODO: Debug this out, so that login works
-TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrYW5kYSIsImV4cCI6MTU4MDg0OTkyM30.ce1b94RsRDni3oQ0_bGV3iOkz7rgvWPf44Zeuqky9WY"
+TOKEN = ""
 
 
 def get_auth_header(creds, local_client):
@@ -50,9 +50,14 @@ def get_auth_header(creds, local_client):
 class WebsiteTasks(TaskSet):
     headers = {'Accept': 'application/json'}
 
+    def _check_and_get_token(self):
+        if not TOKEN:
+            raise ValueError('Login manually and copy the TOKEN, until login is debugged')
+        return TOKEN
+
     def on_start(self):
         self.headers['User-Agent'] = random.choices(ua_strings)[0]
-        self.headers['Authorization'] = f'Bearer {TOKEN}'
+        self.headers['Authorization'] = f'Bearer {self._check_and_get_token()}'
 
     @task(3)
     def heartbeat(self):
@@ -83,8 +88,8 @@ class WebsiteTasks(TaskSet):
         end_date = start_date + timedelta(days=random.SystemRandom().randint(1, delta))
         params = {
             'symbol': 'cl',
-            'startdate': start_date.date().strftime('%Y%m%d'),
-            'enddate': end_date.date().strftime('%Y%m%d'),
+            'startdate': start_date.date().strftime('%Y-%m-%d'),
+            'enddate': end_date.date().strftime('%Y-%m-%d'),
         }
         self.client.get(
             f'/prices/eod/conti/array',
@@ -95,9 +100,12 @@ class WebsiteTasks(TaskSet):
 
 class WebsiteUser(HttpUser):
     host = HOST
-    task_set = WebsiteTasks
+    tasks = [
+        WebsiteTasks,
+    ]
     min_wait = 500
     max_wait = 2000
 
 
 print('server running at: http://localhost:8089')
+print('\n\n!Ey Hombre!\n?Requests are failing?\nDid you check the TOKEN is fresh eh?\n\n')

@@ -132,7 +132,7 @@ class iVolEtfChoices(str, Enum):
     _tlt = 'tlt'
     _ung = 'ung'
     _uso = 'uso'
-    _vxx = 'vxx'
+    #_vxx = 'vxx'  # disable query, since data is of low quality
     _xbi = 'xbi'
     _xlb = 'xlb'
     _xle = 'xle'

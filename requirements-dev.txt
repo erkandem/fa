@@ -13,6 +13,7 @@ cffi==1.13.2              # via -r requirements.in, bcrypt, cryptography
 chardet==3.0.4            # via requests
 click==7.0                # via -r requirements.in, flask, pip-tools, uvicorn
 configargparse==1.2.3     # via locust
+coverage==5.3             # via pytest-cov
 cryptography==2.8         # via -r requirements.in
 databases==0.4.1          # via -r requirements.in
 dnspython==1.16.0         # via -r requirements.in, email-validator
@@ -43,8 +44,9 @@ pycparser==2.19           # via -r requirements.in, cffi
 pydantic==1.7.2           # via fastapi
 pyjwt==1.7.1              # via -r requirements.in
 pyparsing==2.4.7          # via packaging
+pytest-cov==2.10.1        # via -r requirements-dev.in
 pytest-ordering==0.6      # via -r requirements-dev.in
-pytest==6.1.2             # via -r requirements-dev.in, pytest-ordering
+pytest==6.1.2             # via -r requirements-dev.in, pytest-cov, pytest-ordering
 python-dotenv==0.15.0     # via -r requirements.in
 python-multipart==0.0.5   # via -r requirements.in
 pyzmq==20.0.0             # via locust
