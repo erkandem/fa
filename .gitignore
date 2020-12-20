@@ -220,3 +220,6 @@ dmypy.json
 /falib/postgresql.conf
 /falib/postgresql11.conf
 /data/
+
+# client generation
+/client
