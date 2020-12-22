@@ -1,27 +1,12 @@
-import json
-from collections import namedtuple
 from datetime import datetime as dt
 from datetime import date as Date
-from datetime import timedelta
 import fastapi
 from pydantic import BaseModel
 from falib.contract import Contract
-from src.const import time_to_var_func
-from src.const import OrderChoices
-from src.const import tteChoices
 from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic
-from src.db import engines
-from src.const import iv_all_sym_choices
-from src.const import ust_choices
+from appconfig import engines
 from src.const import delta_choices_practical
-from src.const import exchange_choices
-from src.const import time_to_var_func
-from src.const import delta_choices
 from typing import List
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
 from starlette.responses import Response
 
 
@@ -52,7 +37,6 @@ class SurfaceAggregate(BaseModel):
         values: SurfaceValue
 
 
-@bouncer.roles_required('user')
 @router.get(
     '/ivol/surface',
     response_model=List[SurfaceAggregate],
@@ -64,7 +48,6 @@ async def get_surface_by_delta(
         date: Date = None,
         exchange: str = None,
         ust: str = None,
-        user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
     - **symbol**: example: 'SPY' or 'spy' (case insensitive)
@@ -107,7 +90,7 @@ async def resolve_last_date(c: Contract) -> str:
     schema = await c.compose_2_part_schema_name()
     table = await c.compose_ivol_final_table_name('d050')
     sql = f'SELECT max(dt) FROM {schema}.{table};'
-    async with engines['pgivbase'].acquire() as con:
+    async with engines.pgivbase.acquire() as con:
         data = await con.fetch(query=sql)
     return data[0][0].strftime('%Y-%m-%d')
 
@@ -159,7 +142,7 @@ async def surface_json(args):
 
 async def surface_resolver(args: dict):
     sql = await surface_json(args)
-    async with engines['pgivbase'].acquire() as con:
+    async with engines.pgivbase.acquire() as con:
         data = await con.fetch(sql)
         if len(data) != 0:
             return data[0].get('surface_ts')

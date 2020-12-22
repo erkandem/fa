@@ -14,10 +14,8 @@ from starlette.status import HTTP_400_BAD_REQUEST
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic
 from src.utils import CinfoQueries
-from src.db import engines
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
+from appconfig import engines
+from src.users.models import UserPy
 from starlette.responses import Response
 from src.const import time_to_var_func
 
@@ -25,7 +23,6 @@ from src.const import time_to_var_func
 router = fastapi.APIRouter()
 
 
-@bouncer.roles_required('user')
 @router.get(
     '/route/me/please',
     summary='<summary>',
@@ -40,7 +37,6 @@ async def unique_operatin_id(
         enddate: str = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
-        user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
     A route template. Will set appropriate headers and forward
@@ -83,7 +79,7 @@ async def select_resolve(args):
 
 async def resolve_me(args):
     sql = await select_resolve(args)
-    async with engines['DATABASE_NAME'].acquire() as con:
+    async with engines.DATABASE_NAME.acquire() as con:
         data = await con.fetch(sql)
         if len(data) != 0:
             return data[0].get('json_agg')

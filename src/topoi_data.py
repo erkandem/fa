@@ -25,41 +25,28 @@ self explaining way:
 
 
 """
-from collections import namedtuple
 from datetime import datetime as dt
-from datetime import date as Date
-from datetime import timedelta
-import json
 import re
 import fastapi
-from fastapi import Query
 from fastapi import Body
 from fastapi import HTTPException
 import pydantic
 from pydantic import BaseModel
 from starlette.responses import Response
-from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_400_BAD_REQUEST
-from falib.contract import Contract
 from src.const import OrderChoices
-from src.const import TopOiChoices
 from src.const import PutCallChoices
 from src.const import iv_all_sym_choices, exchange_choices
 from src.const import ust_choices
 from src.const import dminusLimits
-from src.const import futures_month_chars
-from src.db import engines
-from src.utils import guess_exchange_and_ust
-from src.utils import CinfoQueries
+from appconfig import engines
 from src.utils import put_call_trafo
 from src.utils import eod_ini_logic_new
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
+from src.users.models import UserPy
 from src.rawoption_data import get_schema_and_table_name
 
 
-dml = dminusLimits(start=0, end=366)
+dml = dminusLimits(start=0, end=365*2)
 
 
 class TopOiQuery(BaseModel):
@@ -162,8 +149,6 @@ async def post_top_oi_and_volume(
                 "order": "desc"
             }
         ),
-        user: UserPy = fastapi.Depends(get_current_active_user)
-
 ):
     """'Returns the open interest development of the top `n` strikes of an option chain"""
     args = query.dict()
@@ -194,7 +179,7 @@ async def resolve_top_oi_or_volume(args: {}):
     args['schema'] = relation['schema']
     args['table'] = relation['table']
     sql = await top_x_oi_query(args)
-    async with engines['options_rawdata'].acquire() as con:
+    async with engines.options_rawdata.acquire() as con:
         data = await con.fetch(sql)
         if len(data) != 0:
             return data[0].get('jsonb_object_agg')

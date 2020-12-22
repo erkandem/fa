@@ -40,7 +40,7 @@ def test_ini_logic_3():
     check_me2 = dt.strptime(result['enddate'], '%Y-%m-%d')
     assert type(check_me.strftime('%Y%m%d')) is str
     assert type(check_me2.strftime('%Y%m%d')) is str
-    assert check_me2  >= check_me
+    assert check_me2 >= check_me
 
 
 def test_ini_logic_4():

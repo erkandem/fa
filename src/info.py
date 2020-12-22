@@ -1,19 +1,16 @@
 import fastapi
 import pydantic
 from fastapi import Depends, Body
-from pydantic import BaseModel, Schema
-from src.db import engines
-from src.const import ust_choices, pc_choices
-from src.const import RAWOPTION_MAP
-from src.users.user_models import UserPy
-from src.users.auth import get_current_active_user
-from src.const import RawDataMetricChoices, PutCallChoices, OrderChoices
+from pydantic import BaseModel
+from src.const import pc_choices
+from src.users.models import UserPy
+from src.const import PutCallChoices
 from src.utils import CinfoQueries
-from src.db import engines
+from appconfig import engines
 from datetime import date as Date
-from typing import Union, List
-from fastapi import Query
+from typing import Union
 from src.rawoption_data import get_schema_and_table_name
+from asyncpg.pool import Pool
 
 
 class FirstAndLast(BaseModel):
@@ -47,12 +44,11 @@ router = fastapi.APIRouter()
     operation_id='get_api_info_usts'
 )
 async def get_api_info_usts(
-        user: UserPy = Depends(get_current_active_user)
 ):
     """return available ``ust``"""
     args = {}
     sql = CinfoQueries.ust_f(args)
-    async with engines['options_rawdata'].acquire() as con:
+    async with engines.options_rawdata.acquire() as con:
         res = await con.fetch(sql)
         return res
 
@@ -63,7 +59,6 @@ async def get_api_info_usts(
 )
 async def get_api_info_exchanges(
         ust: str,
-        user: UserPy = Depends(get_current_active_user)
 ):
     """return available ``exchange`` for a given ``ust``"""
     args = {'ust': ust}
@@ -71,7 +66,7 @@ async def get_api_info_exchanges(
         sql = CinfoQueries.exchange_where_ust_f(args)
     else:
         sql = CinfoQueries.exchange_f(args)
-    async with engines['options_rawdata'].acquire() as con:
+    async with engines.options_rawdata.acquire() as con:
         res = await con.fetch(sql)
         return res
 
@@ -83,7 +78,6 @@ async def get_api_info_exchanges(
 async def get_api_info_symbols(
         ust: str,
         exchange: str,
-        user: UserPy = Depends(get_current_active_user)
 ):
     """return symbols according to ``ust`` and/or ``exchange``"""
     args = {'ust': ust, 'exchange': exchange}
@@ -104,7 +98,7 @@ async def get_api_info_symbols(
         sql = CinfoQueries.symbol_where_exchange_f(args)
     else:
         sql = CinfoQueries.symbol_f(args)
-    async with engines['options_rawdata'].acquire() as con:
+    async with engines.options_rawdata.acquire() as con:
         res = await con.fetch(sql)
         return res
 
@@ -117,12 +111,15 @@ async def get_api_info_ltd(
         ust: str,
         exchange: str,
         symbol: str,
-        user: UserPy = Depends(get_current_active_user)
 ):
     """return ``ltd`` given ``ust``, ``exchange``, ``symbol``"""
-    args = {'ust': ust, 'exchange': exchange, 'symbol': symbol}
+    args = {
+        'ust': ust,
+        'exchange': exchange,
+        'symbol': symbol,
+    }
     sql = CinfoQueries.ltd_where_ust_exchange_and_symbol_f(args)
-    async with engines['options_rawdata'].acquire() as con:
+    async with engines.options_rawdata.acquire() as con:
         res = await con.fetch(sql)
         return res
 
@@ -136,7 +133,6 @@ async def get_api_info_option_month_and_underlying_month(
         exchange: str,
         symbol: str,
         ltd: str,
-        user: UserPy = Depends(get_current_active_user)
 
 ):
     query = {
@@ -146,7 +142,7 @@ async def get_api_info_option_month_and_underlying_month(
         'ltd': ltd
     }
     sql = CinfoQueries.option_month_underlying_month_f(query)
-    async with engines['options_rawdata'].acquire() as con:
+    async with engines.options_rawdata.acquire() as con:
         data = await con.fetch(sql)
         return data
 
@@ -162,8 +158,6 @@ async def get_api_info_first_and_last(
         ltd: str,
         option_month: str = None,
         underlying_month: str = None,
-        user: UserPy = Depends(get_current_active_user)
-
 ):
     args = {
         'ust': ust,
@@ -179,7 +173,7 @@ async def get_api_info_first_and_last(
     args['schema'] = meta['schema']
     args['table'] = meta['table']
     sql = CinfoQueries.first_and_last_f(args)
-    async with engines['options_rawdata'].acquire() as con:
+    async with engines.options_rawdata.acquire() as con:
         data = await con.fetch(sql)
         return data
 
@@ -199,16 +193,14 @@ async def post_api_info_strikes(
                 "ltd": "20200117"
             }
         ),
-        user: UserPy = Depends(get_current_active_user)
-
 ):
     """ same as `GET` route, but containing the query within the body"""
     args = data.dict()
-    result = await resolve_strikes(args)
+    result = await resolve_strikes(args, pool=engines.options_rawdata)
     return result
 
 
-async def resolve_strikes(args: {}):
+async def resolve_strikes(args: {}, pool: Pool):
     relation = await get_schema_and_table_name(args)
     if len(relation) == 0:
         return []
@@ -220,6 +212,6 @@ async def resolve_strikes(args: {}):
     args2['schema'] = relation[0]['schema_name']
     args2['table'] = relation[0]['table_name']
     sql = CinfoQueries.strikes_where_table_and_pc_f(args2)
-    async with engines['options_rawdata'].acquire() as con:
+    async with pool.acquire() as con:
         data = await con.fetch(sql)
         return data

@@ -1,25 +1,18 @@
-from collections import namedtuple
-from datetime import datetime as dt
 from datetime import date as Date
-from datetime import timedelta
 import fastapi
-from falib.contract import Contract
 from src.const import time_to_var_func
 from src.const import OrderChoices
 from src.const import tteChoices
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
-from src.db import engines
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
+from appconfig import engines
+from src.users.models import UserPy
 from falib.contract import ContractSync
 from starlette.responses import Response
 
 router = fastapi.APIRouter()
 
 
-@bouncer.roles_required('user')
 @router.get(
     '/ivol/smile',
     summary='smile',
@@ -34,7 +27,6 @@ async def get_ivol_smile(
         enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
-        user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
     `smile` is defined as the implied volatility curve of one expiry at one date.
@@ -139,7 +131,7 @@ async def select_ivol_fitted_smile(args):
 
 async def resolve_ivol_fitted_smile(args):
     sql = await select_ivol_fitted_smile(args)
-    async with engines['pgivbase'].acquire() as con:
+    async with engines.pgivbase.acquire() as con:
         data = await con.fetch(sql)
         if len(data) != 0:
             return data[0].get('smile_ts')

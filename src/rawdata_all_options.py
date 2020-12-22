@@ -2,10 +2,7 @@
 Route template
 
 """
-from collections import namedtuple
-from datetime import datetime as dt
 from datetime import date as Date
-from datetime import timedelta
 import json
 import fastapi
 from fastapi import Header
@@ -14,24 +11,13 @@ from starlette.status import HTTP_204_NO_CONTENT
 from falib.contract import ContractSync
 from falib.dayindex import get_day_index_table_name
 from falib.dayindex import get_day_index_schema_name
-from src.const import OrderChoices
-from src.const import tteChoices
-from starlette.status import HTTP_400_BAD_REQUEST
 from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic
-from src.utils import CinfoQueries
-from src.db import engines
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
+from appconfig import engines
 from starlette.responses import Response
-from src.const import time_to_var_func
 from enum import Enum
 
 
 router = fastapi.APIRouter()
-
-from pydantic import BaseModel
 
 
 class ContentType(str, Enum):
@@ -39,7 +25,6 @@ class ContentType(str, Enum):
     csv: str = 'application/csv'
 
 
-@bouncer.roles_required('user')
 @router.get(
     '/option-data/single-underlying-single-day',
     summary='Returns all options for one underlying for one (business)day',
@@ -51,7 +36,6 @@ async def get_all_options_single_underlying_single_day(
         ust: str = None,
         exchange: str = None,
         accept: ContentType = Header(default=ContentType.json),
-        user: UserPy = fastapi.Depends(get_current_active_user),
 ):
     """
     A route template. Will set appropriate headers and forward
@@ -113,7 +97,7 @@ async def get_all_relations(args):
         FROM {schema}.{table}
         WHERE bizdt = '{args["date"]}';
     '''
-    async with engines['options_rawdata'].acquire() as con:
+    async with engines.options_rawdata.acquire() as con:
         relations = await con.fetch(sql)
     return relations
 
@@ -162,7 +146,7 @@ async def select_union_all_ltds(args):
 
 async def resolve_options_data(args):
     sql = await select_union_all_ltds(args)
-    async with engines['options_rawdata'].acquire() as con:
+    async with engines.options_rawdata.acquire() as con:
         data = await con.fetch(sql)
         if len(data) != 0:
             return data[0].get('json_agg')

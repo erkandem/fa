@@ -1,19 +1,14 @@
 from datetime import datetime as dt
 from datetime import date as Date
-from datetime import timedelta
 import fastapi
 from pydantic import BaseModel
-from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_400_BAD_REQUEST
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 from falib.contract import Contract
 from src.const import OrderChoices
 from src.utils import eod_ini_logic_new
 from src.utils import guess_exchange_and_ust
-from src.db import engines
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
+from appconfig import engines
 from src.const import IntervalUnitChoices, IntervalValueChoices
 from starlette.exceptions import HTTPException
 import json
@@ -74,7 +69,6 @@ class PricesIntradayQueryPy(BaseModel):
     order: str
 
 
-@bouncer.roles_required('user')
 @router.get(
     '/prices/intraday',
     operation_id='get_intraday_prices'
@@ -91,7 +85,6 @@ async def get_intraday_prices(
         interval: IntervalValueChoices = IntervalValueChoices._1,
         iunit: IntervalUnitChoices = IntervalUnitChoices._minutes,
         order: OrderChoices = OrderChoices._asc,
-        user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     args = {
         'symbol': symbol,
@@ -105,7 +98,7 @@ async def get_intraday_prices(
         'interval': interval.value,
         'iunit': iunit.value,
         'order': order.value,
-        'limit': 365
+        'limit': 365 * 2
     }
     content = await resolve_prices_intraday(args)
     return content
@@ -221,6 +214,6 @@ async def select_regular(args) -> str:
 
 async def resolve_prices_intraday(args):
     sql = await select_prices_intraday(args)
-    async with engines['prices_intraday'].acquire() as con:
+    async with engines.prices_intraday.acquire() as con:
         data = await con.fetch(query=sql)
         return data

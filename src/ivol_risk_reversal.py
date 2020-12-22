@@ -16,17 +16,14 @@ from src.const import deltaOffsetChoices
 from starlette.status import HTTP_400_BAD_REQUEST
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
-from src.db import engines
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
+from appconfig import engines
+from src.users.models import UserPy
 from starlette.responses import Response
 
 
 router = fastapi.APIRouter()
 
 
-@bouncer.roles_required('user')
 @router.get(
     '/ivol/risk-reversal',
     summary='Get the risk reversal of fitted implied volatility data',
@@ -43,7 +40,6 @@ async def get_risk_reversal(
         delta1: deltaChoicesPractical = deltaChoicesPractical._d060,
         delta2: deltaChoicesPractical = deltaChoicesPractical._d040,
         order: OrderChoices = OrderChoices._asc,
-        user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
     Get the risk reversal of fitted implied volatility data for `symbol`.
@@ -146,7 +142,7 @@ async def select_risk_reversal(args):
 
 async def resolve_me(args):
     sql = await select_risk_reversal(args)
-    async with engines['pgivbase'].acquire() as con:
+    async with engines.pgivbase.acquire() as con:
         data = await con.fetch(sql)
         if len(data) != 0:
             return data[0].get('json_agg')

@@ -1,10 +1,9 @@
 from datetime import datetime as dt
 import re
-from fastapi import Query
 import fastapi
 import pydantic
 from pydantic import BaseModel
-from src.db import engines
+from appconfig import engines
 from src.const import ust_choices, dminusLimits
 from src.const import RAWOPTION_MAP, exchange_choices
 from src.const import metric_mapper_f
@@ -13,10 +12,8 @@ from src.utils import put_call_trafo
 from src.const import RawDataMetricChoices, PutCallChoices, OrderChoices
 from src.utils import CinfoQueries
 from src.utils import eod_ini_logic_new
-from src.users.user_models import UserPy
-from src.users.auth import get_current_active_user
 
-drl = dminusLimits(start=0, end=365)
+drl = dminusLimits(start=0, end=365*3)
 
 router = fastapi.APIRouter()
 
@@ -110,7 +107,6 @@ async def post_raw_option_data(
                 "enddate": "2019-04-01"
             }
         ),
-        user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
     time series data related to a single option
@@ -152,7 +148,7 @@ async def final_sql(args):
             AND strkpx = {args['strkpx']}
             AND bizdt BETWEEN '{args['startdate']}' AND '{args['enddate']}'
         ORDER BY dt
-        LIMIT 250;
+        LIMIT 365;
         '''
 
 
@@ -166,7 +162,7 @@ def resolve_schema_and_table_name_sql(args):
 
 async def get_schema_and_table_name(args: {}) -> {}:
     sql = resolve_schema_and_table_name_sql(args)
-    async with engines['options_rawdata'].acquire() as con:
+    async with engines.options_rawdata.acquire() as con:
         relation = await con.fetch(sql)
         if len(relation) != 0:
             return {
@@ -188,6 +184,6 @@ async def resolve_single_metric_raw_data(args):
     args['schema'] = relation['schema']
     args['table'] = relation['table']
     sql = await final_sql(args)
-    async with engines['options_rawdata'].acquire() as con:
+    async with engines.options_rawdata.acquire() as con:
         data = await con.fetch(sql)
         return data

@@ -5,12 +5,12 @@
 #    pip-compile --output-file=requirements.txt requirements.in
 #
 aiosqlite==0.10.0         # via -r requirements.in
-asyncpg==0.21.0           # via -r requirements.in
+asyncpg==0.21.0           # via -r requirements.in, databases
 bcrypt==3.1.7             # via -r requirements.in
 cffi==1.13.2              # via -r requirements.in, bcrypt, cryptography
 click==7.0                # via -r requirements.in, uvicorn
 cryptography==2.8         # via -r requirements.in
-databases==0.2.6          # via -r requirements.in
+databases[postgresql]==0.2.6  # via -r requirements.in
 dnspython==1.16.0         # via -r requirements.in, email-validator
 email-validator==1.0.5    # via -r requirements.in
 fastapi==0.62.0           # via -r requirements.in
@@ -18,6 +18,7 @@ h11==0.8.1                # via -r requirements.in, uvicorn
 httptools==0.0.13         # via -r requirements.in
 idna==2.8                 # via -r requirements.in, email-validator
 passlib==1.7.1            # via -r requirements.in
+psycopg2-binary==2.8.6    # via databases
 pycparser==2.19           # via -r requirements.in, cffi
 pydantic==1.7.2           # via fastapi
 pyjwt==1.7.1              # via -r requirements.in

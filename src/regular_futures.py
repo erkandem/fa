@@ -3,21 +3,12 @@ from datetime import datetime as dt
 from datetime import timedelta
 from datetime import date as Date
 import fastapi
-from pydantic import BaseModel
-from starlette.status import HTTP_200_OK
 from falib.contract import Contract
 from src.const import OrderChoices
-from src.const import ust_choices_intraday
-from src.const import exchange_choices_intraday
-from src.const import futures_month_chars
-from src.const import prices_intraday_all_symbols
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
-from src.db import engines
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
-
+from appconfig import engines
+from src.users.models import UserPy
 
 router = fastapi.APIRouter()
 
@@ -26,7 +17,6 @@ RegularFuturesParams = namedtuple(
     ['schema', 'table', 'startdate', 'enddate', 'order', 'limit'])
 
 
-@bouncer.roles_required('user')
 @router.get(
     '/prices/eod',
     operation_id='get_regular_futures_eod'
@@ -41,7 +31,6 @@ async def get_regular_futures_eod(
         enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
-        user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """end of day prices """
     args = {
@@ -70,7 +59,7 @@ async def eod_sql_delivery(args):
     schema = f"{args['ust']}_{args['exchange']}_eod"
     contract = f"{args['symbol']}{args['month']}{args['year']}".lower()
     table = f"{args['ust']}_{args['exchange']}_{contract}_prices_eod"
-    limit = 365
+    limit = 365 * 2
     params = RegularFuturesParams(
         schema=schema, table=table,
         startdate=args['startdate'], enddate=args['enddate'],
@@ -93,6 +82,6 @@ async def final_sql(nt: RegularFuturesParams) -> str:
 
 async def resolve_eod_futures(args):
     sql = await eod_sql_delivery(args)
-    async with engines['prices_intraday'].acquire() as con:
+    async with engines.prices_intraday.acquire() as con:
         data = await con.fetch(query=sql)
         return data

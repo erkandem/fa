@@ -1,9 +1,10 @@
 import os
-from typing import Optional
 import uuid
+from typing import Optional
+
 import pydantic
-from pydantic import BaseModel
 from pydantic import EmailStr
+from pydantic.main import BaseModel
 
 
 class UserPy(BaseModel):
@@ -23,16 +24,3 @@ class UserPy(BaseModel):
     def default_salt(cls, v):
         return v or str(os.urandom(32).hex())
 
-
-class RegisterPy(BaseModel):
-    username: str
-    password: str
-
-
-class DeleteUserPy(BaseModel):
-    username: str
-
-
-class UpdatePassword(BaseModel):
-    password: str
-    new_password: str

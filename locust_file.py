@@ -16,10 +16,9 @@ from locust import (
     task,
 )
 
-from tests.sample_user_agents import ua_strings
 from src.const import prices_etf_sym_choices
 
-
+ubuntu_firefox_ua_string = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:15.0) Gecko/20100101 Firefox/15.0.1'
 dotenv.load_dotenv(dotenv.find_dotenv())
 CREDS = json.loads(os.getenv('DEFAULT_API_SUPER_USER'))
 
@@ -56,7 +55,7 @@ class WebsiteTasks(TaskSet):
         return TOKEN
 
     def on_start(self):
-        self.headers['User-Agent'] = random.choices(ua_strings)[0]
+        self.headers['User-Agent'] = ubuntu_firefox_ua_string
         self.headers['Authorization'] = f'Bearer {self._check_and_get_token()}'
 
     @task(3)

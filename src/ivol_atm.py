@@ -1,29 +1,17 @@
-from collections import namedtuple
-from datetime import datetime as dt
 from datetime import date as Date
-from datetime import timedelta
 import fastapi
-from starlette.exceptions import HTTPException
-from starlette.status import HTTP_400_BAD_REQUEST
 from falib.contract import Contract
 from src.const import time_to_var_func
 from src.const import OrderChoices
 from src.const import tteChoices
 from src.const import deltaChoicesPractical
-from src.db import engines
+from appconfig import engines
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
-from src.schema import validate_config
-from src.schema import BaseContract
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
-
 
 router = fastapi.APIRouter()
 
 
-@bouncer.roles_required('user')
 @router.get(
     '/ivol',
     summary='Get implied volatility data for a single delta and single tte',
@@ -39,7 +27,6 @@ async def get_ivol(
         tte: tteChoices = tteChoices._1m,
         delta: deltaChoicesPractical = deltaChoicesPractical._d050,
         order: OrderChoices = OrderChoices._asc,
-        user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
     implied volatility time series. Return a proxy for ATM by default
@@ -71,7 +58,6 @@ async def get_ivol(
     return content
 
 
-@bouncer.roles_required('user')
 @router.get(
     '/ivol/atm',
     summary='Get ATM implied volatility data',
@@ -86,7 +72,6 @@ async def atm_ivol(
         enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
-        user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
     At-the-money implied volatility time series.
@@ -140,6 +125,6 @@ async def select_ivol(args):
 
 async def resolve_ivol(args):
     sql = await select_ivol(args)
-    async with engines['pgivbase'].acquire() as con:
+    async with engines.pgivbase.acquire() as con:
         data = await con.fetch(query=sql)
         return data

@@ -1,23 +1,15 @@
 from collections import namedtuple
-from datetime import datetime as dt
 from datetime import date as Date
-from datetime import timedelta
 import fastapi
-from starlette.status import HTTP_200_OK
 from falib.contract import Contract
 from src.const import OrderChoices
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
-from src.db import engines
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
-
+from appconfig import engines
 
 router = fastapi.APIRouter()
 
 
-@bouncer.roles_required('user')
 @router.get(
     '/prices/intraday/pvp',
     operation_id='get_pvp_intraday',
@@ -33,7 +25,6 @@ async def get_pvp_intraday(
         buckets: int = 100,
         iunit: str = 'minutes',
         order: OrderChoices = OrderChoices._asc,
-        user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
     price volume profile. histogram of intraday price data
@@ -126,6 +117,6 @@ async def final_sql(nt: pvpQueryParams) -> str:
 
 async def resolve_pvp(args):
     sql = await pvp_query(args)
-    async with engines['prices_intraday'].acquire() as con:
+    async with engines.prices_intraday.acquire() as con:
         data = await con.fetch(query=sql)
         return data

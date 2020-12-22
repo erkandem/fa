@@ -5,13 +5,13 @@ import fastapi
 import pydantic
 from pydantic import BaseModel
 from fastapi import Body
-from src.db import engines
+from appconfig import engines
 from src.const import iv_all_sym_choices, exchange_choices
 from src.utils import eod_ini_logic_new
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
+from src.users.models import UserPy
 from src.rawoption_data import get_schema_and_table_name
 from src.const import ust_choices
+from asyncpg.pool import Pool
 
 
 class DeltaQuery(BaseModel):
@@ -88,7 +88,6 @@ async def post_delta_data(
                 "ltd": "20191115"
             }
         ),
-        user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     args = query.dict()
     if 'enddate' in args:
@@ -97,11 +96,11 @@ async def post_delta_data(
     if 'startdate' in args:
         args['startdate'] = dt.strptime(args['startdate'], '%Y-%m-%d')
 
-    data = await resolve_delta_query(args)
+    data = await resolve_delta_query(args, engines.options_rawdata)
     return Response(content=data, media_type='application/json')
 
 
-async def resolve_delta_query(args: {} = None):
+async def resolve_delta_query(args: {}, pool: Pool):
     args = await eod_ini_logic_new(args)
     relation = await get_schema_and_table_name(args)
     if len(relation) != 2:
@@ -109,7 +108,7 @@ async def resolve_delta_query(args: {} = None):
     args['schema'] = relation['schema']
     args['table'] = relation['table']
     sql = delta_query_sql(**args)
-    async with engines['options_rawdata'].acquire() as con:
+    async with pool.acquire() as con:
         data = await con.fetch(sql)
         if len(data) != 0:
             return data[0].get('jsonb_object_agg')

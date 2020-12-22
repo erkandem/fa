@@ -13,19 +13,17 @@ from src.const import tteChoices
 from starlette.status import HTTP_400_BAD_REQUEST
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
-from src.db import engines
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
+from appconfig import engines
+from src.users.models import UserPy
 from starlette.responses import Response
 from src.const import time_to_var_func
 from src. const import deltaChoicesPractical
+from asyncpg.pool import Pool
 
 
 router = fastapi.APIRouter()
 
 
-@bouncer.roles_required('user')
 @router.get(
     '/ivol/inter-spread',
     summary='get ivol spread between options with different underlying',
@@ -44,7 +42,6 @@ async def get_inter_spread(
         enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
-        user: UserPy = fastapi.Depends(get_current_active_user)
 ):
     """
     Calculate the difference between two ETFs or generally between
@@ -77,7 +74,7 @@ async def get_inter_spread(
         'dminus': dminus,
         'order': order.value
     }
-    content = await resolve_inter_spread(args)
+    content = await resolve_inter_spread(args, pool=engines.pgivbase)
     return Response(content=content, media_type='application/json')
 
 
@@ -97,7 +94,6 @@ async def select_inter_ivol(args):
 
     c_one_args = await guess_exchange_and_ust(c_one_args)
     c_two_args = await guess_exchange_and_ust(c_two_args)
-
     c_one = ContractSync()
     c_one.symbol = c_one_args['symbol']
     c_one.exchange = c_one_args['exchange']
@@ -129,10 +125,9 @@ async def select_inter_ivol(args):
     '''
     return sql_code
 
-
-async def resolve_inter_spread(args):
+async def resolve_inter_spread(args, pool: Pool):
     sql = await select_inter_ivol(args)
-    async with engines['pgivbase'].acquire() as con:
+    async with pool.acquire() as con:
         data = await con.fetch(sql)
         if len(data) != 0:
             return data[0].get('json_agg')

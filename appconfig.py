@@ -1,6 +1,50 @@
 import pathlib
 import os
+
+import asyncpg
 import dotenv
+from logging import getLogger
+
+logger = getLogger()
+
+TESTING_DB_SUFFIX = 'testing'
+
+class PostgresConfig:
+    def __init__(
+            self,
+            *,
+            user=None,
+            pw=None,
+            host=None,
+            port=None,
+    ):
+        self.user = user
+        self.pw = pw
+        self.host = host
+        self.port = port
+        self.db = 'postgresql'
+
+    def get_uri(self, db_name):
+        uri = f"{self.db}://{self.user}:{self.pw}@{self.host}:{self.port}/{db_name}"
+        print(f"{self.db}://{self.user}:******@{self.host}:{self.port}/{db_name}")
+        return uri
+
+    def get_db_name(self, db_name: str):
+        """
+        Wrapper to get the testing or "prod" database
+        depends on  testing environment variable
+
+        Args:
+            db_name(str):
+
+        Returns:
+
+        """
+        return (
+            db_name
+            if not IVOLAPI_TESTING
+            else ''.join([db_name, '_', TESTING_DB_SUFFIX])
+        )
 
 # mark the application folder for convenience
 TOP_LEVEL_MARKER = pathlib.Path(os.path.abspath(__file__)).parent
@@ -12,8 +56,60 @@ ENV_PATH = f'{str(TOP_LEVEL_MARKER)}/.env'
 dotenv.load_dotenv(ENV_PATH)
 
 # compose or read in the database_url
-USERDB_URL = f'sqlite:////{str(TOP_LEVEL_MARKER)}/db.sqlite'
-USERDB_URL_PG_TESTS = f'postgresql://postgres:postgres@localhost:5432/fastapi_tests'
+USERDB_URL = f'sqlite:////{str(TOP_LEVEL_MARKER)}/db.sqlite'  # deprecated
+
+# application database (users) etc
+IVOLAPI_PG_USER = os.getenv('IVOLAPI_PG_USER')
+IVOLAPI_PG_PW = os.getenv('IVOLAPI_PG_PW')
+IVOLAPI_PG_HOST = os.getenv('IVOLAPI_PG_HOST')
+IVOLAPI_PG_PORT = os.getenv('IVOLAPI_PG_PORT')
+
+PRICES_INTRADAY_DB_NAME = 'prices_intraday'
+VOLATILITY_DB_NAME = 'pgivbase'
+OPTIONS_DB_NAME = 'options_rawdata'
+APPLICATION_DB_NAME = 'fastapi_2020'
+
+
+class AppPostgresConfig(PostgresConfig):
+    @property
+    def application_db_name(self):
+        return self.get_db_name(APPLICATION_DB_NAME)
+
+
+app_pgc = AppPostgresConfig(
+    user=IVOLAPI_PG_USER,
+    pw=IVOLAPI_PG_PW,
+    host=IVOLAPI_PG_HOST,
+    port=IVOLAPI_PG_PORT,
+)
+
+# implied volatility data
+PG_USER = os.getenv('PG_USER')
+PG_PW = os.getenv('PG_PW')
+PG_HOST = os.getenv('PG_HOST')
+PG_PORT = os.getenv('PG_PORT')
+
+
+class DataPostgresConfig(PostgresConfig):
+    @property
+    def prices_intraday_db_name(self):
+        return PRICES_INTRADAY_DB_NAME  # self.get_db_name(PRICES_INTRADAY_DB_NAME)
+
+    @property
+    def volatility_db_name(self):
+        return VOLATILITY_DB_NAME  # self.get_db_name(VOLATILITY_DB_NAME)
+
+    @property
+    def options_db_name(self):
+        return OPTIONS_DB_NAME  # self.get_db_name(OPTIONS_DB_NAME)
+
+
+data_pgc = DataPostgresConfig(
+    user=PG_USER,
+    pw=PG_PW,
+    host=PG_HOST,
+    port=PG_PORT,
+)
 
 # used for hashing/encrypting/signing
 API_SECRET_KEY = os.getenv('API_SECRET_KEY')
@@ -46,25 +142,31 @@ def evaL_bool_env(bool_env: str):
     )
 
 
-DEBUG = (
-    evaL_bool_env(os.getenv('DEBUG'))
-    if os.getenv('DEBUG') is not None
+IVOLAPI_DEBUG = (
+    evaL_bool_env(os.getenv('IVOLAPI_DEBUG'))
+    if os.getenv('IVOLAPI_DEBUG') is not None
     else False
 )
-FASTAPI_PORT = os.getenv('FASTAPI_PORT')
-FASTAPI_HOST = os.getenv('FASTAPI_HOST')
+IVOLAPI_TESTING = (
+    evaL_bool_env(os.getenv('IVOLAPI_TESTING'))
+    if os.getenv('IVOLAPI_TESTING') is not None
+    else False
+)
+IVOLAPI_PORT = int(os.getenv('IVOLAPI_PORT'))
+IVOLAPI_HOST = os.getenv('IVOLAPI_HOST')
 
 OPENAPI_SERVERS = [
     # exposed in OpenAPI documentation
-    # used to bult the base url of client libraries
+    # used to build the base url of client libraries
+    {
+        'url': 'http://localhost:5000',
+        'description': 'dev',
+    },
     {
         'url': 'https://api.volsurf.com',
         'description': 'prod',
     },
-    {
-        'url': 'http://localhost:5000',
-        'description': 'dev',
-    }
+
 ]
 
 
@@ -87,3 +189,41 @@ string = '''
         </noscript>
     <!-- End of Statcounter Code -->
 '''
+
+
+class Engines:
+    prices_intraday: asyncpg.pool.Pool
+    pgivbase: asyncpg.pool.Pool
+    options_rawdata: asyncpg.pool.Pool
+    users:  asyncpg.pool.Pool
+
+
+engines = Engines()
+origins = [
+    # prod
+    'http://api.volsurf.com',
+    'https://api.volsurf.com',
+
+    # dev
+    'http://localhost',
+    'https://localhost',
+
+    'http://0.0.0.0:5000',
+    'https://0.0.0.0:5000',
+
+    'http://127.0.0.1:5000',
+    'https://127.0.0.1:5000',
+
+    'http://localhost:5000',
+    'https://localhost:5000',
+
+    # default react/node port
+    'http://0.0.0.0:3000',
+    'https://0.0.0.0:3000',
+
+    'http://127.0.0.1:3000',
+    'https://127.0.0.1:3000',
+
+    'http://localhost:3000',
+    'https://localhost:3000',
+]
