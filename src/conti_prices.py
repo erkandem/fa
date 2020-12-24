@@ -1,25 +1,32 @@
 from collections import namedtuple
-from datetime import datetime as dt
 from datetime import date
-from datetime import timedelta
-from typing import List
 import fastapi
 from pydantic import BaseModel
-from starlette.status import HTTP_200_OK
-from falib.contract import Contract
+from sqlalchemy.engine import Connection
+
 from src.const import OrderChoices
 from src.const import nth_contract_choices
 from src.const import conti_futures_choices
 from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic, eod_ini_logic_new
-from appconfig import engines
-from src.users.models import UserPy
+from src.utils import eod_ini_logic_new
+from src.db import get_prices_intraday_db
+from fastapi import Depends
+import typing as t
+from pydantic import BaseModel
+from sqlalchemy.engine import Connection
 
 router = fastapi.APIRouter()
 
 ContiEodParams = namedtuple(
     'ContiEodParams',
-    ['schema', 'table', 'startdate', 'enddate', 'order', 'limit']
+    [
+        'schema',
+        'table',
+        'startdate',
+        'enddate',
+        'order',
+        'limit',
+    ]
 )
 
 
@@ -61,7 +68,7 @@ class ContiEodQuery(BaseModel):
 
 
 class FuturesEodConti(BaseModel):
-    dt: dt
+    dt: date
     open: float
     high: float
     low: float
@@ -70,8 +77,13 @@ class FuturesEodConti(BaseModel):
     oi: int
 
 
+class FuturesEodContiSpread(BaseModel):
+    dt: date
+    value: float
+
+
 class ContiEodArray(BaseModel):
-    dt: dt
+    dt: date
     c1: float
     c2: float
     c3: float
@@ -88,7 +100,8 @@ class ContiEodArray(BaseModel):
 
 @router.get(
     '/prices/eod/conti',
-    operation_id='get_continuous_eod'
+    operation_id='get_continuous_eod',
+    response_model=t.List[FuturesEodConti]
 )
 async def get_conti_eod(
         symbol: str,
@@ -99,6 +112,7 @@ async def get_conti_eod(
         enddate: date = None,
         dminus:  int = 20,
         order: OrderChoices = OrderChoices._asc,
+        con: Connection = Depends(get_prices_intraday_db),
 ):
     """ """
     args = {
@@ -112,13 +126,14 @@ async def get_conti_eod(
         'order': order.value,
         'array': 0
     }
-    content = await conti_resolver(args, pool=engines.prices_intraday)
+    content = await conti_resolver(args, con)
     return content
 
 
 @router.get(
     '/prices/eod/conti/spread',
-    operation_id='get_continuous_eod_spread'
+    operation_id='get_continuous_eod_spread',
+    response_model=t.List[FuturesEodContiSpread],
 )
 async def get_continuous_eod_spread(
         symbol: str,
@@ -130,8 +145,9 @@ async def get_continuous_eod_spread(
         enddate: date = None,
         dminus:  int = 20,
         order: OrderChoices = OrderChoices._asc,
+        con: Connection = Depends(get_prices_intraday_db),
 ):
-    """ """
+    """ return the (price) spread for an underlying between the x-th and n-th continues future"""
     args = {
         'symbol': symbol,
         'ust': ust,
@@ -142,15 +158,16 @@ async def get_continuous_eod_spread(
         'enddate': enddate,
         'dminus': dminus,
         'order': order.value,
-        'array': 0
+        'array': 0,
     }
-    content = await resolve_conti_spread(args, pool=engines.prices_intraday)
+    content = await resolve_conti_spread(args, con)
     return content
 
 
 @router.get(
     '/prices/eod/conti/array',
-    operation_id='get_continuous_eod_as_array'
+    operation_id='get_continuous_eod_as_array',
+    response_model=t.List[ContiEodArray]
 )
 async def get_continuous_eod_as_array(
         symbol: str,
@@ -160,8 +177,12 @@ async def get_continuous_eod_as_array(
         enddate: date = None,
         dminus:  int = 20,
         order: OrderChoices = OrderChoices._asc,
+        con: Connection = Depends(get_prices_intraday_db),
 ):
-    """ """
+    """
+    return the (price) spread of continues futures, compared to the first in line.
+    The results are returned for 12 available continuous futures.
+    """
     args = {
         'symbol': symbol,
         'ust': ust,
@@ -170,9 +191,9 @@ async def get_continuous_eod_as_array(
         'enddate': enddate,
         'dminus': dminus,
         'order': order.value,
-        'array': 1
+        'array': 1,
     }
-    content = await conti_array_resolver(args, pool=engines.prices_intraday)
+    content = await conti_array_resolver(args,  con)
     return content
 
 
@@ -221,8 +242,8 @@ async def create_conti_eod_schema_name(security_type: str, exchange: str) -> str
 
 
 async def eod_continuous_fut_sql_delivery(args):
-    args = await eod_ini_logic_new(args)
-    args = await guess_exchange_and_ust(args)
+    args = eod_ini_logic_new(args)
+    args = guess_exchange_and_ust(args)
     schema = await create_conti_eod_schema_name(args['ust'], args['exchange'])
     table = await create_conti_eod_table_name(
         symbol=args['symbol'],
@@ -245,8 +266,8 @@ async def eod_continuous_fut_sql_delivery(args):
 
 
 async def eod_continuous_fut_array_sql_delivery(args: dict):
-    args = await eod_ini_logic_new(args)
-    args = await guess_exchange_and_ust(args)
+    args = eod_ini_logic_new(args)
+    args = guess_exchange_and_ust(args)
     schema = await create_conti_eod_schema_name(args['ust'], args['exchange'])
     table = await create_conti_eod_array_table_name(
         symbol=args['symbol'],
@@ -293,8 +314,8 @@ async def nthcontract_to_column_mapping(nthcontract):
 
 
 async def select_conti_spread(args):
-    args = await eod_ini_logic_new(args)
-    args = await guess_exchange_and_ust(args)
+    args = eod_ini_logic_new(args)
+    args = guess_exchange_and_ust(args)
     args['limit'] = 365 * 2
     args['schema'] = await create_conti_eod_schema_name(args['ust'], args['exchange'])
     args['table'] = await create_conti_eod_array_table_name(
@@ -315,23 +336,20 @@ async def select_conti_spread(args):
         LIMIT {args['limit']};
     '''
 
-from asyncpg.pool import Pool
-async def resolve_conti_spread(args, pool: Pool):
+
+async def resolve_conti_spread(args, con: Connection):
     sql = await select_conti_spread(args)
-    async with pool.acquire() as con:
-        data = await con.fetch(query=sql)
-        return data
+    data = con.execute(sql).fetchall()
+    return data
 
 
-async def conti_resolver(args, pool: Pool):
+async def conti_resolver(args, con: Connection):
     sql = await eod_continuous_fut_sql_delivery(args)
-    async with pool.acquire() as con:
-        data = await con.fetch(query=sql)
-        return data
+    data = con.execute(sql).fetchall()
+    return data
 
 
-async def conti_array_resolver(args, pool: Pool):
+async def conti_array_resolver(args, db: Connection):
     sql = await eod_continuous_fut_array_sql_delivery(args)
-    async with pool.acquire() as con:
-        data = await con.fetch(query=sql)
-        return data
+    data = db.execute(sql).fetchall()
+    return data

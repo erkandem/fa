@@ -2,34 +2,39 @@
 Route template
 
 """
-from collections import namedtuple
 from datetime import datetime as dt
 from datetime import date as Date
-from datetime import timedelta
 import fastapi
+from sqlalchemy.engine import Connection
+
 from falib.contract import ContractSync
 from src.const import OrderChoices
 from src.const import tteChoices
-from starlette.status import HTTP_400_BAD_REQUEST
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
-from appconfig import engines
-from src.users.models import UserPy
-from starlette.responses import Response
+import typing as t
+
 from src.const import time_to_var_func
 from src. const import deltaChoicesPractical
-from asyncpg.pool import Pool
-
+from fastapi import Depends
+from src.db import get_pgivbase_db
+from pydantic import BaseModel
 
 router = fastapi.APIRouter()
+
+
+class InterSpread(BaseModel):
+    dt: Date
+    value: float
 
 
 @router.get(
     '/ivol/inter-spread',
     summary='get ivol spread between options with different underlying',
-    operation_id='get_inter_spread'
+    operation_id='get_ivol_inter_spread',
+    response_model=t.List[InterSpread],
 )
-async def get_inter_spread(
+async def get_ivol_inter_spread(
         symbol1: str,
         symbol2: str,
         ust1: str = None,
@@ -42,6 +47,7 @@ async def get_inter_spread(
         enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
+        con: Connection = Depends(get_pgivbase_db),
 ):
     """
     Calculate the difference between two ETFs or generally between
@@ -74,12 +80,12 @@ async def get_inter_spread(
         'dminus': dminus,
         'order': order.value
     }
-    content = await resolve_inter_spread(args, pool=engines.pgivbase)
-    return Response(content=content, media_type='application/json')
+    content = await resolve_inter_spread(args, con)
+    return content
 
 
 async def select_inter_ivol(args):
-    args = await eod_ini_logic_new(args)
+    args = eod_ini_logic_new(args)
     args['tte'] = time_to_var_func(args['tte'])
     c_one_args = {
         'symbol': args['symbol1'],
@@ -92,8 +98,8 @@ async def select_inter_ivol(args):
         'ust': args['ust2']
     }
 
-    c_one_args = await guess_exchange_and_ust(c_one_args)
-    c_two_args = await guess_exchange_and_ust(c_two_args)
+    c_one_args = guess_exchange_and_ust(c_one_args)
+    c_two_args = guess_exchange_and_ust(c_two_args)
     c_one = ContractSync()
     c_one.symbol = c_one_args['symbol']
     c_one.exchange = c_one_args['exchange']
@@ -125,11 +131,11 @@ async def select_inter_ivol(args):
     '''
     return sql_code
 
-async def resolve_inter_spread(args, pool: Pool):
+
+async def resolve_inter_spread(args, con: Connection):
     sql = await select_inter_ivol(args)
-    async with pool.acquire() as con:
-        data = await con.fetch(sql)
-        if len(data) != 0:
-            return data[0].get('json_agg')
-        else:
-            return '[]'
+    data = con.execute(sql).fetchall()
+    if len(data) != 0 and len(data[0]) != 0:
+        return data[0][0]
+    else:
+        return []

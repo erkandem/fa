@@ -7,8 +7,13 @@ from falib.contract import Contract
 from src.const import OrderChoices
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
-from appconfig import engines
-from src.users.models import UserPy
+import typing as t
+from sqlalchemy.engine import Connection
+from src.db import get_prices_intraday_db
+from fastapi import Depends
+from src.db import results_proxy_to_list_of_dict
+from pydantic import BaseModel
+
 
 router = fastapi.APIRouter()
 
@@ -17,9 +22,20 @@ RegularFuturesParams = namedtuple(
     ['schema', 'table', 'startdate', 'enddate', 'order', 'limit'])
 
 
+class RegularFuturesEod(BaseModel):
+    dt: Date
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: int
+    oi: int
+
+
 @router.get(
     '/prices/eod',
-    operation_id='get_regular_futures_eod'
+    operation_id='get_regular_futures_eod',
+    response_model=t.List[RegularFuturesEod],
 )
 async def get_regular_futures_eod(
         symbol: str,
@@ -31,6 +47,7 @@ async def get_regular_futures_eod(
         enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
+        con: Connection = Depends(get_prices_intraday_db),
 ):
     """end of day prices """
     args = {
@@ -42,16 +59,16 @@ async def get_regular_futures_eod(
         'startdate': startdate,
         'enddate': enddate,
         'dminus': dminus,
-        'order': order.value
+        'order': order.value,
     }
-    content = await resolve_eod_futures(args)
+    content = await resolve_eod_futures(args, con)
     return content
 
 
 async def eod_sql_delivery(args):
     """TODO fix the table name creation which should be handled by the Contract class"""
-    args = await eod_ini_logic_new(args)
-    args = await guess_exchange_and_ust(args)
+    args = eod_ini_logic_new(args)
+    args = guess_exchange_and_ust(args)
     c = Contract()
     c.symbol = args['symbol']
     c.exchange = args['exchange']
@@ -80,8 +97,7 @@ async def final_sql(nt: RegularFuturesParams) -> str:
     '''
 
 
-async def resolve_eod_futures(args):
+async def resolve_eod_futures(args, con: Connection):
     sql = await eod_sql_delivery(args)
-    async with engines.prices_intraday.acquire() as con:
-        data = await con.fetch(query=sql)
-        return data
+    data = con.execute(sql).fetchall()
+    return data

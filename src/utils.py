@@ -8,28 +8,29 @@ from src.const import prices_fx_sym_choices
 from src.const import iv_ice_choices
 from src.const import intraday_prices_cme_sym_choices
 from src.schema import validate_config
+import typing as t
 
 
-async def ensure_ust_and_exchange_are_set(args: {}):
-    await ensure_exchange_is_set(args)
-    await ensure_security_type_is_set(args)
+def ensure_ust_and_exchange_are_set(args: t.Dict[str, t.Any]):
+    ensure_exchange_is_set(args)
+    ensure_security_type_is_set(args)
 
 
-async def ensure_exchange_is_set(args: {}):
+def ensure_exchange_is_set(args: t.Dict[str, t.Any]):
     if args['exchange'] is None:
         raise ValueError('Exchange was not set')
 
 
-async def ensure_security_type_is_set(args: {}):
+def ensure_security_type_is_set(args: t.Dict[str, t.Any]):
     if args['ust'] is None:
         raise ValueError('ust was not set')
 
 
-async def guess_exchange_and_ust(args: {}) -> {}:
+def guess_exchange_and_ust(args: t.Dict[str, t.Any]) -> t.Dict[str, t.Any]:
     if args['exchange'] is None:
-        args['exchange'] = await guess_exchange_from_symbol_intraday(args['symbol'])
+        args['exchange'] = guess_exchange_from_symbol_intraday(args['symbol'])
     if args['ust'] is None:
-        args['ust'] = await guess_ust_from_symbol_intraday(args['symbol'])
+        args['ust'] = guess_ust_from_symbol_intraday(args['symbol'])
     if args['ust'] is None:
         raise HTTPException(
             detail=(
@@ -52,7 +53,7 @@ async def guess_exchange_and_ust(args: {}) -> {}:
     return args
 
 
-async def guess_exchange_from_symbol_intraday(symbol: str) -> str:
+def guess_exchange_from_symbol_intraday(symbol: str) -> str:
     mapping = {
         'cme': intraday_prices_cme_sym_choices,
         'usetf': prices_etf_sym_choices,
@@ -64,54 +65,25 @@ async def guess_exchange_from_symbol_intraday(symbol: str) -> str:
             return exchange
 
 
-async def guess_ust_from_symbol_intraday(symbol: str) -> str:
+def guess_ust_from_symbol_intraday(symbol: str) -> str:
     mapping = {
         'fut': intraday_prices_cme_sym_choices,
         'eqt': prices_etf_sym_choices,
-        'fx': prices_fx_sym_choices
+        'fx': prices_fx_sym_choices,
     }
     for ust in list(mapping):
         if symbol.lower() in mapping[ust]:
             return ust
 
 
-async def add_missing_keys(keys: [str], args: dict) -> dict:
+async def add_missing_keys(keys: t.List[str], args: t.Dict[str, t.Any]) -> t.Dict[str, t.Any]:
     for key in keys:
         if key not in list(args):
-               args[key] = None
+            args[key] = None
     return args
 
 
-async def eod_ini_logic(args: {}) -> {}:
-    """
-    assure that the `startdate` and `enddate` keys in the returned dictionary are:
-        - ready for postgres which expects `YYYY-MM-DD`
-        - `startdate` is bigger or equal to `enddate`
-        - are not None
-    """
-    if 'dminus' not in args:
-        args['dminus'] = 20
-    if args['dminus'] is None:
-        args['dminus'] = 20
-    delta_d = timedelta(days=args['dminus'])
-    if 'enddate' not in args:
-        args['enddate'] = dt.now().date().strftime('%Y%m%d')
-    if 'startdate' not in args:
-        args['startdate'] = (dt.strptime(args['enddate'], '%Y%m%d') - delta_d).strftime('%Y%m%d')
-    if args['enddate'] is None:
-        args['enddate'] = dt.now().date().strftime('%Y%m%d')
-    if args['startdate'] is None:
-        args['startdate'] = (dt.strptime(args['enddate'], '%Y%m%d') - delta_d).strftime('%Y%m%d')
-    enddate = dt.strptime(args['enddate'], '%Y%m%d')
-    startdate = dt.strptime(args['startdate'], '%Y%m%d')
-    if startdate > enddate:
-        startdate = enddate
-    args['enddate'] = enddate.strftime('%Y-%m-%d')
-    args['startdate'] = startdate.strftime('%Y-%m-%d')
-    return args
-
-
-async def eod_ini_logic_new(args: {}) -> {}:
+def eod_ini_logic_new(args: t.Dict[str, t.Any]) -> t.Dict[str, t.Any]:
     """
     assure that the `startdate` and `enddate` keys in the returned dictionary are:
         - ready for postgres which expects `YYYY-MM-DD`
@@ -146,7 +118,7 @@ async def eod_ini_logic_new(args: {}) -> {}:
     return args
 
 
-async def put_call_trafo(args: {}) -> {}:
+async def put_call_trafo(args: t.Dict[str, t.Any]) -> t.Dict[str, t.Any]:
     if args['putcall'] == 'put':
         args['putcall'] = 0
     elif args['putcall'] == 'call':
@@ -158,7 +130,7 @@ async def put_call_trafo(args: {}) -> {}:
 
 class CinfoQueries:
     @staticmethod
-    def ust_f(args):
+    def ust_f(args: t.Dict[str, t.Any]):
         return f'''
             SELECT DISTINCT ust AS ust
             FROM cinfo 
@@ -166,7 +138,7 @@ class CinfoQueries:
         '''
 
     @staticmethod
-    def option_month_underlying_month_f(args):
+    def option_month_underlying_month_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
         SELECT option_month, underlying_month
         FROM cinfo
@@ -177,7 +149,7 @@ class CinfoQueries:
             '''
 
     @staticmethod
-    def first_and_last_f(args):
+    def first_and_last_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT
               (SELECT DISTINCT bizdt
@@ -194,7 +166,7 @@ class CinfoQueries:
         '''
 
     @staticmethod
-    def ust_where_exchange_f(args):
+    def ust_where_exchange_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT DISTINCT ust AS ust
             FROM cinfo 
@@ -203,7 +175,7 @@ class CinfoQueries:
         '''
 
     @staticmethod
-    def ust_where_symbol_f(args):
+    def ust_where_symbol_f(args: t.Dict[str, t.Any]):
         return f'''
             SELECT DISTINCT ust AS ust
             FROM cinfo 
@@ -212,7 +184,7 @@ class CinfoQueries:
         '''
 
     @staticmethod
-    def exchange_f(args):
+    def exchange_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT DISTINCT exchange AS exchange
             FROM cinfo 
@@ -220,7 +192,7 @@ class CinfoQueries:
         '''
 
     @staticmethod
-    def exchange_where_ust_f(args):
+    def exchange_where_ust_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT DISTINCT exchange AS exchange
             FROM cinfo 
@@ -229,7 +201,7 @@ class CinfoQueries:
         '''
 
     @staticmethod
-    def exchange_where_symbol_f(args):
+    def exchange_where_symbol_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT DISTINCT exchange AS exchange
             FROM cinfo 
@@ -238,7 +210,7 @@ class CinfoQueries:
         '''
 
     @staticmethod
-    def symbol_f(args):
+    def symbol_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT DISTINCT symbol AS symbol
             FROM cinfo 
@@ -246,7 +218,7 @@ class CinfoQueries:
         '''
 
     @staticmethod
-    def symbol_where_ust_f(args):
+    def symbol_where_ust_f(args: t.Dict[str, t.Any]):
         return f'''
             SELECT DISTINCT symbol AS symbol
             FROM cinfo 
@@ -255,7 +227,7 @@ class CinfoQueries:
         '''
 
     @staticmethod
-    def symbol_where_exchange_f(args):
+    def symbol_where_exchange_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT DISTINCT symbol AS symbol
             FROM cinfo 
@@ -264,7 +236,7 @@ class CinfoQueries:
         '''
 
     @staticmethod
-    def symbol_where_ust_and_exchange_f(args):
+    def symbol_where_ust_and_exchange_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT DISTINCT symbol AS symbol
             FROM            cinfo 
@@ -274,7 +246,7 @@ class CinfoQueries:
        '''
 
     @staticmethod
-    def ltd_where_ust_exchange_and_symbol_f(args):
+    def ltd_where_ust_exchange_and_symbol_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
         SELECT DISTINCT ltd AS ltd
         FROM            cinfo 
@@ -285,7 +257,7 @@ class CinfoQueries:
        '''
 
     @staticmethod
-    def ltd_date_where_ust_exchange_and_symbol_f(args):
+    def ltd_date_where_ust_exchange_and_symbol_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
         SELECT DISTINCT ltd_date AS ltd
         FROM            cinfo 
@@ -296,7 +268,7 @@ class CinfoQueries:
        '''
 
     @staticmethod
-    def get_table_and_schema_by_ltd(args):
+    def get_table_and_schema_by_ltd(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT schema_name, table_name 
             FROM    cinfo
@@ -307,7 +279,7 @@ class CinfoQueries:
         '''
 
     @staticmethod
-    def get_table_and_schema_by_symbol(args):
+    def get_table_and_schema_by_symbol(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT schema_name, table_name 
             FROM    cinfo
@@ -317,7 +289,7 @@ class CinfoQueries:
         '''
 
     @staticmethod
-    def get_schema_and_table_for_futures_sql(args):
+    def get_schema_and_table_for_futures_sql(args: t.Dict[str, t.Any]) -> str:
         return f'''
         SELECT schema_name, table_name
         FROM cinfo
@@ -326,11 +298,12 @@ class CinfoQueries:
             AND exchange = '{args["exchange"]}'
             AND underlying_month = '{args["underlying_month"]}'
             AND option_month = '{args["option_month"]}'
-            AND ltd = '{args["ltd"]}';
-            '''
+            AND ltd = '{args["ltd"]}'
+        LIMIT 1;
+        '''
 
     @staticmethod
-    def get_table_and_schema_by_month_and_year(args):
+    def get_table_and_schema_by_month_and_year(args: t.Dict[str, t.Any]) -> str:
         raise NotImplementedError(
             'It is unclear (by design), whether option month and option year'
             'should actually reference to the month and year of the future. '
@@ -346,7 +319,7 @@ class CinfoQueries:
         '''
 
     @staticmethod
-    def strikes_where_table_f(args):
+    def strikes_where_table_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT DISTINCT strkpx AS strike
             FROM {args['schema']}.{args['table']}
@@ -354,7 +327,7 @@ class CinfoQueries:
         '''
 
     @staticmethod
-    def strikes_where_table_and_pc_f(args):
+    def strikes_where_table_and_pc_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT DISTINCT strkpx AS strike
             FROM {args['schema']}.{args['table']}
@@ -363,7 +336,7 @@ class CinfoQueries:
         '''
 
     @staticmethod
-    def first_and_last_date_where_putcall_and_strike_f(args):
+    def first_and_last_date_where_putcall_and_strike_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT  MIN(BIZDT) as start_date,
                     MAX(bizdt) as last_date,

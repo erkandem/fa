@@ -10,13 +10,12 @@ http://0.0.0.0:5000/prices/intraday?symbol=ewz&startdate=20191001&interval=1&iun
  - JSONResponse is default
  - can be overwritten with
 """
-import asyncpg
 import fastapi
 from fastapi.security import OAuth2PasswordBearer
 from starlette.middleware.cors import CORSMiddleware
 
 import appconfig
-from appconfig import engines, origins
+from appconfig import origins
 from src.ivol_atm import router as atm_router
 from src.intraday_prices import router as intraday_prices_router
 from src.pvp import router as pvp_router
@@ -83,41 +82,11 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/token')
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=appconfig.origins,
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],
 )
-
-@app.on_event('startup')
-async def startup():
-    engines.prices_intraday = await asyncpg.create_pool(
-        appconfig.data_pgc.get_uri(
-            appconfig.data_pgc.prices_intraday_db_name
-        )
-    )
-    engines.pgivbase = await asyncpg.create_pool(
-        appconfig.data_pgc.get_uri(
-            appconfig.data_pgc.volatility_db_name
-        )
-    )
-    engines.options_rawdata = await asyncpg.create_pool(
-        appconfig.data_pgc.get_uri(
-            appconfig.data_pgc.options_db_name
-        )
-    )
-    engines.users = await asyncpg.create_pool(
-        appconfig.app_pgc.get_uri(
-            appconfig.app_pgc.application_db_name
-        )
-    )
-
-@app.on_event('shutdown')
-async def shutdown():
-    await engines.prices_intraday.close()
-    await engines.pgivbase.close()
-    await engines.options_rawdata.close()
-    await engines.users.close()
 
 
 if __name__ == '__main__':

@@ -5,17 +5,29 @@ from src.const import time_to_var_func
 from src.const import OrderChoices
 from src.const import tteChoices
 from src.const import deltaChoicesPractical
-from appconfig import engines
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
+import typing as t
+from sqlalchemy.engine import Connection
+from src.db import get_pgivbase_db
+from fastapi import Depends
+from src.db import results_proxy_to_list_of_dict
+from pydantic import BaseModel
+
 
 router = fastapi.APIRouter()
+
+
+class iVol(BaseModel):
+    dt: Date
+    value: float
 
 
 @router.get(
     '/ivol',
     summary='Get implied volatility data for a single delta and single tte',
-    operation_id='get_ivol'
+    operation_id='get_ivol',
+    response_model=t.List[iVol],
 )
 async def get_ivol(
         symbol: str,
@@ -27,6 +39,7 @@ async def get_ivol(
         tte: tteChoices = tteChoices._1m,
         delta: deltaChoicesPractical = deltaChoicesPractical._d050,
         order: OrderChoices = OrderChoices._asc,
+        con: Connection = Depends(get_pgivbase_db),
 ):
     """
     implied volatility time series. Return a proxy for ATM by default
@@ -54,16 +67,17 @@ async def get_ivol(
         'delta': delta.value,
         'order': order.value
     }
-    content = await resolve_ivol(args)
+    content = await resolve_ivol(args, con)
     return content
 
 
 @router.get(
     '/ivol/atm',
     summary='Get ATM implied volatility data',
-    operation_id='get_atm_ivol'
+    operation_id='get_atm_ivol',
+    response_model=t.List[iVol],
 )
-async def atm_ivol(
+async def get_atm_ivol(
         symbol: str,
         ust: str = None,
         exchange: str = None,
@@ -72,6 +86,7 @@ async def atm_ivol(
         enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
+        con: Connection = Depends(get_pgivbase_db),
 ):
     """
     At-the-money implied volatility time series.
@@ -96,14 +111,14 @@ async def atm_ivol(
         'delta': deltaChoicesPractical._d050.value,
         'order': order.value
     }
-    content = await resolve_ivol(args)
+    content = await resolve_ivol(args, con)
     return content
 
 
 async def select_ivol(args):
     """ """
-    args = await eod_ini_logic_new(args)
-    args = await guess_exchange_and_ust(args)
+    args = eod_ini_logic_new(args)
+    args = guess_exchange_and_ust(args)
     c = Contract()
     c.symbol = args['symbol']
     c.exchange = args['exchange']
@@ -123,8 +138,8 @@ async def select_ivol(args):
     return sql
 
 
-async def resolve_ivol(args):
+async def resolve_ivol(args, con: Connection):
     sql = await select_ivol(args)
-    async with engines.pgivbase.acquire() as con:
-        data = await con.fetch(query=sql)
-        return data
+    cursor = con.execute(sql)
+    data = results_proxy_to_list_of_dict(cursor)
+    return data

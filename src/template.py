@@ -12,9 +12,10 @@ from src.const import OrderChoices
 from src.const import tteChoices
 from starlette.status import HTTP_400_BAD_REQUEST
 from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic
+from src.utils import eod_ini_logic_new
 from src.utils import CinfoQueries
-from appconfig import engines
+from src.db import engines
+
 from src.users.models import UserPy
 from starlette.responses import Response
 from src.const import time_to_var_func
@@ -66,8 +67,8 @@ async def unique_operatin_id(
 
 
 async def select_resolve(args):
-    args = await eod_ini_logic(args)
-    args = await guess_exchange_and_ust(args)
+    args = eod_ini_logic_new(args)
+    args = guess_exchange_and_ust(args)
     sql = f'''
     WITH data AS (
         SELECT 1

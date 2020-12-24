@@ -1,13 +1,25 @@
 import pathlib
 import os
+from enum import Enum
 
-import asyncpg
 import dotenv
 from logging import getLogger
 
 logger = getLogger()
 
 TESTING_DB_SUFFIX = 'testing'
+
+
+def evaL_bool_env(bool_env: str):
+    return {
+        't': True,
+        'true': True,
+        'f': False,
+        'false': False,
+    }.get(
+        bool_env.lower()
+    )
+
 
 class PostgresConfig:
     def __init__(
@@ -46,6 +58,7 @@ class PostgresConfig:
             else ''.join([db_name, '_', TESTING_DB_SUFFIX])
         )
 
+
 # mark the application folder for convenience
 TOP_LEVEL_MARKER = pathlib.Path(os.path.abspath(__file__)).parent
 
@@ -54,9 +67,6 @@ ENV_PATH = f'{str(TOP_LEVEL_MARKER)}/.env'
 
 # load .env which may hold value used to compose other configuration values
 dotenv.load_dotenv(ENV_PATH)
-
-# compose or read in the database_url
-USERDB_URL = f'sqlite:////{str(TOP_LEVEL_MARKER)}/db.sqlite'  # deprecated
 
 # application database (users) etc
 IVOLAPI_PG_USER = os.getenv('IVOLAPI_PG_USER')
@@ -70,10 +80,17 @@ OPTIONS_DB_NAME = 'options_rawdata'
 APPLICATION_DB_NAME = 'fastapi_2020'
 
 
+class DatabaseNames(str, Enum):
+    PRICES_INTRADAY_DB_NAME = PRICES_INTRADAY_DB_NAME
+    VOLATILITY_DB_NAME = VOLATILITY_DB_NAME
+    OPTIONS_DB_NAME = OPTIONS_DB_NAME
+    APPLICATION_DB_NAME = APPLICATION_DB_NAME
+
+
 class AppPostgresConfig(PostgresConfig):
     @property
     def application_db_name(self):
-        return self.get_db_name(APPLICATION_DB_NAME)
+        return self.get_db_name(DatabaseNames.APPLICATION_DB_NAME)
 
 
 app_pgc = AppPostgresConfig(
@@ -93,15 +110,15 @@ PG_PORT = os.getenv('PG_PORT')
 class DataPostgresConfig(PostgresConfig):
     @property
     def prices_intraday_db_name(self):
-        return PRICES_INTRADAY_DB_NAME  # self.get_db_name(PRICES_INTRADAY_DB_NAME)
+        return DatabaseNames.PRICES_INTRADAY_DB_NAME  # self.get_db_name(PRICES_INTRADAY_DB_NAME)
 
     @property
     def volatility_db_name(self):
-        return VOLATILITY_DB_NAME  # self.get_db_name(VOLATILITY_DB_NAME)
+        return DatabaseNames.VOLATILITY_DB_NAME  # self.get_db_name(VOLATILITY_DB_NAME)
 
     @property
     def options_db_name(self):
-        return OPTIONS_DB_NAME  # self.get_db_name(OPTIONS_DB_NAME)
+        return DatabaseNames.OPTIONS_DB_NAME  # self.get_db_name(OPTIONS_DB_NAME)
 
 
 data_pgc = DataPostgresConfig(
@@ -114,11 +131,6 @@ data_pgc = DataPostgresConfig(
 # used for hashing/encrypting/signing
 API_SECRET_KEY = os.getenv('API_SECRET_KEY')
 
-# algo used to hash the password
-API_HASH_ALGORITHM = "HS256"
-
-# API_SECRET_KEY = os.getenv('API_HASH_ALGORITHM')
-
 # used to encode the validity duration into a JWT after successful login
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -129,17 +141,6 @@ LONGTERM_TOKEN_GRANTEES = [
     'dashapp',
 ]
 ACCESS_TOKEN_EXPIRE_MINUTES_LONGTERM_GRANTEE = 60 * 24 * 7
-
-
-def evaL_bool_env(bool_env: str):
-    return {
-        't': True,
-        'true': True,
-        'f': False,
-        'false': False,
-    }.get(
-        bool_env.lower()
-    )
 
 
 IVOLAPI_DEBUG = (
@@ -190,15 +191,6 @@ string = '''
     <!-- End of Statcounter Code -->
 '''
 
-
-class Engines:
-    prices_intraday: asyncpg.pool.Pool
-    pgivbase: asyncpg.pool.Pool
-    options_rawdata: asyncpg.pool.Pool
-    users:  asyncpg.pool.Pool
-
-
-engines = Engines()
 origins = [
     # prod
     'http://api.volsurf.com',

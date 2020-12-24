@@ -2,8 +2,10 @@ from datetime import datetime as dt
 import re
 import fastapi
 import pydantic
-from pydantic import BaseModel
-from appconfig import engines
+
+from src.db import engines, results_proxy_to_list_of_dict
+import typing as t
+
 from src.const import ust_choices, dminusLimits
 from src.const import RAWOPTION_MAP, exchange_choices
 from src.const import metric_mapper_f
@@ -12,13 +14,18 @@ from src.utils import put_call_trafo
 from src.const import RawDataMetricChoices, PutCallChoices, OrderChoices
 from src.utils import CinfoQueries
 from src.utils import eod_ini_logic_new
+from pydantic import BaseModel
+from sqlalchemy.engine import Connection
+from fastapi import Depends
+
+from src.db import get_options_rawdata_db
 
 drl = dminusLimits(start=0, end=365*3)
 
 router = fastapi.APIRouter()
 
 
-class RawOptionPy(BaseModel):
+class RawOption(BaseModel):
     ust: str
     exchange: str
     symbol: str
@@ -90,10 +97,10 @@ class RawOptionPy(BaseModel):
 
 @router.post(
     '/option-data',
-    operation_id='post_raw_option_data'
+    operation_id='post_raw_option_data',
 )
 async def post_raw_option_data(
-        query: RawOptionPy = fastapi.Body(
+        query: RawOption = fastapi.Body(
             ...,
             example={
                 "ust": "eqt",
@@ -107,6 +114,7 @@ async def post_raw_option_data(
                 "enddate": "2019-04-01"
             }
         ),
+        con: Connection = Depends(get_options_rawdata_db),
 ):
     """
     time series data related to a single option
@@ -126,20 +134,33 @@ async def post_raw_option_data(
     - **metric**: choose one of the raw or derived data
     - **order**:  sorting order with respect to date
 
+    Sample response for the metric ``rawiv``
+
+    ```
+    [
+      {
+        'dt': '2019-01-02',
+         'rawiv': 0.193129145575342
+      },
+      {
+        'dt': '2019-01-03',
+        'rawiv': 0.19536307180984}
+      },
+      ...
+    ]
+    ```
     """
     args = query.dict()
-
     if 'enddate' in args:
         args['enddate'] = dt.strptime(args['enddate'], '%Y-%m-%d')
-
     if 'startdate' in args:
         args['startdate'] = dt.strptime(args['startdate'], '%Y-%m-%d')
-
-    data = await resolve_single_metric_raw_data(args)
+    args['limit'] = 365
+    data = await resolve_single_metric_raw_data(args, con)
     return data
 
 
-async def final_sql(args):
+async def final_sql(args: t.Dict[str, t.Any]):
     return f'''
         SELECT  bizdt as dt,
                 {args['metric']} as {args['metric_out']}
@@ -148,7 +169,7 @@ async def final_sql(args):
             AND strkpx = {args['strkpx']}
             AND bizdt BETWEEN '{args['startdate']}' AND '{args['enddate']}'
         ORDER BY dt
-        LIMIT 365;
+        LIMIT {args['limit']};
         '''
 
 
@@ -160,30 +181,29 @@ def resolve_schema_and_table_name_sql(args):
     return sql
 
 
-async def get_schema_and_table_name(args: {}) -> {}:
+async def get_schema_and_table_name(args: t.Dict[str, t.Any], con: Connection) -> t.Dict[str, str]:
     sql = resolve_schema_and_table_name_sql(args)
-    async with engines.options_rawdata.acquire() as con:
-        relation = await con.fetch(sql)
-        if len(relation) != 0:
-            return {
-                'schema': relation[0].get('schema_name'),
-                'table': relation[0].get('table_name')
-            }
-        else:
-            return []
+    cursor = con.execute(sql)
+    relation = results_proxy_to_list_of_dict(cursor)
+    if len(relation) != 0:
+        return {
+            'schema': relation[0].get('schema_name'),
+            'table': relation[0].get('table_name')
+        }
+    else:
+        return {}
 
 
-async def resolve_single_metric_raw_data(args):
+async def resolve_single_metric_raw_data(args: t.Dict[str, t.Any], con: Connection):
     args = await put_call_trafo(args)
-    relation = await get_schema_and_table_name(args)
+    relation = await get_schema_and_table_name(args, con)
     if len(relation) != 2:
         return []
-    args = await eod_ini_logic_new(args)
+    args = eod_ini_logic_new(args)
     args['metric_out'] = args['metric']
     args['metric'] = metric_mapper_f(args['metric'])
     args['schema'] = relation['schema']
     args['table'] = relation['table']
     sql = await final_sql(args)
-    async with engines.options_rawdata.acquire() as con:
-        data = await con.fetch(sql)
-        return data
+    data = con.execute(sql).fetchall()
+    return data

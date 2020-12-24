@@ -1,19 +1,34 @@
 from collections import namedtuple
 from datetime import date as Date
 import fastapi
+from pydantic import BaseModel
+
 from falib.contract import Contract
 from src.const import OrderChoices
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
-from appconfig import engines
+from src.db import results_proxy_to_list_of_dict
+from src.db import get_prices_intraday_db
+
+import typing as t
+from sqlalchemy.engine import Connection
+from fastapi import Depends
 
 router = fastapi.APIRouter()
+
+
+class IntradayPvp(BaseModel):
+    bucket: int
+    sum_volume: int
+    min_close: float
+    max_close: float
 
 
 @router.get(
     '/prices/intraday/pvp',
     operation_id='get_pvp_intraday',
-    summary='price volume profile. histogram of intraday price data'
+    summary='price volume profile. histogram of intraday price data',
+    response_model=t.List[IntradayPvp],
 )
 async def get_pvp_intraday(
         symbol: str, month: str = None, year: int = None,
@@ -25,6 +40,7 @@ async def get_pvp_intraday(
         buckets: int = 100,
         iunit: str = 'minutes',
         order: OrderChoices = OrderChoices._asc,
+        con: Connection = Depends(get_prices_intraday_db),
 ):
     """
     price volume profile. histogram of intraday price data
@@ -54,7 +70,7 @@ async def get_pvp_intraday(
         'iunit': iunit,
         'order': order.value
     }
-    content = await resolve_pvp(args)
+    content = await resolve_pvp(args, con)
     return content
 
 
@@ -65,8 +81,8 @@ pvpQueryParams = namedtuple(
 
 async def pvp_query(args):
     """start_date end_date symbol c_month c_year exchange ust"""
-    args = await eod_ini_logic_new(args)
-    args = await guess_exchange_and_ust(args)
+    args = eod_ini_logic_new(args)
+    args = guess_exchange_and_ust(args)
     c = Contract()
     c.symbol = args['symbol']
     c.exchange = args['exchange']
@@ -83,7 +99,7 @@ async def pvp_query(args):
     params = pvpQueryParams(
         schema=schema, table=table,
         startdate=args['startdate'], enddate=args['enddate'],
-        buckets=args['buckets']
+        buckets=args['buckets'],
     )
     sql = await final_sql(params)
     return sql
@@ -115,8 +131,7 @@ async def final_sql(nt: pvpQueryParams) -> str:
     '''
 
 
-async def resolve_pvp(args):
+async def resolve_pvp(args, con: Connection):
     sql = await pvp_query(args)
-    async with engines.prices_intraday.acquire() as con:
-        data = await con.fetch(query=sql)
-        return data
+    data = con.execute(sql).fetchall()
+    return data

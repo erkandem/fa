@@ -8,10 +8,15 @@ from falib.contract import Contract
 from src.const import OrderChoices
 from src.utils import eod_ini_logic_new
 from src.utils import guess_exchange_and_ust
-from appconfig import engines
+
+import typing as t
+from sqlalchemy.engine import Connection
+from src.db import get_prices_intraday_db
 from src.const import IntervalUnitChoices, IntervalValueChoices
 from starlette.exceptions import HTTPException
 import json
+from fastapi import Depends
+from src.db import results_proxy_to_list_of_dict
 
 router = fastapi.APIRouter()
 
@@ -45,7 +50,7 @@ valid_configs = {
 valid_configs_json = json.dumps(valid_configs)
 
 
-class PricesIntradayPy(BaseModel):
+class PricesIntraday(BaseModel):
     dt: dt
     tz: int
     open: float
@@ -55,7 +60,7 @@ class PricesIntradayPy(BaseModel):
     volume: int
 
 
-class PricesIntradayQueryPy(BaseModel):
+class PricesIntradayQuery(BaseModel):
     symbol: str
     month: str
     year: int
@@ -71,7 +76,8 @@ class PricesIntradayQueryPy(BaseModel):
 
 @router.get(
     '/prices/intraday',
-    operation_id='get_intraday_prices'
+    operation_id='get_intraday_prices',
+    response_model=t.List[PricesIntraday],
 )
 async def get_intraday_prices(
         symbol: str,
@@ -85,6 +91,7 @@ async def get_intraday_prices(
         interval: IntervalValueChoices = IntervalValueChoices._1,
         iunit: IntervalUnitChoices = IntervalUnitChoices._minutes,
         order: OrderChoices = OrderChoices._asc,
+        con: Connection = Depends(get_prices_intraday_db),
 ):
     args = {
         'symbol': symbol,
@@ -100,14 +107,14 @@ async def get_intraday_prices(
         'order': order.value,
         'limit': 365 * 2
     }
-    content = await resolve_prices_intraday(args)
+    content = await resolve_prices_intraday(args, con)
     return content
 
 
 async def select_prices_intraday(args: dict):
     """return an executable SQL statement"""
-    args = await eod_ini_logic_new(args)
-    args = await guess_exchange_and_ust(args)
+    args = eod_ini_logic_new(args)
+    args = guess_exchange_and_ust(args)
 
     c = Contract()
     c.symbol = args['symbol']
@@ -212,8 +219,8 @@ async def select_regular(args) -> str:
         LIMIT    {args['limit']};'''
 
 
-async def resolve_prices_intraday(args):
+async def resolve_prices_intraday(args: t.Dict[str, t.Any], con: Connection):
     sql = await select_prices_intraday(args)
-    async with engines.prices_intraday.acquire() as con:
-        data = await con.fetch(query=sql)
-        return data
+    cursor = con.execute(sql)
+    data = results_proxy_to_list_of_dict(cursor)
+    return data

@@ -56,7 +56,7 @@ class WebsiteTasks(TaskSet):
 
     def on_start(self):
         self.headers['User-Agent'] = ubuntu_firefox_ua_string
-        self.headers['Authorization'] = f'Bearer {self._check_and_get_token()}'
+        #self.headers['Authorization'] = f'Bearer {self._check_and_get_token()}'
 
     @task(3)
     def heartbeat(self):

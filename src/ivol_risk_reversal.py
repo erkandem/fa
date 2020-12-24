@@ -16,18 +16,27 @@ from src.const import deltaOffsetChoices
 from starlette.status import HTTP_400_BAD_REQUEST
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
-from appconfig import engines
-from src.users.models import UserPy
-from starlette.responses import Response
+from src.db import engines
+from fastapi import Depends
+from src.db import get_pgivbase_db
+from pydantic import BaseModel
+import typing as t
+from sqlalchemy.engine import Connection
 
 
 router = fastapi.APIRouter()
 
 
+class RiskReversal(BaseModel):
+    dt: Date
+    value: float
+
+
 @router.get(
     '/ivol/risk-reversal',
     summary='Get the risk reversal of fitted implied volatility data',
-    operation_id='get_risk_reversal'
+    operation_id='get_risk_reversal',
+    response_model=t.List[RiskReversal],
 )
 async def get_risk_reversal(
         symbol: str,
@@ -40,6 +49,7 @@ async def get_risk_reversal(
         delta1: deltaChoicesPractical = deltaChoicesPractical._d060,
         delta2: deltaChoicesPractical = deltaChoicesPractical._d040,
         order: OrderChoices = OrderChoices._asc,
+        con: Connection = Depends(get_pgivbase_db)
 ):
     """
     Get the risk reversal of fitted implied volatility data for `symbol`.
@@ -92,8 +102,8 @@ async def get_risk_reversal(
         'delta2': delta2,
         'order': order.value
     }
-    content = await resolve_me(args)
-    return Response(content=content, media_type='application/json')
+    content = await resolve_risk_reversal(args, con)
+    return content
 
 
 async def select_risk_reversal(args):
@@ -106,8 +116,8 @@ async def select_risk_reversal(args):
         args: parsed arguments from API call
 
     """
-    args = await eod_ini_logic_new(args)
-    args = await guess_exchange_and_ust(args)
+    args = eod_ini_logic_new(args)
+    args = guess_exchange_and_ust(args)
     args['tte'] = time_to_var_func(args['tte'])
 
     c = ContractSync()
@@ -140,11 +150,11 @@ async def select_risk_reversal(args):
     return sql
 
 
-async def resolve_me(args):
+async def resolve_risk_reversal(args, con: Connection):
     sql = await select_risk_reversal(args)
-    async with engines.pgivbase.acquire() as con:
-        data = await con.fetch(sql)
-        if len(data) != 0:
-            return data[0].get('json_agg')
-        else:
-            return '[]'
+    cursor =  con.execute(sql)
+    data = cursor.fetchall()
+    if len(data) != 0 and len(data[0]) != 0:
+        return data[0][0]
+    else:
+        return []
