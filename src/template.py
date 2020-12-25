@@ -16,7 +16,6 @@ from src.utils import eod_ini_logic_new
 from src.utils import CinfoQueries
 from src.db import engines
 
-from src.users.models import UserPy
 from starlette.responses import Response
 from src.const import time_to_var_func
 

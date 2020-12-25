@@ -7,6 +7,16 @@ from logging import getLogger
 
 logger = getLogger()
 
+# mark the application folder for convenience
+TOP_LEVEL_MARKER = pathlib.Path(os.path.abspath(__file__)).parent
+
+# declare location .env file
+ENV_PATH = f'{str(TOP_LEVEL_MARKER)}/.env'
+
+# load .env which may hold value used to compose other configuration values
+dotenv.load_dotenv(ENV_PATH)
+
+#
 TESTING_DB_SUFFIX = 'testing'
 
 
@@ -47,7 +57,7 @@ class PostgresConfig:
         depends on  testing environment variable
 
         Args:
-            db_name(str):
+            db_name (str):
 
         Returns:
 
@@ -59,14 +69,6 @@ class PostgresConfig:
         )
 
 
-# mark the application folder for convenience
-TOP_LEVEL_MARKER = pathlib.Path(os.path.abspath(__file__)).parent
-
-# declare location .env file
-ENV_PATH = f'{str(TOP_LEVEL_MARKER)}/.env'
-
-# load .env which may hold value used to compose other configuration values
-dotenv.load_dotenv(ENV_PATH)
 
 # application database (users) etc
 IVOLAPI_PG_USER = os.getenv('IVOLAPI_PG_USER')

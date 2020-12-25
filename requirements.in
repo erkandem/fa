@@ -1,12 +1,11 @@
 asyncpg  # experimental database driver
 psycopg2  #  main driver until sqlalchemy 1.4 supports asyncpg
 databases[postgresql]
-dnspython # what does it do?
 email-validator
 fastapi
-h11  # what does it do?
-idna # what does it do?
 python-dotenv  # utility to work with .env file
 uvicorn[standard] # ASGI prod server for FastAPI
-gunicorn  # prod server for uvicorn
-fastapi-users[sqlalchemy]
+gunicorn  # prod server to manage multiple processes running uvicorn
+python-multipart  # need for OAuth2 https://fastapi.tiangolo.com/tutorial/security/first-steps/
+passlib[bcrypt]
+python-jose[cryptography]

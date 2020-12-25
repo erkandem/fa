@@ -11,6 +11,7 @@ http://0.0.0.0:5000/prices/intraday?symbol=ewz&startdate=20191001&interval=1&iun
  - can be overwritten with
 """
 import fastapi
+from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from starlette.middleware.cors import CORSMiddleware
 
