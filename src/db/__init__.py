@@ -1,9 +1,14 @@
 import typing as t
+import logging
 
 from sqlalchemy.engine import ResultProxy
 import sqlalchemy
+from sqlalchemy.orm import sessionmaker
 
 import appconfig
+
+
+logging.getLogger(__name__)
 
 
 class Engines:
@@ -12,6 +17,14 @@ class Engines:
     pgivbase: sqlalchemy.engine.Engine
     options_rawdata: sqlalchemy.engine.Engine
     users:  sqlalchemy.engine.Engine
+
+
+class SessionMakers:
+    """wrapper class, could be a dict, but let's stay dot-accessible"""
+    prices_intraday: sessionmaker
+    pgivbase: sessionmaker
+    options_rawdata: sessionmaker
+    users:  sessionmaker
 
 
 def engine_factory() -> Engines:
@@ -43,13 +56,24 @@ def engine_factory() -> Engines:
     return engines_instance
 
 
+def sessionmaker_factory(engines_instance: Engines) -> SessionMakers:
+    session_makers = SessionMakers()
+    session_makers.prices_intraday = sessionmaker(bind=engines_instance.prices_intraday, autocommit=True)
+    session_makers.pgivbase = sessionmaker(bind=engines_instance.pgivbase, autocommit=True)
+    session_makers.options_rawdata = sessionmaker(bind=engines_instance.options_rawdata, autocommit=True)
+    session_makers.users = sessionmaker(bind=engines_instance.users, autocommit=True)
+    return session_makers
+
+
 engines = engine_factory()
+sessions = sessionmaker_factory(engines)
 
 
 def dispose_engines(engines_instance: Engines):
     """
-    release the database connections
+    release the database Sessions
     """
+    logging.info('Disposing database engines.')
     engines_instance.prices_intraday.dispose()
     engines_instance.pgivbase.dispose()
     engines_instance.options_rawdata.dispose()
@@ -57,40 +81,42 @@ def dispose_engines(engines_instance: Engines):
 
 
 def get_prices_intraday_db():
-    connection = engines.prices_intraday.connect()
+    session = sessions.prices_intraday()
     try:
-        yield connection
+        yield session
     finally:
-        connection.close()
+        session.close()
 
 
 def get_pgivbase_db():
-    connection = engines.pgivbase.connect()
+    session = sessions.pgivbase()
     try:
-        yield connection
+        yield session
     finally:
-        connection.close()
+        session.close()
 
 
 def get_options_rawdata_db():
-    connection = engines.options_rawdata.connect()
+    session = sessions.options_rawdata()
     try:
-        yield connection
+        yield session
     finally:
-        connection.close()
+        session.close()
 
 
 def get_users_db():
-    connection = engines.users.connect()
+    session = sessions.users()
     try:
-        yield connection
+        yield session
     finally:
-        connection.close()
+        session.close()
 
 
 def results_proxy_to_list_of_dict(results_proxy: ResultProxy) -> t.List[t.Dict[str, t.Any]]:
     """
     The default cursor in SQLAlchemy returns objects with column names.
     Here, we fetch the results such, that we preserve the column names.
+
+    Thx https://stackoverflow.com/a/50141868/10124294
     """
     return [{k: v for k, v in row_proxy.items()} for row_proxy in results_proxy]

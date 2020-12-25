@@ -8,7 +8,7 @@ from src.const import OrderChoices
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
 import typing as t
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 from src.db import get_prices_intraday_db
 from fastapi import Depends
 from src.db import results_proxy_to_list_of_dict
@@ -47,7 +47,7 @@ async def get_regular_futures_eod(
         enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
-        con: Connection = Depends(get_prices_intraday_db),
+        con: Session = Depends(get_prices_intraday_db),
 ):
     """end of day prices """
     args = {
@@ -97,7 +97,7 @@ async def final_sql(nt: RegularFuturesParams) -> str:
     '''
 
 
-async def resolve_eod_futures(args, con: Connection):
+async def resolve_eod_futures(args, con: Session):
     sql = await eod_sql_delivery(args)
     data = con.execute(sql).fetchall()
     return data

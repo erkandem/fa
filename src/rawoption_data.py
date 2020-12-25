@@ -15,7 +15,7 @@ from src.const import RawDataMetricChoices, PutCallChoices, OrderChoices
 from src.utils import CinfoQueries
 from src.utils import eod_ini_logic_new
 from pydantic import BaseModel
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 from fastapi import Depends
 
 from src.db import get_options_rawdata_db
@@ -114,7 +114,7 @@ async def post_raw_option_data(
                 "enddate": "2019-04-01"
             }
         ),
-        con: Connection = Depends(get_options_rawdata_db),
+        con: Session = Depends(get_options_rawdata_db),
 ):
     """
     time series data related to a single option
@@ -181,7 +181,7 @@ def resolve_schema_and_table_name_sql(args):
     return sql
 
 
-async def get_schema_and_table_name(args: t.Dict[str, t.Any], con: Connection) -> t.Dict[str, str]:
+async def get_schema_and_table_name(args: t.Dict[str, t.Any], con: Session) -> t.Dict[str, str]:
     sql = resolve_schema_and_table_name_sql(args)
     cursor = con.execute(sql)
     relation = results_proxy_to_list_of_dict(cursor)
@@ -194,7 +194,7 @@ async def get_schema_and_table_name(args: t.Dict[str, t.Any], con: Connection) -
         return {}
 
 
-async def resolve_single_metric_raw_data(args: t.Dict[str, t.Any], con: Connection):
+async def resolve_single_metric_raw_data(args: t.Dict[str, t.Any], con: Session):
     args = await put_call_trafo(args)
     relation = await get_schema_and_table_name(args, con)
     if len(relation) != 2:

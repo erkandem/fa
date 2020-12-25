@@ -10,7 +10,7 @@ from src.const import delta_choices_practical
 from typing import List
 from starlette.responses import Response
 import typing as t
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 from src.db import get_pgivbase_db, get_options_rawdata_db
 from fastapi import Depends
 from src.db import results_proxy_to_list_of_dict
@@ -53,7 +53,7 @@ async def get_surface_by_delta(
         date: Date = None,
         exchange: str = None,
         ust: str = None,
-        con: Connection = Depends(get_pgivbase_db),
+        con: Session = Depends(get_pgivbase_db),
 ):
     """
     - **symbol**: example: 'SPY' or 'spy' (case insensitive)
@@ -97,7 +97,7 @@ async def prepare_surface_sql_arguments(args):
     return sql_code
 
 
-async def resolve_last_date(c: Contract, con: Connection) -> str:
+async def resolve_last_date(c: Contract, con: Session) -> str:
     schema = await c.compose_2_part_schema_name()
     table = await c.compose_ivol_final_table_name('d050')
     sql = f'SELECT max(dt) FROM {schema}.{table};'
@@ -152,7 +152,7 @@ async def surface_json(args, con):
 
 async def surface_resolver(
         args: t.Dict[str, t.Any],
-        con: Connection,
+        con: Session,
 ):
     sql = await surface_json(args, con)
     data = con.execute(sql).fetchall()

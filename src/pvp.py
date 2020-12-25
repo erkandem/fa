@@ -11,7 +11,7 @@ from src.db import results_proxy_to_list_of_dict
 from src.db import get_prices_intraday_db
 
 import typing as t
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 from fastapi import Depends
 
 router = fastapi.APIRouter()
@@ -40,7 +40,7 @@ async def get_pvp_intraday(
         buckets: int = 100,
         iunit: str = 'minutes',
         order: OrderChoices = OrderChoices._asc,
-        con: Connection = Depends(get_prices_intraday_db),
+        con: Session = Depends(get_prices_intraday_db),
 ):
     """
     price volume profile. histogram of intraday price data
@@ -131,7 +131,7 @@ async def final_sql(nt: pvpQueryParams) -> str:
     '''
 
 
-async def resolve_pvp(args, con: Connection):
+async def resolve_pvp(args, con: Session):
     sql = await pvp_query(args)
     data = con.execute(sql).fetchall()
     return data

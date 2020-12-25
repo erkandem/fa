@@ -5,7 +5,7 @@ Route template
 from datetime import datetime as dt
 from datetime import date as Date
 import fastapi
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 
 from falib.contract import ContractSync
 from src.const import OrderChoices
@@ -47,7 +47,7 @@ async def get_ivol_inter_spread(
         enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
-        con: Connection = Depends(get_pgivbase_db),
+        con: Session = Depends(get_pgivbase_db),
 ):
     """
     Calculate the difference between two ETFs or generally between
@@ -132,7 +132,7 @@ async def select_inter_ivol(args):
     return sql_code
 
 
-async def resolve_inter_spread(args, con: Connection):
+async def resolve_inter_spread(args, con: Session):
     sql = await select_inter_ivol(args)
     data = con.execute(sql).fetchall()
     if len(data) != 0 and len(data[0]) != 0:

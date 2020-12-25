@@ -12,7 +12,7 @@ from src.db import get_options_rawdata_db, results_proxy_to_list_of_dict
 from fastapi import Depends
 import typing as t
 from pydantic import BaseModel
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 
 class DeltaQuery(BaseModel):
     ust: str
@@ -90,7 +90,7 @@ async def post_delta_data(
                 "ltd": "20191115"
             }
         ),
-        con: Connection = Depends(get_options_rawdata_db),
+        con: Session = Depends(get_options_rawdata_db),
 ):
     """
     Sample Response (includes `null`s):
@@ -145,7 +145,7 @@ async def post_delta_data(
     return data
 
 
-async def resolve_delta_query(args: {}, con: Connection):
+async def resolve_delta_query(args: {}, con: Session):
     args = eod_ini_logic_new(args)
     relation = await get_schema_and_table_name(args, con)
     if len(relation) != 2:

@@ -11,7 +11,7 @@ from src.rawoption_data import get_schema_and_table_name
 from src.db import get_options_rawdata_db, results_proxy_to_list_of_dict
 import typing as t
 from pydantic import BaseModel
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 
 
 class FirstAndLast(BaseModel):
@@ -51,7 +51,7 @@ class Ust(BaseModel):
     response_model=t.List[Ust],
 )
 async def get_api_info_usts(
-    con: Connection = Depends(get_options_rawdata_db),
+    con: Session = Depends(get_options_rawdata_db),
 ):
     """return available ``ust``s"""
     args = {}
@@ -70,7 +70,7 @@ class Exchange(BaseModel):
 )
 async def get_api_info_exchanges(
         ust: str,
-        con: Connection = Depends(get_options_rawdata_db),
+        con: Session = Depends(get_options_rawdata_db),
 ):
     """return available ``exchange`` for a given ``ust``"""
     args = {
@@ -96,7 +96,7 @@ class Symbol(BaseModel):
 async def get_api_info_symbols(
         ust: str,
         exchange: str,
-        con: Connection = Depends(get_options_rawdata_db),
+        con: Session = Depends(get_options_rawdata_db),
 ):
     """
     TODO: validate ``ust`` and ``exchange``
@@ -140,7 +140,7 @@ async def get_api_info_ltd(
         ust: str,
         exchange: str,
         symbol: str,
-        con: Connection = Depends(get_options_rawdata_db),
+        con: Session = Depends(get_options_rawdata_db),
 ):
     """
     return the available last trading days (`ltd`).
@@ -175,7 +175,7 @@ async def get_api_info_option_month_and_underlying_month(
         exchange: str,
         symbol: str,
         ltd: str,
-        con: Connection = Depends(get_options_rawdata_db),
+        con: Session = Depends(get_options_rawdata_db),
 ):
     """
     return the `option_month` and `underlying_month` for an option chain.
@@ -210,7 +210,7 @@ async def get_api_info_first_and_last(
         ltd: str,
         option_month: str = None,
         underlying_month: str = None,
-        con: Connection = Depends(get_options_rawdata_db),
+        con: Session = Depends(get_options_rawdata_db),
 ):
     """
     return the first and last date of a option series data set
@@ -249,7 +249,7 @@ async def get_api_info_strikes(
         symbol: str,
         putcall: str,
         ltd: str,
-        con: Connection = Depends(get_options_rawdata_db),
+        con: Session = Depends(get_options_rawdata_db),
 ):
     """
     TODO: Validate parameters
@@ -282,7 +282,7 @@ async def post_api_info_strikes(
                 "ltd": "20200117"
             }
         ),
-        con: Connection = Depends(get_options_rawdata_db),
+        con: Session = Depends(get_options_rawdata_db),
 ):
     """
     return the strikes available for an options chain
@@ -294,7 +294,7 @@ async def post_api_info_strikes(
     return result
 
 
-async def resolve_strikes(args: t.Dict, con: Connection):
+async def resolve_strikes(args: t.Dict, con: Session):
     relation = await get_schema_and_table_name(args, con)
     if len(relation) != 2:
         return []

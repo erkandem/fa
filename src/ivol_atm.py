@@ -8,7 +8,7 @@ from src.const import deltaChoicesPractical
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
 import typing as t
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 from src.db import get_pgivbase_db
 from fastapi import Depends
 from src.db import results_proxy_to_list_of_dict
@@ -39,7 +39,7 @@ async def get_ivol(
         tte: tteChoices = tteChoices._1m,
         delta: deltaChoicesPractical = deltaChoicesPractical._d050,
         order: OrderChoices = OrderChoices._asc,
-        con: Connection = Depends(get_pgivbase_db),
+        con: Session = Depends(get_pgivbase_db),
 ):
     """
     implied volatility time series. Return a proxy for ATM by default
@@ -86,7 +86,7 @@ async def get_atm_ivol(
         enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
-        con: Connection = Depends(get_pgivbase_db),
+        con: Session = Depends(get_pgivbase_db),
 ):
     """
     At-the-money implied volatility time series.
@@ -138,7 +138,7 @@ async def select_ivol(args):
     return sql
 
 
-async def resolve_ivol(args, con: Connection):
+async def resolve_ivol(args, con: Session):
     sql = await select_ivol(args)
     cursor = con.execute(sql)
     data = results_proxy_to_list_of_dict(cursor)

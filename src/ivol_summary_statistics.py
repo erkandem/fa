@@ -15,7 +15,7 @@ from src.utils import eod_ini_logic_new
 from src.utils import guess_exchange_and_ust
 from pydantic import BaseModel
 import typing as t
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 from src.db import get_pgivbase_db, get_options_rawdata_db
 from fastapi import Depends
 from src.db import results_proxy_to_list_of_dict
@@ -59,7 +59,7 @@ async def get_ivol_summary_single(
         enddate: Date = None,
         dminus: int = 365,
         delta: deltaChoicesPractical = deltaChoicesPractical._d050,
-        con: Connection = Depends(get_pgivbase_db),
+        con: Session = Depends(get_pgivbase_db),
 ):
     """
     Returns descriptive statistics and some slices of implied volatility data
@@ -95,8 +95,8 @@ async def get_ivol_summary_single(
     response_model=t.List[IVolSummary],
 )
 async def get_ivol_summary_cme(
-        con_ivol: Connection = Depends(get_pgivbase_db),
-        con_raw: Connection = Depends(get_options_rawdata_db)
+        con_ivol: Session = Depends(get_pgivbase_db),
+        con_raw: Session = Depends(get_options_rawdata_db)
 ):
     """
     Returns descriptive statistics and some slices of data for for selected symbols traded at CME
@@ -126,8 +126,8 @@ async def get_ivol_summary_cme(
     response_model=t.List[IVolSummary],
 )
 async def get_ivol_summary_ice(
-        con_ivol: Connection = Depends(get_pgivbase_db),
-        con_raw: Connection = Depends(get_options_rawdata_db)
+        con_ivol: Session = Depends(get_pgivbase_db),
+        con_raw: Session = Depends(get_options_rawdata_db)
 ):
     """
     Returns descriptive statistics and some slices of data for symbols traded at ICE
@@ -156,8 +156,8 @@ async def get_ivol_summary_ice(
     response_model=List[IVolSummary],
 )
 async def get_ivol_summary_usetf(
-        con_ivol: Connection = Depends(get_pgivbase_db),
-        con_raw: Connection = Depends(get_options_rawdata_db)
+        con_ivol: Session = Depends(get_pgivbase_db),
+        con_raw: Session = Depends(get_options_rawdata_db)
 ):
     """
     Returns descriptive statistics and some slices of data for selected US ETFs
@@ -186,8 +186,8 @@ async def get_ivol_summary_usetf(
     response_model=t.List[IVolSummary],
 )
 async def get_ivol_summary_eurex(
-        con_ivol: Connection = Depends(get_pgivbase_db),
-        con_raw: Connection = Depends(get_options_rawdata_db)
+        con_ivol: Session = Depends(get_pgivbase_db),
+        con_raw: Session = Depends(get_options_rawdata_db)
 ):
     """
     Returns descriptive statistics and some slices of data for selected symbols traded at EUREX
@@ -256,7 +256,7 @@ async def select_statistics_single(args):
     BETWEEN    '{args['startdate']}' AND '{args['enddate']}';'''
 
 
-async def select_ivol_summary_multi(args, con: Connection):
+async def select_ivol_summary_multi(args, con: Session):
     sql_info = CinfoQueries.symbol_where_ust_and_exchange_f(args)
     symbols = con.execute(sql_info).fetchall()
     sql_code = '( '
@@ -282,15 +282,15 @@ async def select_ivol_summary_multi(args, con: Connection):
 async def resolve_ivol_summary_multi(
         args,
         *,
-        con_ivol: Connection,
-        con_raw: Connection,
+        con_ivol: Session,
+        con_raw: Session,
 ):
     sql = await select_ivol_summary_multi(args, con_raw)
     data = con_ivol.execute(sql).fetchall()
     return data
 
 
-async def resolve_ivol_summary_statistics(args, con: Connection):
+async def resolve_ivol_summary_statistics(args, con: Session):
     sql = await select_statistics_single(args)
     cursor = con.execute(sql)
     data = results_proxy_to_list_of_dict(cursor)

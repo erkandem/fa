@@ -46,7 +46,7 @@ from src.utils import eod_ini_logic_new
 from src.rawoption_data import get_schema_and_table_name
 from fastapi import Depends
 import typing as t
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 from src.db import get_options_rawdata_db
 
 dml = dminusLimits(start=0, end=365*2)
@@ -152,7 +152,7 @@ async def post_top_oi_and_volume(
                 "order": "desc"
             }
         ),
-        con: Connection = Depends(get_options_rawdata_db),
+        con: Session = Depends(get_options_rawdata_db),
 ):
     """
     Returns the open interest development of the top `n` strikes of an option chain
@@ -192,7 +192,7 @@ async def post_top_oi_and_volume(
     return data
 
 
-async def resolve_top_oi_or_volume(args, con: Connection):
+async def resolve_top_oi_or_volume(args, con: Session):
     args = eod_ini_logic_new(args)
     args = await put_call_trafo(args)
     if args['ust'] == 'fut':

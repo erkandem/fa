@@ -2,7 +2,7 @@ from collections import namedtuple
 from datetime import date
 import fastapi
 from pydantic import BaseModel
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 
 from src.const import OrderChoices
 from src.const import nth_contract_choices
@@ -13,7 +13,7 @@ from src.db import get_prices_intraday_db
 from fastapi import Depends
 import typing as t
 from pydantic import BaseModel
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 
 router = fastapi.APIRouter()
 
@@ -112,7 +112,7 @@ async def get_conti_eod(
         enddate: date = None,
         dminus:  int = 20,
         order: OrderChoices = OrderChoices._asc,
-        con: Connection = Depends(get_prices_intraday_db),
+        con: Session = Depends(get_prices_intraday_db),
 ):
     """ """
     args = {
@@ -145,7 +145,7 @@ async def get_continuous_eod_spread(
         enddate: date = None,
         dminus:  int = 20,
         order: OrderChoices = OrderChoices._asc,
-        con: Connection = Depends(get_prices_intraday_db),
+        con: Session = Depends(get_prices_intraday_db),
 ):
     """ return the (price) spread for an underlying between the x-th and n-th continues future"""
     args = {
@@ -177,7 +177,7 @@ async def get_continuous_eod_as_array(
         enddate: date = None,
         dminus:  int = 20,
         order: OrderChoices = OrderChoices._asc,
-        con: Connection = Depends(get_prices_intraday_db),
+        con: Session = Depends(get_prices_intraday_db),
 ):
     """
     return the (price) spread of continues futures, compared to the first in line.
@@ -337,19 +337,19 @@ async def select_conti_spread(args):
     '''
 
 
-async def resolve_conti_spread(args, con: Connection):
+async def resolve_conti_spread(args, con: Session):
     sql = await select_conti_spread(args)
     data = con.execute(sql).fetchall()
     return data
 
 
-async def conti_resolver(args, con: Connection):
+async def conti_resolver(args, con: Session):
     sql = await eod_continuous_fut_sql_delivery(args)
     data = con.execute(sql).fetchall()
     return data
 
 
-async def conti_array_resolver(args, db: Connection):
+async def conti_array_resolver(args, db: Session):
     sql = await eod_continuous_fut_array_sql_delivery(args)
     data = db.execute(sql).fetchall()
     return data

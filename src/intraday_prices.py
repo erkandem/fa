@@ -10,7 +10,7 @@ from src.utils import eod_ini_logic_new
 from src.utils import guess_exchange_and_ust
 
 import typing as t
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 from src.db import get_prices_intraday_db
 from src.const import IntervalUnitChoices, IntervalValueChoices
 from starlette.exceptions import HTTPException
@@ -91,7 +91,7 @@ async def get_intraday_prices(
         interval: IntervalValueChoices = IntervalValueChoices._1,
         iunit: IntervalUnitChoices = IntervalUnitChoices._minutes,
         order: OrderChoices = OrderChoices._asc,
-        con: Connection = Depends(get_prices_intraday_db),
+        con: Session = Depends(get_prices_intraday_db),
 ):
     args = {
         'symbol': symbol,
@@ -219,7 +219,7 @@ async def select_regular(args) -> str:
         LIMIT    {args['limit']};'''
 
 
-async def resolve_prices_intraday(args: t.Dict[str, t.Any], con: Connection):
+async def resolve_prices_intraday(args: t.Dict[str, t.Any], con: Session):
     sql = await select_prices_intraday(args)
     cursor = con.execute(sql)
     data = results_proxy_to_list_of_dict(cursor)

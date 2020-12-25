@@ -15,7 +15,7 @@ from src.utils import guess_exchange_and_ust
 from src.db import results_proxy_to_list_of_dict
 
 import typing as t
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 from fastapi import Depends
 
 from starlette.responses import Response
@@ -41,7 +41,7 @@ async def get_all_options_single_underlying_single_day(
         ust: str = None,
         exchange: str = None,
         accept: ContentType = Header(default=ContentType.json),
-        con: Connection = Depends(get_options_rawdata_db),
+        con: Session = Depends(get_options_rawdata_db),
 ):
     """
     A route template. Will set appropriate headers and forward
@@ -89,7 +89,7 @@ async def to_csv(json_data: t.Dict[str, t.Any]) -> str:
     return csv
 
 
-async def get_all_relations(args: t.Dict, con: Connection):
+async def get_all_relations(args: t.Dict, con: Session):
     """
     will query the index table for all table names which
     have a record for a certain business day
@@ -153,7 +153,7 @@ async def select_union_all_ltds(args, con):
     return sql
 
 
-async def resolve_options_data(args: t.Dict[str, t.Any], con: Connection):
+async def resolve_options_data(args: t.Dict[str, t.Any], con: Session):
     sql = await select_union_all_ltds(args, con)
     cursor = con.execute(sql)
     data = results_proxy_to_list_of_dict(cursor)

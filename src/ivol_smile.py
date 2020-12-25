@@ -7,7 +7,7 @@ from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
 from src.db import engines
 import typing as t
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 from src.db import get_pgivbase_db
 from fastapi import Depends
 from pydantic import BaseModel
@@ -52,7 +52,7 @@ async def get_ivol_smile(
         enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
-        con: Connection = Depends(get_pgivbase_db),
+        con: Session = Depends(get_pgivbase_db),
 ):
     """
     `smile` is defined as the implied volatility curve of one expiry at one date.
@@ -156,7 +156,7 @@ async def select_ivol_fitted_smile(args):
     return sql_code
 
 
-async def resolve_ivol_smile(args, con: Connection):
+async def resolve_ivol_smile(args, con: Session):
     sql = await select_ivol_fitted_smile(args)
     data = con.execute(sql).fetchall()
     if len(data) != 0 and len(data[0]) != 0:

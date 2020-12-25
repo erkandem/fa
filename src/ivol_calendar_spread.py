@@ -5,7 +5,7 @@ Route template
 from datetime import date as Date
 import fastapi
 from fastapi import Depends
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 
 from falib.contract import ContractSync
 from src.const import OrderChoices
@@ -17,7 +17,7 @@ import typing as t
 from pydantic import BaseModel
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
-from sqlalchemy.engine import Connection
+from sqlalchemy.orm.session import Session
 from src.db import get_pgivbase_db
 from fastapi import Depends
 
@@ -45,7 +45,7 @@ async def get_ivol_calendar(
         delta1: deltaChoicesPractical = deltaChoicesPractical._d050,
         delta2: deltaChoicesPractical = deltaChoicesPractical._d050,
         order: OrderChoices = OrderChoices._asc,
-        con: Connection = Depends(get_pgivbase_db),
+        con: Session = Depends(get_pgivbase_db),
 ):
     """
 
@@ -120,7 +120,7 @@ async def select_calendar_spread(args):
     return sql
 
 
-async def resolve_ivol_calendar_spread(args, con: Connection):
+async def resolve_ivol_calendar_spread(args, con: Session):
     sql = await select_calendar_spread(args)
     data = con.execute(sql).fetchall()
     if len(data) > 0 and len(data[0]) > 0:

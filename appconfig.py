@@ -30,6 +30,17 @@ def evaL_bool_env(bool_env: str):
         bool_env.lower()
     )
 
+IVOLAPI_DEBUG = (
+    evaL_bool_env(os.getenv('IVOLAPI_DEBUG'))
+    if os.getenv('IVOLAPI_DEBUG') is not None
+    else False
+)
+IVOLAPI_TESTING = (
+    evaL_bool_env(os.getenv('IVOLAPI_TESTING'))
+    if os.getenv('IVOLAPI_TESTING') is not None
+    else False
+)
+
 
 class PostgresConfig:
     def __init__(
@@ -48,7 +59,7 @@ class PostgresConfig:
 
     def get_uri(self, db_name):
         uri = f"{self.db}://{self.user}:{self.pw}@{self.host}:{self.port}/{db_name}"
-        print(f"{self.db}://{self.user}:******@{self.host}:{self.port}/{db_name}")
+        logger.debug(f"{self.db}://{self.user}:******@{self.host}:{self.port}/{db_name}")
         return uri
 
     def get_db_name(self, db_name: str):
@@ -130,6 +141,11 @@ data_pgc = DataPostgresConfig(
     port=PG_PORT,
 )
 
+DATABASE_URL_VOLATILITY_DB = data_pgc.get_uri(data_pgc.volatility_db_name)
+DATABASE_URL_PRICES_INTRADAY_DB = data_pgc.get_uri(data_pgc.prices_intraday_db_name)
+DATABASE_URL_OPTIONS_DB = data_pgc.get_uri(data_pgc.options_db_name)
+DATABASE_URL_APPLICATION_DB = app_pgc.get_uri(app_pgc.application_db_name)
+
 # used for hashing/encrypting/signing
 API_SECRET_KEY = os.getenv('API_SECRET_KEY')
 
@@ -145,16 +161,6 @@ LONGTERM_TOKEN_GRANTEES = [
 ACCESS_TOKEN_EXPIRE_MINUTES_LONGTERM_GRANTEE = 60 * 24 * 7
 
 
-IVOLAPI_DEBUG = (
-    evaL_bool_env(os.getenv('IVOLAPI_DEBUG'))
-    if os.getenv('IVOLAPI_DEBUG') is not None
-    else False
-)
-IVOLAPI_TESTING = (
-    evaL_bool_env(os.getenv('IVOLAPI_TESTING'))
-    if os.getenv('IVOLAPI_TESTING') is not None
-    else False
-)
 IVOLAPI_PORT = int(os.getenv('IVOLAPI_PORT'))
 IVOLAPI_HOST = os.getenv('IVOLAPI_HOST')
 
