@@ -1,45 +1,49 @@
 # https://stackoverflow.com/a/25307587/10124294
 
 # Base Image
-FROM python:3.7-slim
-RUN mkdir -p /home/pilot
-# Create an app user 'pilot' so our program doesn't run as root.
+FROM python:3.7.9-slim
+# Add non-root user, who is going to operate the application
 RUN groupadd -r pilot &&\
-    useradd -r -g pilot -d /home/pilot -s /sbin/nologin -c "Docker image user" pilot
+    useradd -r -g pilot -d /home/pilot -s /sbin/nologin -c "docker application non-root user" pilot
 
-# Set the home directory to our app user's home.
+# paths and environment variables
 ENV HOME=/home/pilot
-ENV APP_HOME=/home/pilot/fa
-
-# SETTING UP THE APP ##
-RUN mkdir $APP_HOME
+ENV APP_HOME=$HOME/ivolapi
 WORKDIR $APP_HOME
-# install local wheels to avoid GCC error form debian slim image
-RUN mkdir $APP_HOME/wheels
-ADD wheels/httptools-0.0.13-cp37-cp37m-linux_x86_64.whl $APP_HOME/wheels/httptools-0.0.13-cp37-cp37m-linux_x86_64.whl
-RUN pip install --user $APP_HOME/wheels/httptools-0.0.13-cp37-cp37m-linux_x86_64.whl
+ENV WHEELS_FOLDER=$APP_HOME/wheels
+COPY wheels $WHEELS_FOLDER
 
-# set the application directory such that the
-# pip install is skipped if requirements don't change
-ADD requirements-docker.txt $APP_HOME/requirements.txt
-RUN chown -R pilot:pilot $HOME
+# set and create the virtual environment
+ENV VIRTUAL_ENV=$APP_HOME/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# install python dependencies wich would require
+# extra dependencies
+RUN pip install $WHEELS_FOLDER/orjson-3.4.6-cp37-cp37m-manylinux2014_x86_64.whl &&\
+    pip install $WHEELS_FOLDER/httptools-0.0.13-cp37-cp37m-linux_x86_64.whl
+
+# install all other requirments
+COPY requirements.in requirements.txt requirements-dev.in requirements-docker.txt $APP_HOME/
+RUN pip install -r requirements.txt
+
+
+# application code
+COPY falib $APP_HOME/falib
+COPY src $APP_HOME/src
+COPY appconfig.py $APP_HOME
+COPY app.py $APP_HOME
+COPY run.sh $APP_HOME
+COPY .env.docker $APP_HOME/.env
+
+# switch to non root user
 USER pilot
-RUN pip install --user -r requirements.txt
-ADD ./app.py $APP_HOME
-RUN mkdir $APP_HOME/src/
-ADD src $APP_HOME/src/
-RUN mkdir $APP_HOME/falib
-ADD ./falib/* $APP_HOME/falib/
-ADD ./.env.docker $APP_HOME/.env
-ADD appconfig.py $APP_HOME/appconfig.py
-USER root
-RUN chown -R pilot:pilot $HOME
-USER pilot
+
+# expose needed ports
 EXPOSE 5000
 
-ENV PATH='/home/pilot/.local/bin':$PATH
-
-CMD ["/home/pilot/.local/bin/uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000", "--env-file", "/home/pilot/fa/.env"]
+# entrypoint which also laods env vars
+CMD ["/bin/bash", "./run.sh"]
 
 # further reading at: gunicorn
 # https://docs.gunicorn.org/en/stable/design.html
@@ -47,8 +51,7 @@ CMD ["/home/pilot/.local/bin/uvicorn", "app:app", "--host", "0.0.0.0", "--port",
 # https://docs.gunicorn.org/en/stable/settings.html#settings
 # https://docs.gunicorn.org/en/stable/run.html
 
-# docker build -t <image_name>:<tag> .
-# docker build -t fast-api:slim-nonroot .
 
-# docker run -p 5000:5000 --restart unless-stopped -d fast-api:slim-nonroot
-# docker run -p 5000:5000 fast-api:slim-nonroot
+# docker build -f dockerfiles/app/Dockerfile -t ivolapi:slim-nonroot-4.0.0 .
+# docker run -p 5000:5000 --restart unless-stopped -d ivolapi:slim-nonroot-4.0.0
+# docker run -p 5000:5000 ivolapi:slim-nonroot-2020

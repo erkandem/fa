@@ -1,0 +1,13 @@
+[Unit]
+Description=uvicorn instance serving fastapi to api.volsruf.com
+After=postgresql.service
+
+[Service]
+User=kan
+Group=kan
+WorkingDirectory=/home/kan/dev/py/fa/fa
+Environment="PATH=/home/kan/dev/py/fa/.venv/bin"
+ExecStart=/home/kan/dev/py/fa/.venv/bin/python3.7 app.py
+
+[Install]
+WantedBy=multi-user.target
