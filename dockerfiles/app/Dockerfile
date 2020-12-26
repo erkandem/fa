@@ -37,9 +37,6 @@ COPY run.sh $APP_HOME
 COPY migrate.py $APP_HOME
 COPY .env.docker $APP_HOME/.env
 
-# switch to non root user
-USER pilot
-
 # expose needed ports
 EXPOSE 5000
 

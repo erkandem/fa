@@ -70,7 +70,7 @@ class User(BaseModel):
 
     @pydantic.validator("roles")
     def validate_roles(cls, v):
-        if get_roles_as_set(v).issubset(ROLE_STRINGS_SET):
+        if v is None or get_roles_as_set(v).issubset(ROLE_STRINGS_SET):
             return v
 
 
@@ -115,7 +115,7 @@ def table_creation(url: str = None):
     logger.debug("creating tables")
     if url is None:
         url = appconfig.DATABASE_URL_APPLICATION_DB
-    engine = sa.create_engine(url)
+    engine = sa.create_engine(url, connect_args={'connect_timeout': 5})
     metadata.create_all(engine)
     engine.dispose()
     logger.debug("created tables")
@@ -202,7 +202,7 @@ def load_all_default_users() -> t.List[t.Dict[str, t.Any]]:
 def create_default_users():
     logger.debug('creating all default users')
     url = appconfig.DATABASE_URL_APPLICATION_DB
-    engine = sa.create_engine(url)
+    engine = sa.create_engine(url,  connect_args={'connect_timeout': 5})
     local_sessionmaker = sessionmaker(bind=engine, autocommit=True)
     session = local_sessionmaker()
     user_data = load_all_default_users()
