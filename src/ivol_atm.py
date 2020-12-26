@@ -14,6 +14,7 @@ from fastapi import Depends
 from src.db import results_proxy_to_list_of_dict
 from pydantic import BaseModel
 from src.users import get_current_active_user, User
+from fastapi.responses import ORJSONResponse
 
 
 router = fastapi.APIRouter()
@@ -29,6 +30,7 @@ class iVol(BaseModel):
     summary='Get implied volatility data for a single delta and single tte',
     operation_id='get_ivol',
     response_model=t.List[iVol],
+    response_class=ORJSONResponse,
 )
 async def get_ivol(
         symbol: str,
@@ -78,6 +80,7 @@ async def get_ivol(
     summary='Get ATM implied volatility data',
     operation_id='get_atm_ivol',
     response_model=t.List[iVol],
+    response_class=ORJSONResponse,
 )
 async def get_atm_ivol(
         symbol: str,

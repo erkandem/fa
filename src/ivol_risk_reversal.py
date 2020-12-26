@@ -7,6 +7,8 @@ from datetime import datetime as dt
 from datetime import date as Date
 from datetime import timedelta
 import fastapi
+from fastapi.responses import ORJSONResponse
+
 from falib.contract import ContractSync
 from src.const import time_to_var_func
 from src.const import OrderChoices
@@ -38,6 +40,7 @@ class RiskReversal(BaseModel):
     summary='Get the risk reversal of fitted implied volatility data',
     operation_id='get_risk_reversal',
     response_model=t.List[RiskReversal],
+    response_class=ORJSONResponse,
 )
 async def get_risk_reversal(
         symbol: str,

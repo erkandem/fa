@@ -14,6 +14,7 @@ from fastapi import Depends
 import typing as t
 from pydantic import BaseModel
 from sqlalchemy.orm.session import Session
+from fastapi.responses import ORJSONResponse
 
 from src.users import get_current_active_user, User
 router = fastapi.APIRouter()
@@ -102,7 +103,8 @@ class ContiEodArray(BaseModel):
 @router.get(
     '/prices/eod/conti',
     operation_id='get_continuous_eod',
-    response_model=t.List[FuturesEodConti]
+    response_model=t.List[FuturesEodConti],
+    response_class=ORJSONResponse,
 )
 async def get_conti_eod(
         symbol: str,
@@ -136,6 +138,7 @@ async def get_conti_eod(
     '/prices/eod/conti/spread',
     operation_id='get_continuous_eod_spread',
     response_model=t.List[FuturesEodContiSpread],
+    response_class=ORJSONResponse,
 )
 async def get_continuous_eod_spread(
         symbol: str,
@@ -170,7 +173,8 @@ async def get_continuous_eod_spread(
 @router.get(
     '/prices/eod/conti/array',
     operation_id='get_continuous_eod_as_array',
-    response_model=t.List[ContiEodArray]
+    response_model=t.List[ContiEodArray],
+    response_class=ORJSONResponse,
 )
 async def get_continuous_eod_as_array(
         symbol: str,
@@ -209,7 +213,10 @@ async def create_conti_eod_table_name(
         contract_number: int = None,
         nth_contract: str = None
 ) -> str:
-    print('`create_conti_eod_table_name` needs to merged to the `Contract` class')
+    """
+
+    TODO: `create_conti_eod_table_name` needs to merged to the `Contract` class'
+    """
     if nth_contract is None and contract_number is None:
         raise ValueError('It\'s got to be one of `nth_contract` or `contract_number`')
     elif nth_contract is None and contract_number is not None:
@@ -229,7 +236,9 @@ async def create_conti_eod_array_table_name(
         security_type: str,
         exchange: str,
 ) -> str:
-    print('`create_conti_eod_array_table_name` needs to merged to the `Contract` class')
+    """
+    TODO: `create_conti_eod_array_table_name` needs to merged to the `Contract` class'
+    """
     return (
         f'{security_type}'
         f'_{exchange}'
@@ -239,7 +248,9 @@ async def create_conti_eod_array_table_name(
 
 
 async def create_conti_eod_schema_name(security_type: str, exchange: str) -> str:
-    print('`create_conti_eod_schema_name` needs to merged to the `Contract` class')
+    """
+    TODO: `create_conti_eod_schema_name` needs to merged to the `Contract` class'
+    """
     return (f'{security_type}'
             f'_{exchange}'
             f'_eod_conti').lower()

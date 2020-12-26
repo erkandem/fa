@@ -31,6 +31,7 @@ import fastapi
 from fastapi import Body
 from fastapi import HTTPException
 import pydantic
+from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 from starlette.responses import Response
 from starlette.status import HTTP_400_BAD_REQUEST
@@ -134,7 +135,9 @@ router = fastapi.APIRouter()
 
 @router.post(
     '/top-oi-and-volume',
-    operation_id='post_top_oi_and_volume'
+    operation_id='post_top_oi_and_volume',
+    response_class=ORJSONResponse,
+
 )
 async def post_top_oi_and_volume(
         query: TopOiQuery = Body(

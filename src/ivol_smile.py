@@ -1,5 +1,7 @@
 from datetime import date as Date
 import fastapi
+from fastapi.responses import ORJSONResponse
+
 from src.const import time_to_var_func
 from src.const import OrderChoices
 from src.const import tteChoices
@@ -43,6 +45,7 @@ class Smile(BaseModel):
     summary='smile',
     operation_id='get_ivol_smile',
     response_model=t.List[Smile],
+    response_class=ORJSONResponse,
 )
 async def get_ivol_smile(
         symbol: str,

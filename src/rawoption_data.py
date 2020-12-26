@@ -2,6 +2,7 @@ from datetime import datetime as dt
 import re
 import fastapi
 import pydantic
+from fastapi.responses import ORJSONResponse
 
 from src.db import engines, results_proxy_to_list_of_dict
 import typing as t
@@ -99,6 +100,7 @@ class RawOption(BaseModel):
 @router.post(
     '/option-data',
     operation_id='post_raw_option_data',
+    response_class=ORJSONResponse,
 )
 async def post_raw_option_data(
         query: RawOption = fastapi.Body(

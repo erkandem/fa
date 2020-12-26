@@ -18,6 +18,7 @@ from starlette.exceptions import HTTPException
 import json
 from fastapi import Depends
 from src.db import results_proxy_to_list_of_dict
+from fastapi.responses import ORJSONResponse
 
 router = fastapi.APIRouter()
 
@@ -79,6 +80,7 @@ class PricesIntradayQuery(BaseModel):
     '/prices/intraday',
     operation_id='get_intraday_prices',
     response_model=t.List[PricesIntraday],
+    response_class=ORJSONResponse,
 )
 async def get_intraday_prices(
         symbol: str,

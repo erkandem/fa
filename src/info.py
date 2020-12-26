@@ -13,6 +13,7 @@ from src.db import get_options_rawdata_db, results_proxy_to_list_of_dict
 import typing as t
 from pydantic import BaseModel
 from sqlalchemy.orm.session import Session
+from fastapi.responses import ORJSONResponse
 
 
 class FirstAndLast(BaseModel):
@@ -50,6 +51,7 @@ class Ust(BaseModel):
     '/usts',
     operation_id='get_api_info_usts',
     response_model=t.List[Ust],
+    response_class=ORJSONResponse,
 )
 async def get_api_info_usts(
     con: Session = Depends(get_options_rawdata_db),
@@ -69,6 +71,7 @@ class Exchange(BaseModel):
     '/exchanges',
     operation_id='get_api_info_exchanges',
     response_model=t.List[Exchange],
+    response_class=ORJSONResponse,
 )
 async def get_api_info_exchanges(
         ust: str,
@@ -95,6 +98,7 @@ class Symbol(BaseModel):
     '/symbols',
     operation_id='get_api_info_symbols',
     response_model=t.List[Symbol],
+    response_class=ORJSONResponse,
 )
 async def get_api_info_symbols(
         ust: str,
@@ -139,6 +143,7 @@ class Ltd(BaseModel):
     '/last-trading-days',
     operation_id='get_api_info_ltd',
     response_model=t.List[Ltd],
+    response_class=ORJSONResponse,
 )
 async def get_api_info_ltd(
         ust: str,
@@ -173,7 +178,8 @@ class OptionMonthAndUnderlyingMonth(BaseModel):
 @router.get(
     '/option-month-and-underlying-month',
     operation_id='get_api_info_option_month_and_underlying_month',
-    response_model=t.List[OptionMonthAndUnderlyingMonth]
+    response_model=t.List[OptionMonthAndUnderlyingMonth],
+    response_class=ORJSONResponse,
 )
 async def get_api_info_option_month_and_underlying_month(
         ust: str,
@@ -208,6 +214,7 @@ class FirstLast(BaseModel):
     '/first-and-last',
     operation_id='get_api_info_first_and_last',
     response_model=t.List[FirstLast],
+    response_class=ORJSONResponse,
 )
 async def get_api_info_first_and_last(
         ust: str,
@@ -249,6 +256,7 @@ class Strike(BaseModel):
     '/strikes',
     operation_id='get_api_info_strikes',
     response_model=t.List[Strike],
+    response_class=ORJSONResponse,
 )
 async def get_api_info_strikes(
         ust: str,
@@ -278,6 +286,7 @@ async def get_api_info_strikes(
     '/strikes',
     operation_id='post_api_info_strikes',
     response_model=t.List[Strike],
+    response_class=ORJSONResponse,
 )
 async def post_api_info_strikes(
         data: GetStrikesModel = Body(

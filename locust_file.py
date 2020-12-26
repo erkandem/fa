@@ -15,6 +15,7 @@ from locust import (
     TaskSet,
     task,
 )
+import requests
 
 from src.const import prices_etf_sym_choices
 
@@ -27,15 +28,14 @@ CREDS = json.loads(os.getenv('DEFAULT_API_SUPER_USER'))
 HOST = 'https://api.volsurf.com'
 HOST = 'http://0.0.0.0:5000'
 
-# bypass login just
-# TODO: Debug this out, so that login works
-TOKEN = ""
 
-
-def get_auth_header(creds, local_client):
-    body = {'username': creds['username'], 'password': creds['password']}
+def get_auth_header():
+    body = {
+        'username': CREDS['username'],
+        'password': CREDS['password'],
+    }
     login_header = {'Content-Type': 'application/x-www-form-urlencoded'}
-    login_response = local_client.post('/login', data=body, headers=login_header)
+    login_response = requests.post("".join([HOST, "/token"]), data=body, headers=login_header)
     if login_response.status_code == 200:
         token = login_response.json()['access_token']
         header = {'Authorization': f'Bearer {token}'}
@@ -45,19 +45,16 @@ def get_auth_header(creds, local_client):
         print(login_response.json())
         raise ValueError
 
+AUTHHEADER = get_auth_header()
 
 class WebsiteTasks(TaskSet):
-    headers = {'Accept': 'application/json'}
-
-    def _check_and_get_token(self):
-        if not TOKEN:
-            raise ValueError('Login manually and copy the TOKEN, until login is debugged')
-        return TOKEN
+    headers = {
+        'Accept': 'application/json',
+    }
 
     def on_start(self):
         self.headers['User-Agent'] = ubuntu_firefox_ua_string
-        #self.headers['Authorization'] = f'Bearer {self._check_and_get_token()}'
-
+        self.headers.update(AUTHHEADER)
     @task(3)
     def heartbeat(self):
         self.client.get('/heartbeat', headers=self.headers)
@@ -107,4 +104,3 @@ class WebsiteUser(HttpUser):
 
 
 print('server running at: http://localhost:8089')
-print('\n\n!Ey Hombre!\n?Requests are failing?\nDid you check the TOKEN is fresh eh?\n\n')

@@ -21,6 +21,7 @@ from sqlalchemy.orm.session import Session
 from src.db import get_pgivbase_db
 from fastapi import Depends
 from src.users import get_current_active_user, User
+from fastapi.responses import ORJSONResponse
 
 router = fastapi.APIRouter()
 
@@ -33,6 +34,7 @@ class ivol_calendar(BaseModel):
     summary='Calculate the spread between different expiries',
     operation_id='get_ivol_calendar',
     response_model=t.List[ivol_calendar],
+    response_class=ORJSONResponse,
 )
 async def get_ivol_calendar(
         symbol: str,

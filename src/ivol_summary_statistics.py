@@ -5,6 +5,8 @@ Route template
 from datetime import date as Date
 from typing import List
 import fastapi
+from fastapi.responses import ORJSONResponse
+
 from falib.contract import ContractSync
 from src.const import tteChoices
 from src.const import time_to_var_func
@@ -158,6 +160,7 @@ async def get_ivol_summary_ice(
     summary='get min, max, std, average and weekly data points for US ETFs',
     operation_id='get_ivol_summary_usetf',
     response_model=List[IVolSummary],
+    response_class=ORJSONResponse,
 )
 async def get_ivol_summary_usetf(
         con_ivol: Session = Depends(get_pgivbase_db),
@@ -189,6 +192,7 @@ async def get_ivol_summary_usetf(
     summary='get min, max, std, average and weekly data points for symbols on EUREX',
     operation_id='get_ivol_summary_eurex',
     response_model=t.List[IVolSummary],
+    response_class=ORJSONResponse,
 )
 async def get_ivol_summary_eurex(
         con_ivol: Session = Depends(get_pgivbase_db),

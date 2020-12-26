@@ -6,6 +6,7 @@ from datetime import date as Date
 import json
 import fastapi
 from fastapi import Header
+from fastapi.responses import ORJSONResponse
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_204_NO_CONTENT
 from falib.contract import ContractSync
@@ -63,12 +64,12 @@ async def get_all_options_single_underlying_single_day(
     data = await resolve_options_data(args, con)
     if accept.value == 'application/json':
         content = json.dumps(data)
-        return Response(content=content, media_type='application/json')
+        return ORJSONResponse(content=content, media_type='application/json')
     if accept.value == 'application/csv':
         content = await to_csv(data)
         return Response(content=content, media_type='application/csv')
     content = json.dumps(data)
-    return Response(content=content, media_type='application/json')
+    return ORJSONResponse(content=content, media_type='application/json')
 
 
 async def to_csv(json_data: t.Dict[str, t.Any]) -> str:

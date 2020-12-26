@@ -16,3 +16,12 @@ sync:
 
 sync-dev:
 	pip-sync requirements-dev.txt
+
+locust:
+	locust -f locust_file.py --host=http://0.0.0.0:5000
+
+gunicorn:
+	gunicorn -b 0.0.0.0:5000 -w 4 -k uvicorn.workers.UvicornWorker app:app
+
+test:
+	IVOLAPI_TESTING=true pytest

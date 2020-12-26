@@ -5,6 +5,7 @@ Route template
 from datetime import datetime as dt
 from datetime import date as Date
 import fastapi
+from fastapi.responses import ORJSONResponse
 from sqlalchemy.orm.session import Session
 
 from falib.contract import ContractSync
@@ -34,6 +35,7 @@ class InterSpread(BaseModel):
     summary='get ivol spread between options with different underlying',
     operation_id='get_ivol_inter_spread',
     response_model=t.List[InterSpread],
+    response_class=ORJSONResponse,
 )
 async def get_ivol_inter_spread(
         symbol1: str,

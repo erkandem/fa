@@ -3,6 +3,8 @@ from datetime import datetime as dt
 from datetime import timedelta
 from datetime import date as Date
 import fastapi
+from fastapi.responses import ORJSONResponse
+
 from falib.contract import Contract
 from src.const import OrderChoices
 from src.utils import guess_exchange_and_ust
@@ -37,6 +39,7 @@ class RegularFuturesEod(BaseModel):
     '/prices/eod',
     operation_id='get_regular_futures_eod',
     response_model=t.List[RegularFuturesEod],
+    response_class=ORJSONResponse,
 )
 async def get_regular_futures_eod(
         symbol: str,

@@ -1,6 +1,7 @@
 from datetime import datetime as dt
 from datetime import date as Date
 import fastapi
+from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 from falib.contract import Contract
 from src.utils import guess_exchange_and_ust
@@ -48,6 +49,7 @@ class SurfaceAggregate(BaseModel):
     operation_id='get_surface_by_delta',
     summary='returns a surface parameterized by delta and constant time',
     response_model=t.List[SurfaceAggregate],
+    response_class=ORJSONResponse,
 )
 async def get_surface_by_delta(
         symbol: str,

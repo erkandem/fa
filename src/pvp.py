@@ -1,6 +1,7 @@
 from collections import namedtuple
 from datetime import date as Date
 import fastapi
+from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 
 from falib.contract import Contract
@@ -30,6 +31,7 @@ class IntradayPvp(BaseModel):
     operation_id='get_pvp_intraday',
     summary='price volume profile. histogram of intraday price data',
     response_model=t.List[IntradayPvp],
+    response_class=ORJSONResponse,
 )
 async def get_pvp_intraday(
         symbol: str, month: str = None, year: int = None,
