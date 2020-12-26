@@ -15,6 +15,7 @@ import typing as t
 from pydantic import BaseModel
 from sqlalchemy.orm.session import Session
 
+from src.users import get_current_active_user, User
 router = fastapi.APIRouter()
 
 ContiEodParams = namedtuple(
@@ -113,6 +114,7 @@ async def get_conti_eod(
         dminus:  int = 20,
         order: OrderChoices = OrderChoices._asc,
         con: Session = Depends(get_prices_intraday_db),
+        user: User = Depends(get_current_active_user),
 ):
     """ """
     args = {
@@ -137,7 +139,7 @@ async def get_conti_eod(
 )
 async def get_continuous_eod_spread(
         symbol: str,
-        ust: str = 'fut',
+        ust: str = 'fut',  # TODO: only futures is actually supported
         exchange: str = None,
         nthcontract1: int = 1,
         nthcontract2: int = 2,
@@ -146,6 +148,7 @@ async def get_continuous_eod_spread(
         dminus:  int = 20,
         order: OrderChoices = OrderChoices._asc,
         con: Session = Depends(get_prices_intraday_db),
+        user: User = Depends(get_current_active_user),
 ):
     """ return the (price) spread for an underlying between the x-th and n-th continues future"""
     args = {
@@ -178,6 +181,7 @@ async def get_continuous_eod_as_array(
         dminus:  int = 20,
         order: OrderChoices = OrderChoices._asc,
         con: Session = Depends(get_prices_intraday_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     return the (price) spread of continues futures, compared to the first in line.

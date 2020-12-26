@@ -21,6 +21,7 @@ from fastapi import Depends
 from starlette.responses import Response
 from enum import Enum
 from src.db import get_options_rawdata_db
+from src.users import get_current_active_user, User
 
 router = fastapi.APIRouter()
 
@@ -42,6 +43,7 @@ async def get_all_options_single_underlying_single_day(
         exchange: str = None,
         accept: ContentType = Header(default=ContentType.json),
         con: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     A route template. Will set appropriate headers and forward

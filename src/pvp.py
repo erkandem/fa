@@ -13,6 +13,7 @@ from src.db import get_prices_intraday_db
 import typing as t
 from sqlalchemy.orm.session import Session
 from fastapi import Depends
+from src.users import get_current_active_user, User
 
 router = fastapi.APIRouter()
 
@@ -41,6 +42,7 @@ async def get_pvp_intraday(
         iunit: str = 'minutes',
         order: OrderChoices = OrderChoices._asc,
         con: Session = Depends(get_prices_intraday_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     price volume profile. histogram of intraday price data

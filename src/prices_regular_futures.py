@@ -13,6 +13,7 @@ from src.db import get_prices_intraday_db
 from fastapi import Depends
 from src.db import results_proxy_to_list_of_dict
 from pydantic import BaseModel
+from src.users import get_current_active_user, User
 
 
 router = fastapi.APIRouter()
@@ -48,6 +49,7 @@ async def get_regular_futures_eod(
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
         con: Session = Depends(get_prices_intraday_db),
+        user: User = Depends(get_current_active_user),
 ):
     """end of day prices """
     args = {

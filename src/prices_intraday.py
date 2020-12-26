@@ -6,6 +6,7 @@ from starlette.status import HTTP_400_BAD_REQUEST
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 from falib.contract import Contract
 from src.const import OrderChoices
+from src.users import get_current_active_user, User
 from src.utils import eod_ini_logic_new
 from src.utils import guess_exchange_and_ust
 
@@ -92,6 +93,7 @@ async def get_intraday_prices(
         iunit: IntervalUnitChoices = IntervalUnitChoices._minutes,
         order: OrderChoices = OrderChoices._asc,
         con: Session = Depends(get_prices_intraday_db),
+        user: User = Depends(get_current_active_user),
 ):
     args = {
         'symbol': symbol,

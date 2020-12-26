@@ -48,6 +48,7 @@ from fastapi import Depends
 import typing as t
 from sqlalchemy.orm.session import Session
 from src.db import get_options_rawdata_db
+from src.users import get_current_active_user, User
 
 dml = dminusLimits(start=0, end=365*2)
 
@@ -153,6 +154,7 @@ async def post_top_oi_and_volume(
             }
         ),
         con: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     Returns the open interest development of the top `n` strikes of an option chain

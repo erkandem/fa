@@ -19,6 +19,7 @@ from sqlalchemy.orm.session import Session
 from src.db import get_pgivbase_db, get_options_rawdata_db
 from fastapi import Depends
 from src.db import results_proxy_to_list_of_dict
+from src.users import get_current_active_user, User
 
 
 class IVolSummary(BaseModel):
@@ -60,6 +61,7 @@ async def get_ivol_summary_single(
         dminus: int = 365,
         delta: deltaChoicesPractical = deltaChoicesPractical._d050,
         con: Session = Depends(get_pgivbase_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     Returns descriptive statistics and some slices of implied volatility data
@@ -96,7 +98,8 @@ async def get_ivol_summary_single(
 )
 async def get_ivol_summary_cme(
         con_ivol: Session = Depends(get_pgivbase_db),
-        con_raw: Session = Depends(get_options_rawdata_db)
+        con_raw: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     Returns descriptive statistics and some slices of data for for selected symbols traded at CME
@@ -127,7 +130,8 @@ async def get_ivol_summary_cme(
 )
 async def get_ivol_summary_ice(
         con_ivol: Session = Depends(get_pgivbase_db),
-        con_raw: Session = Depends(get_options_rawdata_db)
+        con_raw: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     Returns descriptive statistics and some slices of data for symbols traded at ICE
@@ -157,7 +161,8 @@ async def get_ivol_summary_ice(
 )
 async def get_ivol_summary_usetf(
         con_ivol: Session = Depends(get_pgivbase_db),
-        con_raw: Session = Depends(get_options_rawdata_db)
+        con_raw: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     Returns descriptive statistics and some slices of data for selected US ETFs
@@ -187,7 +192,8 @@ async def get_ivol_summary_usetf(
 )
 async def get_ivol_summary_eurex(
         con_ivol: Session = Depends(get_pgivbase_db),
-        con_raw: Session = Depends(get_options_rawdata_db)
+        con_raw: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     Returns descriptive statistics and some slices of data for selected symbols traded at EUREX

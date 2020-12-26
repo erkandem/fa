@@ -19,6 +19,7 @@ from src. const import deltaChoicesPractical
 from fastapi import Depends
 from src.db import get_pgivbase_db
 from pydantic import BaseModel
+from src.users import get_current_active_user, User
 
 router = fastapi.APIRouter()
 
@@ -48,6 +49,7 @@ async def get_ivol_inter_spread(
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
         con: Session = Depends(get_pgivbase_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     Calculate the difference between two ETFs or generally between
@@ -78,7 +80,7 @@ async def get_ivol_inter_spread(
         'startdate': startdate,
         'enddate': enddate,
         'dminus': dminus,
-        'order': order.value
+        'order': order.value,
     }
     content = await resolve_inter_spread(args, con)
     return content

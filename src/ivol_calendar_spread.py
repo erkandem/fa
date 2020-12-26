@@ -20,6 +20,7 @@ from src.utils import eod_ini_logic_new
 from sqlalchemy.orm.session import Session
 from src.db import get_pgivbase_db
 from fastapi import Depends
+from src.users import get_current_active_user, User
 
 router = fastapi.APIRouter()
 
@@ -46,6 +47,7 @@ async def get_ivol_calendar(
         delta2: deltaChoicesPractical = deltaChoicesPractical._d050,
         order: OrderChoices = OrderChoices._asc,
         con: Session = Depends(get_pgivbase_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
 

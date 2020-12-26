@@ -69,15 +69,15 @@ engines = engine_factory()
 sessions = sessionmaker_factory(engines)
 
 
-def dispose_engines(engines_instance: Engines):
+def dispose_engines():
     """
     release the database Sessions
     """
     logging.info('Disposing database engines.')
-    engines_instance.prices_intraday.dispose()
-    engines_instance.pgivbase.dispose()
-    engines_instance.options_rawdata.dispose()
-    engines_instance.users.dispose()
+    engines.prices_intraday.dispose()
+    engines.pgivbase.dispose()
+    engines.options_rawdata.dispose()
+    engines.users.dispose()
 
 
 def get_prices_intraday_db():

@@ -5,6 +5,7 @@ import pydantic
 from fastapi import Body
 
 from src.const import iv_all_sym_choices, exchange_choices
+from src.users import get_current_active_user, User
 from src.utils import eod_ini_logic_new
 from src.rawoption_data import get_schema_and_table_name
 from src.const import ust_choices
@@ -91,6 +92,7 @@ async def post_delta_data(
             }
         ),
         con: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     Sample Response (includes `null`s):

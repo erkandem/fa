@@ -22,6 +22,7 @@ from src.db import get_pgivbase_db
 from pydantic import BaseModel
 import typing as t
 from sqlalchemy.orm.session import Session
+from src.users import get_current_active_user, User
 
 
 router = fastapi.APIRouter()
@@ -49,7 +50,8 @@ async def get_risk_reversal(
         delta1: deltaChoicesPractical = deltaChoicesPractical._d060,
         delta2: deltaChoicesPractical = deltaChoicesPractical._d040,
         order: OrderChoices = OrderChoices._asc,
-        con: Session = Depends(get_pgivbase_db)
+        con: Session = Depends(get_pgivbase_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     Get the risk reversal of fitted implied volatility data for `symbol`.

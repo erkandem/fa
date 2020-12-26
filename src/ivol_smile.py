@@ -12,6 +12,7 @@ from src.db import get_pgivbase_db
 from fastapi import Depends
 from pydantic import BaseModel
 from falib.contract import ContractSync
+from src.users import get_current_active_user, User
 
 router = fastapi.APIRouter()
 
@@ -53,6 +54,7 @@ async def get_ivol_smile(
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
         con: Session = Depends(get_pgivbase_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     `smile` is defined as the implied volatility curve of one expiry at one date.

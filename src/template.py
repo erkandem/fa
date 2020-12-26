@@ -7,6 +7,9 @@ from datetime import datetime as dt
 from datetime import date
 from datetime import timedelta
 import fastapi
+from fastapi import Depends
+from sqlalchemy.orm import Session
+
 from falib.contract import ContractSync
 from src.const import OrderChoices
 from src.const import tteChoices
@@ -14,10 +17,11 @@ from starlette.status import HTTP_400_BAD_REQUEST
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
 from src.utils import CinfoQueries
-from src.db import engines
+from src.db import get_prices_intraday_db, get_options_rawdata_db, get_pgivbase_db, get_users_db
 
 from starlette.responses import Response
 from src.const import time_to_var_func
+from src.users import get_current_active_user, User
 
 
 router = fastapi.APIRouter()
@@ -28,7 +32,7 @@ router = fastapi.APIRouter()
     summary='<summary>',
     operation_id='unique_operation_id>'
 )
-async def unique_operatin_id(
+async def unique_operation_id(
         symbol: str,
         ust: str = None,
         exchange: str = None,
@@ -37,6 +41,9 @@ async def unique_operatin_id(
         enddate: str = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
+        con: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
+
 ):
     """
     A route template. Will set appropriate headers and forward

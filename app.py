@@ -1,27 +1,15 @@
 """
-http://0.0.0.0:5000/prices/intraday?symbol=ewz
-http://0.0.0.0:5000/prices/eod/conti?symbol=cl
-http://0.0.0.0:5000/prices/eod/conti/array?symbol=cl
 
-
-http://0.0.0.0:5000/prices/intraday?symbol=ewz&startdate=20191001
-http://0.0.0.0:5000/prices/intraday?symbol=ewz&startdate=20191001&interval=1&iunit=day
- - custom response statuses: https://fastapi.tiangolo.com/tutorial/response-change-status-code/
- - JSONResponse is default
- - can be overwritten with
 """
 import fastapi
-from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer
 from starlette.middleware.cors import CORSMiddleware
 
 import appconfig
-from appconfig import origins
 from src.ivol_atm import router as atm_router
-from src.intraday_prices import router as intraday_prices_router
+from src.prices_intraday import router as intraday_prices_router
 from src.pvp import router as pvp_router
-from src.conti_prices import router as conti_router
-from src.regular_futures import router as eod_futures_router
+from src.prices_continuous import router as conti_router
+from src.prices_regular_futures import router as eod_futures_router
 from src.heartbeat import router as heartbeat_router
 from src.ivol_surface_by_delta import router as surface_router
 from src.rawoption_data import router as rawdata_router
@@ -34,6 +22,7 @@ from src.ivol_calendar_spread import router as calendar_router
 from src.ivol_summary_statistics import router as ivol_summary_statistics_router
 from src.ivol_inter_spread import router as ivol_inter_spread_router
 from src.rawdata_all_options import router as all_options_single_day_router
+from src.users import users_router, auth_router
 
 
 MAJOR = 4
@@ -43,8 +32,7 @@ __version__ = f'{MAJOR}.{MINOR}.{PATCH}'
 
 
 app = fastapi.FastAPI(
-    # https://fastapi.tiangolo.com/advanced/extending-openapi/
-    title='iVolAPI',
+    title='ivolapi',
     version=__version__,
     description='implied volatility and price data for selected ETFs and futures. Contact: info at volsurf.com',
     docs_url='/',
@@ -53,6 +41,10 @@ app = fastapi.FastAPI(
 
 # API overhead
 app.include_router(heartbeat_router, tags=['API Health'])
+
+# user related routers
+app.include_router(users_router, tags=['User'])
+app.include_router(auth_router, tags=['Login'])
 
 # implied volatility routes
 app.include_router(atm_router, tags=['ImpliedVolatility'])
@@ -73,13 +65,11 @@ app.include_router(info_outer, prefix='/info', tags=['Info'])
 app.include_router(all_options_single_day_router, tags=['RawData'])
 
 # custom composite routes
-app.include_router(topoi_router, tags=['Composite', 'RawData'])
-app.include_router(delta_router, tags=['Composite', 'RawData'])
-app.include_router(risk_reversal_router, tags=['Composite', 'ImpliedVolatility'])
-app.include_router(ivol_summary_statistics_router, tags=['Composite', 'ImpliedVolatility'])
+app.include_router(topoi_router, tags=['Composite'])
+app.include_router(delta_router, tags=['Composite'])
+app.include_router(risk_reversal_router, tags=['Composite'])
+app.include_router(ivol_summary_statistics_router, tags=['Composite'])
 
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/token')
 
 app.add_middleware(
     CORSMiddleware,

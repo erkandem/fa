@@ -14,6 +14,7 @@ from sqlalchemy.orm.session import Session
 from src.db import get_pgivbase_db, get_options_rawdata_db
 from fastapi import Depends
 from src.db import results_proxy_to_list_of_dict
+from src.users import get_current_active_user, User
 
 router = fastapi.APIRouter()
 
@@ -54,6 +55,7 @@ async def get_surface_by_delta(
         exchange: str = None,
         ust: str = None,
         con: Session = Depends(get_pgivbase_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     - **symbol**: example: 'SPY' or 'spy' (case insensitive)

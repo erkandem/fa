@@ -3,6 +3,7 @@ import pydantic
 from fastapi import Depends, Body, Query
 from src.const import pc_choices
 from src.const import PutCallChoices
+from src.users import get_current_active_user, User
 from src.utils import CinfoQueries
 
 from datetime import date as Date
@@ -52,6 +53,7 @@ class Ust(BaseModel):
 )
 async def get_api_info_usts(
     con: Session = Depends(get_options_rawdata_db),
+    user: User = Depends(get_current_active_user),
 ):
     """return available ``ust``s"""
     args = {}
@@ -71,6 +73,7 @@ class Exchange(BaseModel):
 async def get_api_info_exchanges(
         ust: str,
         con: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
     """return available ``exchange`` for a given ``ust``"""
     args = {
@@ -97,6 +100,7 @@ async def get_api_info_symbols(
         ust: str,
         exchange: str,
         con: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     TODO: validate ``ust`` and ``exchange``
@@ -141,6 +145,7 @@ async def get_api_info_ltd(
         exchange: str,
         symbol: str,
         con: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     return the available last trading days (`ltd`).
@@ -176,6 +181,7 @@ async def get_api_info_option_month_and_underlying_month(
         symbol: str,
         ltd: str,
         con: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     return the `option_month` and `underlying_month` for an option chain.
@@ -211,6 +217,7 @@ async def get_api_info_first_and_last(
         option_month: str = None,
         underlying_month: str = None,
         con: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     return the first and last date of a option series data set
@@ -250,6 +257,7 @@ async def get_api_info_strikes(
         putcall: str,
         ltd: str,
         con: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     TODO: Validate parameters
@@ -283,6 +291,7 @@ async def post_api_info_strikes(
             }
         ),
         con: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     return the strikes available for an options chain

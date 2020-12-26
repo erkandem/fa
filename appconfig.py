@@ -1,5 +1,6 @@
 import pathlib
 import os
+from datetime import timedelta
 from enum import Enum
 
 import dotenv
@@ -147,18 +148,13 @@ DATABASE_URL_OPTIONS_DB = data_pgc.get_uri(data_pgc.options_db_name)
 DATABASE_URL_APPLICATION_DB = app_pgc.get_uri(app_pgc.application_db_name)
 
 # used for hashing/encrypting/signing
-API_SECRET_KEY = os.getenv('API_SECRET_KEY')
+IVOLAPI_SECRET_KEY = os.getenv('IVOLAPI_SECRET_KEY')
+TOKEN_SIGNING_ALGORITHM = "HS256"
+PASSWORD_HASHING_ALGORITHM = "bcrypt" if not IVOLAPI_TESTING else "plaintext"
 
 # used to encode the validity duration into a JWT after successful login
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-# users, eligible for a longer expiration duration
-# TODO: remove with refresh logic
-LONGTERM_TOKEN_GRANTEES = [
-    #
-    'dashapp',
-]
-ACCESS_TOKEN_EXPIRE_MINUTES_LONGTERM_GRANTEE = 60 * 24 * 7
+ACCESS_TOKEN_EXPIRES_TIMEDELTA = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
 
 IVOLAPI_PORT = int(os.getenv('IVOLAPI_PORT'))

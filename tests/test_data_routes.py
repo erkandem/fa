@@ -1,8 +1,17 @@
 from starlette.testclient import TestClient
 from app import app
-
+from src.users import get_current_active_user, User
 
 client = TestClient(app)
+
+
+def fake_get_current_active_user():
+    return User(
+        username='fake',
+    )
+
+
+app.dependency_overrides[get_current_active_user] = fake_get_current_active_user
 
 
 def test_pulse():

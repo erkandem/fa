@@ -10,7 +10,7 @@ import typing as t
 
 from fastapi import (
     Depends,
-    FastAPI,
+    APIRouter,
     HTTPException,
     status,
 )
@@ -34,32 +34,15 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
 
+import appconfig
+from src.db import(
+    get_users_db,
+    results_proxy_to_list_of_dict,
+)
+
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#                       dirty import                                          #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-from src.db import get_users_db
-import appconfig
-from src.db import dispose_engines
-from src.db import results_proxy_to_list_of_dict
-
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#                       Los global settings                                   #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
-PASSWORD_HASHING_ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#                       Los local settings                                    #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-ACCESS_TOKEN_EXPIRES_TIMEDELTA = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
 SUPERUSER_ROLE_STR = "superuser"
 USER_ROLE_STR = "user"
@@ -68,7 +51,7 @@ ROLE_STRINGS_SET = {
     USER_ROLE_STR,
 }
 
-
+from timeit import timeit
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                       Los User modeles                                      #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -128,12 +111,13 @@ def table_creation(url: str = None):
     """
     Only relevant for sqlalchemy managed tables
     """
+    logger.debug("creating tables")
     if url is None:
         url = appconfig.DATABASE_URL_APPLICATION_DB
     engine = sa.create_engine(url)
     metadata.create_all(engine)
-    logger.debug("Created tables")
     engine.dispose()
+    logger.debug("created tables")
 
 
 class UserCrud:
@@ -197,6 +181,7 @@ def load_all_default_users() -> t.List[t.Dict[str, t.Any]]:
 
 
 def create_default_users():
+    logger.debug('creating all default users')
     url = appconfig.DATABASE_URL_APPLICATION_DB
     engine = sa.create_engine(url)
     local_sessionmaker = sessionmaker(bind=engine, autocommit=True)
@@ -205,6 +190,10 @@ def create_default_users():
     for user_dict in user_data:
         user = UserCreation(**user_dict)
         _inserted_user, _is_new = hash_and_insert_new_user(user, session)
+
+    session.close()
+    engine.dispose()
+    logger.debug('created all default users')
 
 
 def hash_and_insert_new_user(
@@ -229,18 +218,11 @@ def get_roles_as_str(roles: t.Set[str]) -> str:
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                       El App and security thing                             #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-app = FastAPI(
-    docs_url="/",
-    on_startup=[
-        table_creation,
-        create_default_users,
-    ],
-    on_shutdown=[
-        dispose_engines,
-    ]
-)
+users_router = APIRouter()
+auth_router = APIRouter()
+testing_router = APIRouter()
 pwd_context = CryptContext(
-    schemes=["bcrypt"],
+    schemes=[appconfig.PASSWORD_HASHING_ALGORITHM],
     deprecated="auto",
 )
 oauth2_scheme = OAuth2PasswordBearer(
@@ -259,6 +241,7 @@ def verify_password(
 
 
 def get_password_hash(password: str) -> str:
+    """ salting is done by default"""
     return pwd_context.hash(password)
 
 
@@ -283,9 +266,13 @@ def create_access_token(
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + ACCESS_TOKEN_EXPIRES_TIMEDELTA
+        expire = datetime.utcnow() + appconfig.ACCESS_TOKEN_EXPIRES_TIMEDELTA
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=PASSWORD_HASHING_ALGORITHM)
+    encoded_jwt = jwt.encode(
+        to_encode,
+        appconfig.IVOLAPI_SECRET_KEY,
+        algorithm=appconfig.TOKEN_SIGNING_ALGORITHM
+    )
     return encoded_jwt
 
 
@@ -301,9 +288,9 @@ async def get_current_user(
     try:
         payload = jwt.decode(
             token,
-            SECRET_KEY,
+            appconfig.IVOLAPI_SECRET_KEY,
             algorithms=[
-                PASSWORD_HASHING_ALGORITHM,
+                appconfig.TOKEN_SIGNING_ALGORITHM,
             ]
         )
         username: str = payload.get("sub")
@@ -369,7 +356,7 @@ any_role_checker = RoleChecker(ROLE_STRINGS_SET)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                           Los Views                                         #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-@app.post(
+@auth_router.post(
     "/token",
     response_model=Token,
     operation_id="post_login_for_access_token",
@@ -392,12 +379,12 @@ async def post_login_for_access_token(
         )
     access_token = create_access_token(
         data={"sub": user.username},
-        expires_delta=ACCESS_TOKEN_EXPIRES_TIMEDELTA,
+        expires_delta=appconfig.ACCESS_TOKEN_EXPIRES_TIMEDELTA,
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.get(
+@users_router.get(
     "/users/",
     response_model=User,
     operation_id="get_user_by_username",
@@ -419,7 +406,7 @@ async def get_user_by_username(
     return user
 
 
-@app.post(
+@users_router.post(
     "/users/",
     response_model=User,
     operation_id="post_create_user",
@@ -438,7 +425,7 @@ async def post_create_user(
     return user
 
 
-@app.delete(
+@users_router.delete(
     "/users/",
     status_code=status.HTTP_204_NO_CONTENT,
     operation_id="delete_user_by_username",
@@ -457,9 +444,10 @@ async def delete_user_by_username(
         )
 
 
-@app.get(
+@testing_router.get(
     "/any-authenticated-users/",
     operation_id="get_for_active_user_role",
+    include_in_schema=False,
 )
 def get_for_active_user_role(user: User = Depends(get_current_authenticated_user)):
     """equivalent to  ``get_for_users``"""
@@ -468,9 +456,10 @@ def get_for_active_user_role(user: User = Depends(get_current_authenticated_user
     }
 
 
-@app.get(
+@testing_router.get(
     "/any-active-user/",
     operation_id="get_for_users",
+    include_in_schema=False,
 )
 def get_for_users(user: User = Depends(get_current_active_user)):
     return {
@@ -478,21 +467,12 @@ def get_for_users(user: User = Depends(get_current_active_user)):
     }
 
 
-@app.get(
+@testing_router.get(
     "/some-resource-for-superusers-only/",
     operation_id="get_for_superusers",
+    include_in_schema=False,
 )
 def get_for_superusers(user: User = Depends(get_current_active_superuser)):
     return {
         "user": user,
     }
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(
-        app,
-        host=appconfig.IVOLAPI_HOST,
-        port=appconfig.IVOLAPI_PORT,
-        debug=appconfig.IVOLAPI_DEBUG,
-    )

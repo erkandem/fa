@@ -19,6 +19,7 @@ from sqlalchemy.orm.session import Session
 from fastapi import Depends
 
 from src.db import get_options_rawdata_db
+from src.users import get_current_active_user, User
 
 drl = dminusLimits(start=0, end=365*3)
 
@@ -115,6 +116,7 @@ async def post_raw_option_data(
             }
         ),
         con: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     time series data related to a single option
@@ -188,7 +190,7 @@ async def get_schema_and_table_name(args: t.Dict[str, t.Any], con: Session) -> t
     if len(relation) != 0:
         return {
             'schema': relation[0].get('schema_name'),
-            'table': relation[0].get('table_name')
+            'table': relation[0].get('table_name'),
         }
     else:
         return {}
