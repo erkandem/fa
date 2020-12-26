@@ -20,7 +20,7 @@ httptools==0.1.1          # via uvicorn
 idna==2.8                 # via email-validator
 orjson==3.4.6             # via -r requirements.in
 passlib[bcrypt]==1.7.4    # via -r requirements.in
-psycopg2==2.8.6           # via -r requirements.in
+psycopg2-binary==2.8.6    # via -r requirements.in
 pyasn1==0.4.8             # via python-jose, rsa
 pycparser==2.20           # via cffi
 pydantic==1.7.2           # via fastapi

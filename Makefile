@@ -11,6 +11,13 @@ reqs-all:
 	$(MAKE) reqs
 	$(MAKE) reqs-dev
 
+
+install:
+	pip install -r requirements.txt --ignore-installed
+
+install-dev:
+	pip install -r requirements-dev.txt --ignore-installed
+
 sync:
 	pip-sync requirements.txt
 

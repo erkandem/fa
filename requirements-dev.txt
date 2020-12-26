@@ -41,7 +41,7 @@ passlib[bcrypt]==1.7.4    # via -r requirements.in
 pip-tools==5.4.0          # via -r requirements-dev.in
 pluggy==0.13.1            # via pytest
 psutil==5.7.3             # via locust
-psycopg2==2.8.6           # via -r requirements.in
+psycopg2-binary==2.8.6    # via -r requirements.in
 py==1.9.0                 # via pytest
 pyasn1==0.4.8             # via python-jose, rsa
 pycparser==2.20           # via cffi

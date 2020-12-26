@@ -1,8 +1,8 @@
 asyncpg  # experimental database driver
-psycopg2  #  main driver until sqlalchemy 1.4 supports asyncpg
-databases[postgresql]  # used? not used?
-email-validator
-fastapi
+psycopg2-binary  #  main driver until sqlalchemy 1.4 supports asyncpg
+databases[postgresql]  # either this or sqlalchemy 1.4
+email-validator  # pydantic dependency
+fastapi  # core application
 python-dotenv  # utility to work with .env file
 uvicorn[standard] # ASGI prod server for FastAPI
 gunicorn  # prod server to manage multiple processes running uvicorn

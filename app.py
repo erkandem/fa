@@ -23,7 +23,7 @@ from src.ivol_summary_statistics import router as ivol_summary_statistics_router
 from src.ivol_inter_spread import router as ivol_inter_spread_router
 from src.rawdata_all_options import router as all_options_single_day_router
 from src.users import users_router, auth_router
-
+from src.db import connect_async_engines, disconnect_async_engines, dispose_engines
 
 MAJOR = 4
 MINOR = 0
@@ -36,6 +36,13 @@ app = fastapi.FastAPI(
     version=__version__,
     description='implied volatility and price data for selected ETFs and futures. Contact: info at volsurf.com',
     docs_url='/',
+    on_startup=[
+        connect_async_engines,
+    ],
+    on_shutdown=[
+        disconnect_async_engines,
+        dispose_engines,
+    ],
     servers=appconfig.OPENAPI_SERVERS,
 )
 

@@ -35,10 +35,11 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
 
 import appconfig
-from src.db import(
+from src.db import (
     get_users_db,
-    results_proxy_to_list_of_dict,
+    results_proxy_to_list_of_dict, get_async_users_db,
 )
+from databases.core import Connection
 
 
 logger = logging.getLogger(__name__)
@@ -148,6 +149,24 @@ class UserCrud:
         return user_in_db
 
     @staticmethod
+    async def async_select_user_by_username(
+            username: str,
+            con: Connection,
+    ) -> t.Optional[UserInDB]:
+        result = await con.fetch_all(
+            'SELECT * from users where username = :username;',
+            values={
+                'username': username,
+            }
+        )
+        try:
+            user_in_db_dict = results_proxy_to_list_of_dict(result)[0]
+        except IndexError:
+            return None
+        user_in_db = UserInDB(**user_in_db_dict)
+        return user_in_db
+
+    @staticmethod
     def delete_user_by_username(
             username: str,
             con: Session
@@ -158,7 +177,7 @@ class UserCrud:
         con.execute(users_table.delete().where(users_table.c.username == username))
         return True
 
-
+import asyncpg
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                       Los Utilities                                         #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -245,12 +264,12 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def authenticate_user(
+async def authenticate_user(
         username: str,
         password: str,
-        con: Session,
+        con: Connection,
 ) -> t.Union[User, bool]:
-    user = UserCrud.select_user_by_username(username, con)
+    user = await UserCrud.async_select_user_by_username(username, con)
     if not user:
         return False
     if not verify_password(password, user.hashed_salted_pwd):
@@ -278,7 +297,7 @@ def create_access_token(
 
 async def get_current_user(
         token: str = Depends(oauth2_scheme),
-        con: Session = Depends(get_users_db),
+        con: Connection = Depends(get_async_users_db),
 ) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -299,7 +318,7 @@ async def get_current_user(
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    user_in_db = UserCrud.select_user_by_username(
+    user_in_db = await UserCrud.async_select_user_by_username(
         token_data.username,
         con,
     )
@@ -363,10 +382,10 @@ any_role_checker = RoleChecker(ROLE_STRINGS_SET)
 )
 async def post_login_for_access_token(
         form_data: OAuth2PasswordRequestForm = Depends(),
-        con: Session = Depends(get_users_db),
+        con: Connection = Depends(get_async_users_db),
 ):
     """endpoint to return API access token with your valid login data"""
-    user = authenticate_user(
+    user = await authenticate_user(
         form_data.username,
         form_data.password,
         con,
