@@ -34,6 +34,7 @@ COPY src $APP_HOME/src
 COPY appconfig.py $APP_HOME
 COPY app.py $APP_HOME
 COPY run.sh $APP_HOME
+COPY migrate.py $APP_HOME
 COPY .env.docker $APP_HOME/.env
 
 # switch to non root user
@@ -53,5 +54,5 @@ CMD ["/bin/bash", "./run.sh"]
 
 
 # docker build -f dockerfiles/app/Dockerfile -t ivolapi:slim-nonroot-4.0.0 .
-# docker run -p 5000:5000 --restart unless-stopped -d ivolapi:slim-nonroot-4.0.0
-# docker run -p 5000:5000 ivolapi:slim-nonroot-2020
+# docker run -p 5000:5000 ivolapi:slim-nonroot-4.0.0
+# docker run -p 5000:5000 -d ivolapi:slim-nonroot-4.0.0

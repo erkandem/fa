@@ -12,6 +12,7 @@ ALTER ROLE fastapi_2020 WITH SUPERUSER;
 
 -- grant rights to read, write, ... and so on
 GRANT ALL PRIVILEGES ON DATABASE fastapi_2020 TO fastapi_2020;
+ALTER DATABASE fastapi_2020 OWNER TO fastapi_2020;
 
 --
 -- testing equivalent
@@ -29,4 +30,4 @@ ALTER ROLE fastapi_2020_testing WITH SUPERUSER;
 
 -- grant rights to read, write, ... and so on
 GRANT ALL PRIVILEGES ON DATABASE fastapi_2020_testing TO fastapi_2020_testing;
-
+ALTER DATABASE fastapi_2020 OWNER TO fastapi_2020;
