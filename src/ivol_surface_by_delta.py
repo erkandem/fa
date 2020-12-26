@@ -1,29 +1,21 @@
-import json
-from collections import namedtuple
 from datetime import datetime as dt
 from datetime import date as Date
-from datetime import timedelta
 import fastapi
+from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 from falib.contract import Contract
-from src.const import time_to_var_func
-from src.const import OrderChoices
-from src.const import tteChoices
 from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic
 from src.db import engines
-from src.const import iv_all_sym_choices
-from src.const import ust_choices
-from src.const import delta_choices_practical
-from src.const import exchange_choices
-from src.const import time_to_var_func
-from src.const import delta_choices
-from typing import List
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
-from starlette.responses import Response
 
+from src.const import delta_choices_practical
+from typing import List
+from starlette.responses import Response
+import typing as t
+from sqlalchemy.orm.session import Session
+from src.db import get_pgivbase_db, get_options_rawdata_db
+from fastapi import Depends
+from src.db import results_proxy_to_list_of_dict
+from src.users import get_current_active_user, User
 
 router = fastapi.APIRouter()
 
@@ -52,19 +44,20 @@ class SurfaceAggregate(BaseModel):
         values: SurfaceValue
 
 
-@bouncer.roles_required('user')
 @router.get(
     '/ivol/surface',
-    response_model=List[SurfaceAggregate],
     operation_id='get_surface_by_delta',
-    summary='returns a surface parameterized by delta and constant time'
+    summary='returns a surface parameterized by delta and constant time',
+    response_model=t.List[SurfaceAggregate],
+    response_class=ORJSONResponse,
 )
 async def get_surface_by_delta(
         symbol: str,
         date: Date = None,
         exchange: str = None,
         ust: str = None,
-        user: UserPy = fastapi.Depends(get_current_active_user)
+        con: Session = Depends(get_pgivbase_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     - **symbol**: example: 'SPY' or 'spy' (case insensitive)
@@ -72,14 +65,19 @@ async def get_surface_by_delta(
     - **exchange**: one of: ['usetf', 'cme', 'ice', 'eurex']
     - **date**' date of implied volatility surface to be returned
     """
-    args = {'date': date, 'symbol': symbol, 'exchange': exchange, 'ust': ust}
-    content = await surface_resolver(args)
-    return Response(content=content, media_type='application/json')
+    args = {
+        'date': date,
+        'symbol': symbol,
+        'exchange': exchange,
+        'ust': ust,
+    }
+    content = await surface_resolver(args, con)
+    return content
 
 
 async def prepare_surface_sql_arguments(args):
     """Deprecated in favor of JSON delivery via ``surface_json``"""
-    args = await guess_exchange_and_ust(args)
+    args = guess_exchange_and_ust(args)
     args['date'] = dt.strptime(args['date'], '%Y-%m-%d').strftime('%Y-%m-%d')
     c = Contract()
     c.symbol = args['symbol']
@@ -103,25 +101,24 @@ async def prepare_surface_sql_arguments(args):
     return sql_code
 
 
-async def resolve_last_date(c: Contract) -> str:
+async def resolve_last_date(c: Contract, con: Session) -> str:
     schema = await c.compose_2_part_schema_name()
     table = await c.compose_ivol_final_table_name('d050')
     sql = f'SELECT max(dt) FROM {schema}.{table};'
-    async with engines['pgivbase'].acquire() as con:
-        data = await con.fetch(query=sql)
+    data = con.execute(sql).fetchall()
     return data[0][0].strftime('%Y-%m-%d')
 
 
-async def surface_json(args):
+async def surface_json(args, con):
     """ """
-    args = await guess_exchange_and_ust(args)
+    args = guess_exchange_and_ust(args)
     c = Contract()
     c.symbol = args['symbol']
     c.exchange = args['exchange']
     c.security_type = args['ust']
     c.target_table_name_base = await c.compose_ivol_table_name_base()
     if args['date'] is None:
-        args['date'] = await resolve_last_date(c)
+        args['date'] = await resolve_last_date(c, con)
     else:
         args['date'] = args['date'].strftime('%Y-%m-%d')
     schema = await c.compose_2_part_schema_name()
@@ -157,11 +154,13 @@ async def surface_json(args):
     return sql_code
 
 
-async def surface_resolver(args: dict):
-    sql = await surface_json(args)
-    async with engines['pgivbase'].acquire() as con:
-        data = await con.fetch(sql)
-        if len(data) != 0:
-            return data[0].get('surface_ts')
-        else:
-            return '[]'
+async def surface_resolver(
+        args: t.Dict[str, t.Any],
+        con: Session,
+):
+    sql = await surface_json(args, con)
+    data = con.execute(sql).fetchall()
+    if len(data) != 0 and len(data[0]) != 0:
+        return data[0][0]
+    else:
+        return []

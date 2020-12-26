@@ -2,34 +2,39 @@
 Route template
 
 """
-from collections import namedtuple
-from datetime import datetime as dt
 from datetime import date as Date
-from datetime import timedelta
 import fastapi
+from fastapi import Depends
+from sqlalchemy.orm.session import Session
+
 from falib.contract import ContractSync
 from src.const import OrderChoices
 from src.const import tteChoices
-from starlette.status import HTTP_400_BAD_REQUEST
-from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic_new
-from src.db import engines
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
-from starlette.responses import Response
+from src.db import get_pgivbase_db
 from src.const import time_to_var_func
 from src.const import deltaChoicesPractical
-
+import typing as t
+from pydantic import BaseModel
+from src.utils import guess_exchange_and_ust
+from src.utils import eod_ini_logic_new
+from sqlalchemy.orm.session import Session
+from src.db import get_pgivbase_db
+from fastapi import Depends
+from src.users import get_current_active_user, User
+from fastapi.responses import ORJSONResponse
 
 router = fastapi.APIRouter()
 
+class ivol_calendar(BaseModel):
+    dt: Date
+    value: float
 
-@bouncer.roles_required('user')
 @router.get(
     '/ivol/calendar',
     summary='Calculate the spread between different expiries',
-    operation_id='get_ivol_calendar'
+    operation_id='get_ivol_calendar',
+    response_model=t.List[ivol_calendar],
+    response_class=ORJSONResponse,
 )
 async def get_ivol_calendar(
         symbol: str,
@@ -43,7 +48,8 @@ async def get_ivol_calendar(
         delta1: deltaChoicesPractical = deltaChoicesPractical._d050,
         delta2: deltaChoicesPractical = deltaChoicesPractical._d050,
         order: OrderChoices = OrderChoices._asc,
-        user: UserPy = fastapi.Depends(get_current_active_user)
+        con: Session = Depends(get_pgivbase_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
 
@@ -82,13 +88,13 @@ async def get_ivol_calendar(
         'delta2': delta2,
         'order': order.value
     }
-    content = await resolve_me(args)
-    return Response(content=content, media_type='application/json')
+    content = await resolve_ivol_calendar_spread(args, con)
+    return content
 
 
 async def select_calendar_spread(args):
-    args = await eod_ini_logic_new(args)
-    args = await guess_exchange_and_ust(args)
+    args = eod_ini_logic_new(args)
+    args = guess_exchange_and_ust(args)
     args['tte1'] = time_to_var_func(args['tte1'])
     args['tte2'] = time_to_var_func(args['tte2'])
 
@@ -113,16 +119,15 @@ async def select_calendar_spread(args):
         WHERE first.dt  BETWEEN '{args['startdate']}' AND '{args['enddate']}'
         ORDER BY dt {args['order'].upper()}
     )
-    SELECT json_agg(data) FROM data;
+    SELECT json_agg(data) as json_agg FROM data;
     '''
     return sql
 
 
-async def resolve_me(args):
+async def resolve_ivol_calendar_spread(args, con: Session):
     sql = await select_calendar_spread(args)
-    async with engines['pgivbase'].acquire() as con:
-        data = await con.fetch(sql)
-        if len(data) != 0:
-            return data[0].get('json_agg')
-        else:
-            return '[]'
+    data = con.execute(sql).fetchall()
+    if len(data) > 0 and len(data[0]) > 0:
+        return data[0][0]
+    else:
+        return []

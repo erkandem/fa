@@ -2,36 +2,42 @@
 Route template
 
 """
-from collections import namedtuple
 from datetime import datetime as dt
 from datetime import date as Date
-from datetime import timedelta
 import fastapi
+from fastapi.responses import ORJSONResponse
+from sqlalchemy.orm.session import Session
+
 from falib.contract import ContractSync
 from src.const import OrderChoices
 from src.const import tteChoices
-from starlette.status import HTTP_400_BAD_REQUEST
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
-from src.db import engines
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
-from starlette.responses import Response
+import typing as t
+
 from src.const import time_to_var_func
 from src. const import deltaChoicesPractical
-
+from fastapi import Depends
+from src.db import get_pgivbase_db
+from pydantic import BaseModel
+from src.users import get_current_active_user, User
 
 router = fastapi.APIRouter()
 
 
-@bouncer.roles_required('user')
+class InterSpread(BaseModel):
+    dt: Date
+    value: float
+
+
 @router.get(
     '/ivol/inter-spread',
     summary='get ivol spread between options with different underlying',
-    operation_id='get_inter_spread'
+    operation_id='get_ivol_inter_spread',
+    response_model=t.List[InterSpread],
+    response_class=ORJSONResponse,
 )
-async def get_inter_spread(
+async def get_ivol_inter_spread(
         symbol1: str,
         symbol2: str,
         ust1: str = None,
@@ -44,7 +50,8 @@ async def get_inter_spread(
         enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
-        user: UserPy = fastapi.Depends(get_current_active_user)
+        con: Session = Depends(get_pgivbase_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     Calculate the difference between two ETFs or generally between
@@ -75,14 +82,14 @@ async def get_inter_spread(
         'startdate': startdate,
         'enddate': enddate,
         'dminus': dminus,
-        'order': order.value
+        'order': order.value,
     }
-    content = await resolve_inter_spread(args)
-    return Response(content=content, media_type='application/json')
+    content = await resolve_inter_spread(args, con)
+    return content
 
 
 async def select_inter_ivol(args):
-    args = await eod_ini_logic_new(args)
+    args = eod_ini_logic_new(args)
     args['tte'] = time_to_var_func(args['tte'])
     c_one_args = {
         'symbol': args['symbol1'],
@@ -95,9 +102,8 @@ async def select_inter_ivol(args):
         'ust': args['ust2']
     }
 
-    c_one_args = await guess_exchange_and_ust(c_one_args)
-    c_two_args = await guess_exchange_and_ust(c_two_args)
-
+    c_one_args = guess_exchange_and_ust(c_one_args)
+    c_two_args = guess_exchange_and_ust(c_two_args)
     c_one = ContractSync()
     c_one.symbol = c_one_args['symbol']
     c_one.exchange = c_one_args['exchange']
@@ -130,11 +136,10 @@ async def select_inter_ivol(args):
     return sql_code
 
 
-async def resolve_inter_spread(args):
+async def resolve_inter_spread(args, con: Session):
     sql = await select_inter_ivol(args)
-    async with engines['pgivbase'].acquire() as con:
-        data = await con.fetch(sql)
-        if len(data) != 0:
-            return data[0].get('json_agg')
-        else:
-            return '[]'
+    data = con.execute(sql).fetchall()
+    if len(data) != 0 and len(data[0]) != 0:
+        return data[0][0]
+    else:
+        return []

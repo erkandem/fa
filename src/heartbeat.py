@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime as dt
 import fastapi
+from fastapi.responses import ORJSONResponse
 
 
 class HeartBeat(BaseModel):
@@ -10,6 +11,14 @@ class HeartBeat(BaseModel):
 router = fastapi.APIRouter()
 
 
-@router.get('/heartbeat', operation_id='get_heartbeat', response_model=HeartBeat)
+@router.get(
+    '/heartbeat',
+    operation_id='get_heartbeat',
+    response_model=HeartBeat,
+    response_class=ORJSONResponse,
+)
 async def get_heartbeat():
-    return {'date': dt.now()}
+    data = {
+        'date': dt.now(),
+    }
+    return data

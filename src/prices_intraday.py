@@ -1,22 +1,24 @@
 from datetime import datetime as dt
 from datetime import date as Date
-from datetime import timedelta
 import fastapi
 from pydantic import BaseModel
-from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_400_BAD_REQUEST
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 from falib.contract import Contract
 from src.const import OrderChoices
+from src.users import get_current_active_user, User
 from src.utils import eod_ini_logic_new
 from src.utils import guess_exchange_and_ust
-from src.db import engines
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
+
+import typing as t
+from sqlalchemy.orm.session import Session
+from src.db import get_prices_intraday_db
 from src.const import IntervalUnitChoices, IntervalValueChoices
 from starlette.exceptions import HTTPException
 import json
+from fastapi import Depends
+from src.db import results_proxy_to_list_of_dict
+from fastapi.responses import ORJSONResponse
 
 router = fastapi.APIRouter()
 
@@ -50,7 +52,7 @@ valid_configs = {
 valid_configs_json = json.dumps(valid_configs)
 
 
-class PricesIntradayPy(BaseModel):
+class PricesIntraday(BaseModel):
     dt: dt
     tz: int
     open: float
@@ -60,7 +62,7 @@ class PricesIntradayPy(BaseModel):
     volume: int
 
 
-class PricesIntradayQueryPy(BaseModel):
+class PricesIntradayQuery(BaseModel):
     symbol: str
     month: str
     year: int
@@ -74,10 +76,11 @@ class PricesIntradayQueryPy(BaseModel):
     order: str
 
 
-@bouncer.roles_required('user')
 @router.get(
     '/prices/intraday',
-    operation_id='get_intraday_prices'
+    operation_id='get_intraday_prices',
+    response_model=t.List[PricesIntraday],
+    response_class=ORJSONResponse,
 )
 async def get_intraday_prices(
         symbol: str,
@@ -91,7 +94,8 @@ async def get_intraday_prices(
         interval: IntervalValueChoices = IntervalValueChoices._1,
         iunit: IntervalUnitChoices = IntervalUnitChoices._minutes,
         order: OrderChoices = OrderChoices._asc,
-        user: UserPy = fastapi.Depends(get_current_active_user)
+        con: Session = Depends(get_prices_intraday_db),
+        user: User = Depends(get_current_active_user),
 ):
     args = {
         'symbol': symbol,
@@ -105,16 +109,16 @@ async def get_intraday_prices(
         'interval': interval.value,
         'iunit': iunit.value,
         'order': order.value,
-        'limit': 365
+        'limit': 365 * 2
     }
-    content = await resolve_prices_intraday(args)
+    content = await resolve_prices_intraday(args, con)
     return content
 
 
 async def select_prices_intraday(args: dict):
     """return an executable SQL statement"""
-    args = await eod_ini_logic_new(args)
-    args = await guess_exchange_and_ust(args)
+    args = eod_ini_logic_new(args)
+    args = guess_exchange_and_ust(args)
 
     c = Contract()
     c.symbol = args['symbol']
@@ -219,8 +223,8 @@ async def select_regular(args) -> str:
         LIMIT    {args['limit']};'''
 
 
-async def resolve_prices_intraday(args):
+async def resolve_prices_intraday(args: t.Dict[str, t.Any], con: Session):
     sql = await select_prices_intraday(args)
-    async with engines['prices_intraday'].acquire() as con:
-        data = await con.fetch(query=sql)
-        return data
+    cursor = con.execute(sql)
+    data = results_proxy_to_list_of_dict(cursor)
+    return data

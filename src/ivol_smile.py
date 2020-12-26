@@ -1,29 +1,51 @@
-from collections import namedtuple
-from datetime import datetime as dt
 from datetime import date as Date
-from datetime import timedelta
 import fastapi
-from falib.contract import Contract
+from fastapi.responses import ORJSONResponse
+
 from src.const import time_to_var_func
 from src.const import OrderChoices
 from src.const import tteChoices
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
 from src.db import engines
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
+import typing as t
+from sqlalchemy.orm.session import Session
+from src.db import get_pgivbase_db
+from fastapi import Depends
+from pydantic import BaseModel
 from falib.contract import ContractSync
-from starlette.responses import Response
+from src.users import get_current_active_user, User
 
 router = fastapi.APIRouter()
 
 
-@bouncer.roles_required('user')
+class Smile(BaseModel):
+    dt: Date
+    d010: float
+    d015: float
+    d020: float
+    d025: float
+    d030: float
+    d035: float
+    d040: float
+    d045: float
+    d050: float
+    d055: float
+    d060: float
+    d065: float
+    d070: float
+    d075: float
+    d080: float
+    d085: float
+    d090: float
+
+
 @router.get(
     '/ivol/smile',
     summary='smile',
-    operation_id='get_ivol_smile'
+    operation_id='get_ivol_smile',
+    response_model=t.List[Smile],
+    response_class=ORJSONResponse,
 )
 async def get_ivol_smile(
         symbol: str,
@@ -34,7 +56,8 @@ async def get_ivol_smile(
         enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
-        user: UserPy = fastapi.Depends(get_current_active_user)
+        con: Session = Depends(get_pgivbase_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     `smile` is defined as the implied volatility curve of one expiry at one date.
@@ -59,8 +82,8 @@ async def get_ivol_smile(
         'dminus': dminus,
         'order': order.value
     }
-    data = await resolve_ivol_fitted_smile(args)
-    return Response(content=data, media_type='application/json')
+    data = await resolve_ivol_smile(args, con)
+    return data
 
 
 async def select_ivol_fitted_smile(args):
@@ -72,7 +95,8 @@ async def select_ivol_fitted_smile(args):
     args = dict()
     args['tte'] = '1m'
     args['symbol'] = 'cl'
-    args['exchange'] = 'cme'
+    args['exchange'] = 'cme'import asyncio
+
     args['ust'] = 'fut'
     args['startdate'] = '20190501'
     args['enddate'] = '20191201'
@@ -84,8 +108,8 @@ async def select_ivol_fitted_smile(args):
         args:
 
     """
-    args = await eod_ini_logic_new(args)
-    args = await guess_exchange_and_ust(args)
+    args = eod_ini_logic_new(args)
+    args = guess_exchange_and_ust(args)
     args['tte'] = time_to_var_func(args['tte'])
     c = ContractSync()
     c.symbol = args['symbol']
@@ -137,11 +161,10 @@ async def select_ivol_fitted_smile(args):
     return sql_code
 
 
-async def resolve_ivol_fitted_smile(args):
+async def resolve_ivol_smile(args, con: Session):
     sql = await select_ivol_fitted_smile(args)
-    async with engines['pgivbase'].acquire() as con:
-        data = await con.fetch(sql)
-        if len(data) != 0:
-            return data[0].get('smile_ts')
-        else:
-            return '[]'
+    data = con.execute(sql).fetchall()
+    if len(data) != 0 and len(data[0]) != 0:
+        return data[0][0]
+    else:
+        return []

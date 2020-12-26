@@ -3,20 +3,19 @@ from datetime import datetime as dt
 from datetime import timedelta
 from datetime import date as Date
 import fastapi
-from pydantic import BaseModel
-from starlette.status import HTTP_200_OK
+from fastapi.responses import ORJSONResponse
+
 from falib.contract import Contract
 from src.const import OrderChoices
-from src.const import ust_choices_intraday
-from src.const import exchange_choices_intraday
-from src.const import futures_month_chars
-from src.const import prices_intraday_all_symbols
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
-from src.db import engines
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
+import typing as t
+from sqlalchemy.orm.session import Session
+from src.db import get_prices_intraday_db
+from fastapi import Depends
+from src.db import results_proxy_to_list_of_dict
+from pydantic import BaseModel
+from src.users import get_current_active_user, User
 
 
 router = fastapi.APIRouter()
@@ -26,10 +25,21 @@ RegularFuturesParams = namedtuple(
     ['schema', 'table', 'startdate', 'enddate', 'order', 'limit'])
 
 
-@bouncer.roles_required('user')
+class RegularFuturesEod(BaseModel):
+    dt: Date
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: int
+    oi: int
+
+
 @router.get(
     '/prices/eod',
-    operation_id='get_regular_futures_eod'
+    operation_id='get_regular_futures_eod',
+    response_model=t.List[RegularFuturesEod],
+    response_class=ORJSONResponse,
 )
 async def get_regular_futures_eod(
         symbol: str,
@@ -41,7 +51,8 @@ async def get_regular_futures_eod(
         enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
-        user: UserPy = fastapi.Depends(get_current_active_user)
+        con: Session = Depends(get_prices_intraday_db),
+        user: User = Depends(get_current_active_user),
 ):
     """end of day prices """
     args = {
@@ -53,16 +64,16 @@ async def get_regular_futures_eod(
         'startdate': startdate,
         'enddate': enddate,
         'dminus': dminus,
-        'order': order.value
+        'order': order.value,
     }
-    content = await resolve_eod_futures(args)
+    content = await resolve_eod_futures(args, con)
     return content
 
 
 async def eod_sql_delivery(args):
     """TODO fix the table name creation which should be handled by the Contract class"""
-    args = await eod_ini_logic_new(args)
-    args = await guess_exchange_and_ust(args)
+    args = eod_ini_logic_new(args)
+    args = guess_exchange_and_ust(args)
     c = Contract()
     c.symbol = args['symbol']
     c.exchange = args['exchange']
@@ -70,7 +81,7 @@ async def eod_sql_delivery(args):
     schema = f"{args['ust']}_{args['exchange']}_eod"
     contract = f"{args['symbol']}{args['month']}{args['year']}".lower()
     table = f"{args['ust']}_{args['exchange']}_{contract}_prices_eod"
-    limit = 365
+    limit = 365 * 2
     params = RegularFuturesParams(
         schema=schema, table=table,
         startdate=args['startdate'], enddate=args['enddate'],
@@ -91,8 +102,7 @@ async def final_sql(nt: RegularFuturesParams) -> str:
     '''
 
 
-async def resolve_eod_futures(args):
+async def resolve_eod_futures(args, con: Session):
     sql = await eod_sql_delivery(args)
-    async with engines['prices_intraday'].acquire() as con:
-        data = await con.fetch(query=sql)
-        return data
+    data = con.execute(sql).fetchall()
+    return data

@@ -25,41 +25,33 @@ self explaining way:
 
 
 """
-from collections import namedtuple
 from datetime import datetime as dt
-from datetime import date as Date
-from datetime import timedelta
-import json
 import re
 import fastapi
-from fastapi import Query
 from fastapi import Body
 from fastapi import HTTPException
 import pydantic
+from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 from starlette.responses import Response
-from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_400_BAD_REQUEST
-from falib.contract import Contract
 from src.const import OrderChoices
-from src.const import TopOiChoices
 from src.const import PutCallChoices
 from src.const import iv_all_sym_choices, exchange_choices
 from src.const import ust_choices
 from src.const import dminusLimits
-from src.const import futures_month_chars
 from src.db import engines
-from src.utils import guess_exchange_and_ust
-from src.utils import CinfoQueries
+
 from src.utils import put_call_trafo
 from src.utils import eod_ini_logic_new
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
 from src.rawoption_data import get_schema_and_table_name
+from fastapi import Depends
+import typing as t
+from sqlalchemy.orm.session import Session
+from src.db import get_options_rawdata_db
+from src.users import get_current_active_user, User
 
-
-dml = dminusLimits(start=0, end=366)
+dml = dminusLimits(start=0, end=365*2)
 
 
 class TopOiQuery(BaseModel):
@@ -143,7 +135,9 @@ router = fastapi.APIRouter()
 
 @router.post(
     '/top-oi-and-volume',
-    operation_id='post_top_oi_and_volume'
+    operation_id='post_top_oi_and_volume',
+    response_class=ORJSONResponse,
+
 )
 async def post_top_oi_and_volume(
         query: TopOiQuery = Body(
@@ -162,10 +156,34 @@ async def post_top_oi_and_volume(
                 "order": "desc"
             }
         ),
-        user: UserPy = fastapi.Depends(get_current_active_user)
-
+        con: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
-    """'Returns the open interest development of the top `n` strikes of an option chain"""
+    """
+    Returns the open interest development of the top `n` strikes of an option chain
+
+    sample response for sample query
+    ```
+    {
+      '2019-01-02': {
+        '105': 20,
+         '110': null,
+         '115': null,
+         '125': null,
+         '135': 6
+        },
+      '2019-01-03': {
+         '105': 20,
+         '110': null,
+         '115': null,
+         '125': null,
+          '135': 6
+        },
+        ...
+    }
+    ```
+
+    """
     args = query.dict()
     if 'enddate' in args:
         if args['enddate']:
@@ -175,12 +193,12 @@ async def post_top_oi_and_volume(
         if args['startdate']:
             args['startdate'] = dt.strptime(args['startdate'], '%Y-%m-%d')
 
-    data = await resolve_top_oi_or_volume(args)
-    return Response(content=data, media_type='application/json')
+    data = await resolve_top_oi_or_volume(args, con)
+    return data
 
 
-async def resolve_top_oi_or_volume(args: {}):
-    args = await eod_ini_logic_new(args)
+async def resolve_top_oi_or_volume(args, con: Session):
+    args = eod_ini_logic_new(args)
     args = await put_call_trafo(args)
     if args['ust'] == 'fut':
         if args['option_month'] is None and args['underlying_month'] is None:
@@ -188,18 +206,17 @@ async def resolve_top_oi_or_volume(args: {}):
                 status_code=HTTP_400_BAD_REQUEST,
                 detail="a query for futures requires `option_month` and `underlying_month`"
             )
-    relation = await get_schema_and_table_name(args)
+    relation = await get_schema_and_table_name(args, con)
     if len(relation) != 2:
-        return '[]'  # "Could not find particular option chain.", 404
+        return []  # "Could not find particular option chain.", 404
     args['schema'] = relation['schema']
     args['table'] = relation['table']
     sql = await top_x_oi_query(args)
-    async with engines['options_rawdata'].acquire() as con:
-        data = await con.fetch(sql)
-        if len(data) != 0:
-            return data[0].get('jsonb_object_agg')
-        else:
-            return '[]'
+    data = con.execute(sql).fetchall()
+    if len(data) != 0 and len(data[0]) != 0:
+        return data[0][0]
+    else:
+        return []
 
 
 async def top_x_oi_query(args: {}) -> str:

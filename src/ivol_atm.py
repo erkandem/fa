@@ -1,33 +1,36 @@
-from collections import namedtuple
-from datetime import datetime as dt
 from datetime import date as Date
-from datetime import timedelta
 import fastapi
-from starlette.exceptions import HTTPException
-from starlette.status import HTTP_400_BAD_REQUEST
 from falib.contract import Contract
 from src.const import time_to_var_func
 from src.const import OrderChoices
 from src.const import tteChoices
 from src.const import deltaChoicesPractical
-from src.db import engines
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
-from src.schema import validate_config
-from src.schema import BaseContract
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
+import typing as t
+from sqlalchemy.orm.session import Session
+from src.db import get_pgivbase_db
+from fastapi import Depends
+from src.db import results_proxy_to_list_of_dict
+from pydantic import BaseModel
+from src.users import get_current_active_user, User
+from fastapi.responses import ORJSONResponse
 
 
 router = fastapi.APIRouter()
 
 
-@bouncer.roles_required('user')
+class iVol(BaseModel):
+    dt: Date
+    value: float
+
+
 @router.get(
     '/ivol',
     summary='Get implied volatility data for a single delta and single tte',
-    operation_id='get_ivol'
+    operation_id='get_ivol',
+    response_model=t.List[iVol],
+    response_class=ORJSONResponse,
 )
 async def get_ivol(
         symbol: str,
@@ -39,7 +42,8 @@ async def get_ivol(
         tte: tteChoices = tteChoices._1m,
         delta: deltaChoicesPractical = deltaChoicesPractical._d050,
         order: OrderChoices = OrderChoices._asc,
-        user: UserPy = fastapi.Depends(get_current_active_user)
+        con: Session = Depends(get_pgivbase_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     implied volatility time series. Return a proxy for ATM by default
@@ -67,17 +71,18 @@ async def get_ivol(
         'delta': delta.value,
         'order': order.value
     }
-    content = await resolve_ivol(args)
+    content = await resolve_ivol(args, con)
     return content
 
 
-@bouncer.roles_required('user')
 @router.get(
     '/ivol/atm',
     summary='Get ATM implied volatility data',
-    operation_id='get_atm_ivol'
+    operation_id='get_atm_ivol',
+    response_model=t.List[iVol],
+    response_class=ORJSONResponse,
 )
-async def atm_ivol(
+async def get_atm_ivol(
         symbol: str,
         ust: str = None,
         exchange: str = None,
@@ -86,7 +91,8 @@ async def atm_ivol(
         enddate: Date = None,
         dminus: int = 30,
         order: OrderChoices = OrderChoices._asc,
-        user: UserPy = fastapi.Depends(get_current_active_user)
+        con: Session = Depends(get_pgivbase_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     At-the-money implied volatility time series.
@@ -111,14 +117,14 @@ async def atm_ivol(
         'delta': deltaChoicesPractical._d050.value,
         'order': order.value
     }
-    content = await resolve_ivol(args)
+    content = await resolve_ivol(args, con)
     return content
 
 
 async def select_ivol(args):
     """ """
-    args = await eod_ini_logic_new(args)
-    args = await guess_exchange_and_ust(args)
+    args = eod_ini_logic_new(args)
+    args = guess_exchange_and_ust(args)
     c = Contract()
     c.symbol = args['symbol']
     c.exchange = args['exchange']
@@ -138,8 +144,8 @@ async def select_ivol(args):
     return sql
 
 
-async def resolve_ivol(args):
+async def resolve_ivol(args, con: Session):
     sql = await select_ivol(args)
-    async with engines['pgivbase'].acquire() as con:
-        data = await con.fetch(query=sql)
-        return data
+    cursor = con.execute(sql)
+    data = results_proxy_to_list_of_dict(cursor)
+    return data

@@ -1,18 +1,19 @@
 from datetime import datetime as dt
 import re
-from starlette.responses import Response
 import fastapi
 import pydantic
-from pydantic import BaseModel
 from fastapi import Body
-from src.db import engines
+
 from src.const import iv_all_sym_choices, exchange_choices
+from src.users import get_current_active_user, User
 from src.utils import eod_ini_logic_new
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
 from src.rawoption_data import get_schema_and_table_name
 from src.const import ust_choices
-
+from src.db import get_options_rawdata_db, results_proxy_to_list_of_dict
+from fastapi import Depends
+import typing as t
+from pydantic import BaseModel
+from sqlalchemy.orm.session import Session
 
 class DeltaQuery(BaseModel):
     ust: str
@@ -69,10 +70,12 @@ class DeltaQuery(BaseModel):
 
 router = fastapi.APIRouter()
 
+response_model = t.Dict[str, t.Dict[str, t.Union[float, None]]]
+
 
 @router.post(
     '/delta-contour',
-    operation_id='post_delta_data'
+    operation_id='post_delta_data',
 )
 async def post_delta_data(
         query: DeltaQuery = Body(
@@ -88,8 +91,51 @@ async def post_delta_data(
                 "ltd": "20191115"
             }
         ),
-        user: UserPy = fastapi.Depends(get_current_active_user)
+        con: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
+    """
+    Sample Response (includes `null`s):
+
+    ```json
+    {
+      "2019-01-02": {
+        "15": 0.997529599040824,
+        "20": 0.989729380073849,
+        "30": 0.935990764207618,
+        "40": 0.794768083771764,
+        "50": 0.583851075903858,
+        "60": 0.347603220495328,
+        "70": 0.187799489093798,
+        "80": 0.0967965610201772,
+        "90": 0.0530439215416349,
+        "100": 0.0291585390742281,
+        "110": 0.0177133030709603,
+        "115": 0.012832594747696,
+        "120": 0.00943424268115006,
+        "125": 0.00760777234539778,
+        "130": 0.0058177633358902
+      },
+      "2019-01-03": {
+        "15": 0.997529599040824,
+        "20": 0.989729380073849,
+        "30": 0.935990764207618,
+        "40": 0.794768083771764,
+        "50": 0.583851075903858,
+        "60": 0.347603220495328,
+        "70": 0.187799489093798,
+        "80": 0.0967965610201772,
+        "90": 0.0530439215416349,
+        "100": 0.0291585390742281,
+        "110": 0.0177133030709603,
+        "115": 0.012832594747696,
+        "120": 0.00943424268115006,
+        "125": 0.00760777234539778,
+        "130": 0.0058177633358902
+      }
+    }
+    ```
+    """
     args = query.dict()
     if 'enddate' in args:
         args['enddate'] = dt.strptime(args['enddate'], '%Y-%m-%d')
@@ -97,24 +143,24 @@ async def post_delta_data(
     if 'startdate' in args:
         args['startdate'] = dt.strptime(args['startdate'], '%Y-%m-%d')
 
-    data = await resolve_delta_query(args)
-    return Response(content=data, media_type='application/json')
+    data = await resolve_delta_query(args, con)
+    return data
 
 
-async def resolve_delta_query(args: {} = None):
-    args = await eod_ini_logic_new(args)
-    relation = await get_schema_and_table_name(args)
+async def resolve_delta_query(args: {}, con: Session):
+    args = eod_ini_logic_new(args)
+    relation = await get_schema_and_table_name(args, con)
     if len(relation) != 2:
-        return '[]'  # "Could not find particular option chain.", 404
+        return []  # "Could not find particular option chain.", 404
     args['schema'] = relation['schema']
     args['table'] = relation['table']
     sql = delta_query_sql(**args)
-    async with engines['options_rawdata'].acquire() as con:
-        data = await con.fetch(sql)
-        if len(data) != 0:
-            return data[0].get('jsonb_object_agg')
-        else:
-            return '[]'
+    cursor = con.execute(sql)
+    data = results_proxy_to_list_of_dict(cursor)
+    if len(data) != 0:
+        return data[0].get('jsonb_object_agg')
+    else:
+        return []
 
 
 def delta_query_sql(

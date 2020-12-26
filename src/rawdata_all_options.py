@@ -2,36 +2,29 @@
 Route template
 
 """
-from collections import namedtuple
-from datetime import datetime as dt
 from datetime import date as Date
-from datetime import timedelta
 import json
 import fastapi
 from fastapi import Header
+from fastapi.responses import ORJSONResponse
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_204_NO_CONTENT
 from falib.contract import ContractSync
 from falib.dayindex import get_day_index_table_name
 from falib.dayindex import get_day_index_schema_name
-from src.const import OrderChoices
-from src.const import tteChoices
-from starlette.status import HTTP_400_BAD_REQUEST
 from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic
-from src.utils import CinfoQueries
-from src.db import engines
-from src.users.auth import bouncer
-from src.users.auth import get_current_active_user
-from src.users.user_models import UserPy
-from starlette.responses import Response
-from src.const import time_to_var_func
-from enum import Enum
+from src.db import results_proxy_to_list_of_dict
 
+import typing as t
+from sqlalchemy.orm.session import Session
+from fastapi import Depends
+
+from starlette.responses import Response
+from enum import Enum
+from src.db import get_options_rawdata_db
+from src.users import get_current_active_user, User
 
 router = fastapi.APIRouter()
-
-from pydantic import BaseModel
 
 
 class ContentType(str, Enum):
@@ -39,11 +32,10 @@ class ContentType(str, Enum):
     csv: str = 'application/csv'
 
 
-@bouncer.roles_required('user')
 @router.get(
     '/option-data/single-underlying-single-day',
     summary='Returns all options for one underlying for one (business)day',
-    operation_id='get_all_options_single_underlying_single_day'
+    operation_id='get_all_options_single_underlying_single_day',
 )
 async def get_all_options_single_underlying_single_day(
         symbol: str,
@@ -51,7 +43,8 @@ async def get_all_options_single_underlying_single_day(
         ust: str = None,
         exchange: str = None,
         accept: ContentType = Header(default=ContentType.json),
-        user: UserPy = fastapi.Depends(get_current_active_user),
+        con: Session = Depends(get_options_rawdata_db),
+        user: User = Depends(get_current_active_user),
 ):
     """
     A route template. Will set appropriate headers and forward
@@ -68,34 +61,38 @@ async def get_all_options_single_underlying_single_day(
         'exchange': exchange,
         'date': date
     }
-    content = await resolve_options_data(args)
+    data = await resolve_options_data(args, con)
     if accept.value == 'application/json':
-        return Response(content=content, media_type='application/json')
-    elif accept.value == 'application/csv':
-        return Response(content=await to_csv(content), media_type='application/csv')
-    else:
-        return Response(content=content, media_type='application/json')
+        content = json.dumps(data)
+        return ORJSONResponse(content=content, media_type='application/json')
+    if accept.value == 'application/csv':
+        content = await to_csv(data)
+        return Response(content=content, media_type='application/csv')
+    content = json.dumps(data)
+    return ORJSONResponse(content=content, media_type='application/json')
 
 
-async def to_csv(json_str: str) -> str:
+async def to_csv(json_data: t.Dict[str, t.Any]) -> str:
     """
     will convert a JSON-string to a CSV-string
     expected schema is [{"key": "value"}]
     where `value` may be `int` or `str`
     """
-    data = json.loads(json_str)
-    if len(data) == 0:
+    if len(json_data) == 0:
         return ''
-    keys = list(data[0])
+    keys = list(json_data[0])
     csv = (
             ','.join(keys)
             + '\n'
-            + '\n'.join([','.join([str(row[key]) for key in keys]) for row in data])
+            + '\n'.join([
+                ','.join([str(row[key]) for key in keys])
+                 for row in json_data
+                ])
     )
     return csv
 
 
-async def get_all_relations(args):
+async def get_all_relations(args: t.Dict, con: Session):
     """
     will query the index table for all table names which
     have a record for a certain business day
@@ -113,20 +110,19 @@ async def get_all_relations(args):
         FROM {schema}.{table}
         WHERE bizdt = '{args["date"]}';
     '''
-    async with engines['options_rawdata'].acquire() as con:
-        relations = await con.fetch(sql)
+    relations = con.execute(sql).fetchall()
     return relations
 
 
-async def select_union_all_ltds(args):
+async def select_union_all_ltds(args, con):
     """
     will compose a postgres specific SQL command
     which will return the data as a JSON-string
     """
-    args = await guess_exchange_and_ust(args)
+    args = guess_exchange_and_ust(args)
     if isinstance(args['date'], Date):
         args['date'] = args['date'].strftime('%Y-%m-%d')
-    relations = await get_all_relations(args)
+    relations = await get_all_relations(args, con)
     if len(relations) == 0:
         raise HTTPException(
             status_code=HTTP_204_NO_CONTENT,
@@ -160,11 +156,11 @@ async def select_union_all_ltds(args):
     return sql
 
 
-async def resolve_options_data(args):
-    sql = await select_union_all_ltds(args)
-    async with engines['options_rawdata'].acquire() as con:
-        data = await con.fetch(sql)
-        if len(data) != 0:
-            return data[0].get('json_agg')
-        else:
-            return '[]'
+async def resolve_options_data(args: t.Dict[str, t.Any], con: Session):
+    sql = await select_union_all_ltds(args, con)
+    cursor = con.execute(sql)
+    data = results_proxy_to_list_of_dict(cursor)
+    if len(data) != 0:
+        return data[0].get('json_agg')
+    else:
+        return []

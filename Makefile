@@ -11,8 +11,24 @@ reqs-all:
 	$(MAKE) reqs
 	$(MAKE) reqs-dev
 
+
+install:
+	pip install -r requirements.txt --ignore-installed
+
+install-dev:
+	pip install -r requirements-dev.txt --ignore-installed
+
 sync:
 	pip-sync requirements.txt
 
 sync-dev:
 	pip-sync requirements-dev.txt
+
+locust:
+	locust -f locust_file.py --host=http://0.0.0.0:5000
+
+gunicorn:
+	gunicorn -b 0.0.0.0:5000 -w 4 -k uvicorn.workers.UvicornWorker app:app
+
+test:
+	IVOLAPI_TESTING=true pytest
