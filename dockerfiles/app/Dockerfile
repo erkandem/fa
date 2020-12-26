@@ -40,6 +40,9 @@ COPY .env.docker $APP_HOME/.env
 # expose needed ports
 EXPOSE 5000
 
+# debug
+#RUN apt-get update && apt-get install -y vim
+
 # entrypoint which also laods env vars
 CMD ["/bin/bash", "./run.sh"]
 
@@ -52,4 +55,4 @@ CMD ["/bin/bash", "./run.sh"]
 
 # docker build -f dockerfiles/app/Dockerfile -t ivolapi:slim-nonroot-4.0.0 .
 # docker run -p 5000:5000 ivolapi:slim-nonroot-4.0.0
-# docker run -p 5000:5000 -d ivolapi:slim-nonroot-4.0.0
+# docker run -p 5000:5000 --network=host -d ivolapi:slim-nonroot-4.0.0
