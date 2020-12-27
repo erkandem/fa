@@ -49,6 +49,23 @@ async def get_pvp_intraday(
     """
     price volume profile. histogram of intraday price data
 
+    Creates equally spaced ``buckets`` number of well ... bucket ...
+    from the highest to the lowest price price in the time period and
+    sums the trading volume in the local price range specified by  ``max_close`` and ``min_close``.
+
+    sample response:
+
+    ```json
+        [
+          {"bucket": 1, "max_close": 362.17, "min_close": 362.17, "sum_volume": 435470},
+          {"bucket": 2, "max_close": 362.3, "min_close": 362.29, "sum_volume": 658616},
+          {"bucket": 4, "max_close": 362.5, "min_close": 362.49, "sum_volume": 880421},
+          ...
+          {"bucket": 100, "max_close": 372.32, "min_close": 372.25, "sum_volume": 630678},
+          {"bucket": 101, "max_close": 372.34, "min_close": 372.34, "sum_volume": 179559}
+        ]
+    ```
+
     - **symbol**: example: 'SPY' or 'spy' (case insensitive)
     - **month**: only for futures - one of ['F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z']
     - **year**: only for futures - example: 19

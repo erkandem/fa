@@ -6,7 +6,7 @@ import fastapi
 from fastapi.responses import ORJSONResponse
 
 from falib.contract import Contract
-from src.const import OrderChoices
+from src.const import OrderChoices, futuresMonthChars
 from src.utils import guess_exchange_and_ust
 from src.utils import eod_ini_logic_new
 import typing as t
@@ -16,7 +16,9 @@ from fastapi import Depends
 from src.db import results_proxy_to_list_of_dict
 from pydantic import BaseModel
 from src.users import get_current_active_user, User
-
+from src import const
+from starlette.exceptions import HTTPException
+from starlette import status
 
 router = fastapi.APIRouter()
 
@@ -43,8 +45,8 @@ class RegularFuturesEod(BaseModel):
 )
 async def get_regular_futures_eod(
         symbol: str,
-        month: str = None,
-        year: int = None,
+        month: futuresMonthChars = futuresMonthChars._z,
+        year: int = dt.now().year + 1,
         ust: str = None,
         exchange: str = None,
         startdate: Date = None,
@@ -54,7 +56,15 @@ async def get_regular_futures_eod(
         con: Session = Depends(get_prices_intraday_db),
         user: User = Depends(get_current_active_user),
 ):
-    """end of day prices """
+    """
+    end of day prices for futures contracts
+    ``year``has to be four digit number.
+    """
+    if len(str(year)) != 4:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="expecting year parameter to be a four digit number"
+        )
     args = {
         'symbol': symbol,
         'month': month,

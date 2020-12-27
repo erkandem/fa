@@ -27,7 +27,7 @@ router = fastapi.APIRouter()
 
 class InterSpread(BaseModel):
     dt: Date
-    value: float
+    value: t.Union[float, None]
 
 
 @router.get(
@@ -54,8 +54,11 @@ async def get_ivol_inter_spread(
         user: User = Depends(get_current_active_user),
 ):
     """
-    Calculate the difference between two ETFs or generally between
-    two implied volatility series
+    Calculate the difference between two ETFs or generally the difference between
+    two implied volatility series.
+
+    calculation: ``symbol1 - symbol2``
+    Response series can include ``null`` where both value are not available.
 
     - **symbol1**: example: 'SPY' or 'spy' (case insensitive)
     - **ust1**: underlying security type: 'eqt' e.g.
