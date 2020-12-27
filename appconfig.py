@@ -156,23 +156,27 @@ PASSWORD_HASHING_ALGORITHM = "bcrypt" if not IVOLAPI_TESTING else "plaintext"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 ACCESS_TOKEN_EXPIRES_TIMEDELTA = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
+DEPLOYMENT_TYPE_DEVELOPMENT = 'dev'
+DEPLOYMENT_TYPE_PRODUCTION = 'prod'
 
 IVOLAPI_PORT = int(os.getenv('IVOLAPI_PORT'))
 IVOLAPI_HOST = os.getenv('IVOLAPI_HOST')
+IVOLAPI_DEPLOYMENT_TYPE = str(os.getenv('IVOLAPI_DEPLOYMENT_TYPE')).lower()
 
-OPENAPI_SERVERS = [
-    # exposed in OpenAPI documentation
-    # used to build the base url of client libraries
-    {
-        'url': 'http://localhost:5000',
-        'description': 'dev',
-    },
-    {
-        'url': 'https://api.volsurf.com',
-        'description': 'prod',
-    },
-
-]
+OPENAPI_DEV_SERVER = {
+    'url': 'http://localhost:5000',
+    'description': 'development',
+}
+OPENAPI_PRODUCTION_SERVER = {
+    'url': 'https://api.volsurf.com',
+    'description': 'Live Server',
+}
+OPENAPI_SERVERS = (
+    # take care of the ordering within the OpenAPI UI
+    [OPENAPI_PRODUCTION_SERVER, OPENAPI_DEV_SERVER]
+    if IVOLAPI_DEPLOYMENT_TYPE == DEPLOYMENT_TYPE_PRODUCTION
+    else [OPENAPI_DEV_SERVER, OPENAPI_PRODUCTION_SERVER]
+)
 
 
 # a tracker string for statcounter, all vars can be safely public
