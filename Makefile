@@ -1,4 +1,8 @@
+
 run:
+	python app.py
+
+run-prod:
 	bash run.sh
 
 reqs:
