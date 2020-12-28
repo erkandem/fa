@@ -10,3 +10,4 @@ python-multipart  # need for OAuth2 https://fastapi.tiangolo.com/tutorial/securi
 passlib[bcrypt]  # handling passwords
 python-jose[cryptography]  # handling token
 orjson  # optimized JSON serialization
+sentry-sdk  # error tracking

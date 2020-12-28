@@ -1,11 +1,11 @@
-import pathlib
-import os
 from datetime import timedelta
 from enum import Enum
-
-import dotenv
+import os
+import pathlib
 from logging import getLogger
 
+import dotenv
+import sentry_sdk
 logger = getLogger()
 
 # mark the application folder for convenience
@@ -30,6 +30,14 @@ def evaL_bool_env(bool_env: str):
     }.get(
         bool_env.lower()
     )
+
+
+IVOLAPI_SENTRY_URL = os.getenv('IVOLAPI_SENTRY_URL')
+sentry_sdk.init(
+    IVOLAPI_SENTRY_URL,
+    traces_sample_rate=1.0
+)
+
 
 IVOLAPI_DEBUG = (
     evaL_bool_env(os.getenv('IVOLAPI_DEBUG'))

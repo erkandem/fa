@@ -118,7 +118,14 @@ async def get_conti_eod(
         con: Session = Depends(get_prices_intraday_db),
         user: User = Depends(get_current_active_user),
 ):
-    """ """
+    """
+    return the time series data for the n-th contract in line.
+
+    Continues contracts are synthetic (i.e. non-tradable) futures contracts.
+    The values are calculates by rolling the the future at specified time.
+
+    Only available for futures.
+    """
     args = {
         'symbol': symbol,
         'ust': ust,

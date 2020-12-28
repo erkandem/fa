@@ -27,7 +27,7 @@ from src.db import connect_async_engines, disconnect_async_engines, dispose_engi
 
 MAJOR = 4
 MINOR = 0
-PATCH = 0
+PATCH = 1
 __version__ = f'{MAJOR}.{MINOR}.{PATCH}'
 
 
