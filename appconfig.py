@@ -226,4 +226,6 @@ origins = [
 
     'http://localhost:3000',
     'https://localhost:3000',
+
+    'https://ivolapi.herokuapp.com'  # static sample dashboard
 ]
