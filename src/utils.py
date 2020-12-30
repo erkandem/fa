@@ -139,6 +139,7 @@ class CinfoQueries:
 
     @staticmethod
     def option_month_underlying_month_f(args: t.Dict[str, t.Any]) -> str:
+        """ TODO why do we get duplicate values here?"""
         return f'''
         SELECT option_month, underlying_month
         FROM cinfo

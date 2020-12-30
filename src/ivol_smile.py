@@ -76,7 +76,7 @@ async def get_ivol_smile(
         'symbol': symbol,
         'ust': ust,
         'exchange': exchange,
-        'tte': tte._value_,
+        'tte': tte.value,
         'startdate': startdate,
         'enddate': enddate,
         'dminus': dminus,

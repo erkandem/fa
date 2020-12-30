@@ -3,7 +3,9 @@ from datetime import date as Date
 import fastapi
 from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
-
+from starlette.exceptions import HTTPException
+from starlette import status
+from src import const
 from falib.contract import Contract
 from src.const import OrderChoices
 from src.utils import guess_exchange_and_ust
@@ -15,6 +17,7 @@ import typing as t
 from sqlalchemy.orm.session import Session
 from fastapi import Depends
 from src.users import get_current_active_user, User
+from src.const import futuresMonthChars, IntervalUnitChoices
 
 router = fastapi.APIRouter()
 
@@ -34,14 +37,16 @@ class IntradayPvp(BaseModel):
     response_class=ORJSONResponse,
 )
 async def get_pvp_intraday(
-        symbol: str, month: str = None, year: int = None,
+        symbol: str,
+        month: futuresMonthChars = None,
+        year: int = None,
         ust: str = None,
         exchange: str = None,
         startdate: Date = None,
         enddate: Date = None,
         dminus: int = 20,
         buckets: int = 100,
-        iunit: str = 'minutes',
+        iunit: IntervalUnitChoices = IntervalUnitChoices._minutes,
         order: OrderChoices = OrderChoices._asc,
         con: Session = Depends(get_prices_intraday_db),
         user: User = Depends(get_current_active_user),
@@ -80,7 +85,7 @@ async def get_pvp_intraday(
     """
     args = {
         'symbol': symbol,
-        'month': month,
+        'month': month.value,
         'year': year,
         'ust': ust,
         'exchange': exchange,
@@ -88,7 +93,7 @@ async def get_pvp_intraday(
         'enddate': enddate,
         'dminus': dminus,
         'buckets': buckets,
-        'iunit': iunit,
+        'iunit': iunit.value,
         'order': order.value
     }
     content = await resolve_pvp(args, con)
@@ -104,6 +109,16 @@ async def pvp_query(args):
     """start_date end_date symbol c_month c_year exchange ust"""
     args = eod_ini_logic_new(args)
     args = guess_exchange_and_ust(args)
+    if (
+            args['ust'] == const.STR_UNDERLYING_SECURITY_TYPE_FUTURES
+            or args['ust'] is None
+            and (args['year'] is None) or (args['month'] is None)
+
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Specified future but did not provide both month and year parameters"
+        )
     c = Contract()
     c.symbol = args['symbol']
     c.exchange = args['exchange']

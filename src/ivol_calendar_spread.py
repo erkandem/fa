@@ -82,8 +82,8 @@ async def get_ivol_calendar(
         'startdate': startdate,
         'enddate': enddate,
         'dminus': dminus,
-        'tte1': tte1._value_,
-        'tte2': tte2._value_,
+        'tte1': tte1.value,
+        'tte2': tte2.value,
         'delta1': delta1,
         'delta2': delta2,
         'order': order.value
