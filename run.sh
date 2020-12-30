@@ -10,4 +10,4 @@ NUM_CORES=$(nproc)
 echo NUM_CORES $NUM_CORES
 NUM_WORKERS=$(expr 2 \* $NUM_CORES + 1)
 echo NUM_WORKERS $NUM_WORKERS
-gunicorn -b $IVOLAPI_HOST:$IVOLAPI_PORT -w $NUM_WORKERS -k uvicorn.workers.UvicornWorker app:app
+gunicorn -b $IVOLAPI_HOST:$IVOLAPI_PORT -w $NUM_WORKERS -k uvicorn.workers.UvicornWorker --access-logfile - app:app
