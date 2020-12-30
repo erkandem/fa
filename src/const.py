@@ -76,7 +76,7 @@ STR_TIME_TILL_EXPIRY_1M = '1m'
 STR_TIME_TILL_EXPIRY_2M = '2m'
 STR_TIME_TILL_EXPIRY_3M = '3m'
 STR_TIME_TILL_EXPIRY_4M = '4m'
-STR_TIME_TILL_EXPIRY_5M= '5m'
+STR_TIME_TILL_EXPIRY_5M = '5m'
 STR_TIME_TILL_EXPIRY_6M = '6m'
 STR_TIME_TILL_EXPIRY_7M = '7m'
 STR_TIME_TILL_EXPIRY_8M = '8m'
@@ -221,7 +221,7 @@ class iVolEtfChoices(str, Enum):
     _tlt = STR_USETF_SYMBOL_TLT
     _ung = STR_USETF_SYMBOL_UNG
     _uso = STR_USETF_SYMBOL_USO
-    #_vxx = STR_USETF_SYMBOL_VXX  # disable query, since data is of low quality
+    # _vxx = STR_USETF_SYMBOL_VXX  # disable query, since data is of low quality
     _xbi = STR_USETF_SYMBOL_XBI
     _xlb = STR_USETF_SYMBOL_XLB
     _xle = STR_USETF_SYMBOL_XLE
@@ -243,7 +243,7 @@ STR_CME_SYMBOL_BZ = 'bz'
 STR_CME_SYMBOL_C = 'c'
 STR_CME_SYMBOL_CD = 'cd'
 STR_CME_SYMBOL_CL = 'cl'
-STR_CME_SYMBOL_EC= 'ec'
+STR_CME_SYMBOL_EC = 'ec'
 STR_CME_SYMBOL_ES = 'es'
 STR_CME_SYMBOL_FV = 'fv'
 STR_CME_SYMBOL_GC = 'gc'
@@ -254,7 +254,7 @@ STR_CME_SYMBOL_GE3 = 'ge3'
 STR_CME_SYMBOL_GE4 = 'ge4'
 STR_CME_SYMBOL_GE5 = 'ge5'
 STR_CME_SYMBOL_HG = 'hg'
-STR_CME_SYMBOL_HO= 'ho'
+STR_CME_SYMBOL_HO = 'ho'
 STR_CME_SYMBOL_JY = 'jy'
 STR_CME_SYMBOL_KW = 'kw'
 STR_CME_SYMBOL_LC = 'lc'
@@ -357,7 +357,7 @@ STR_ICE_SYMBOL_SB = 'sb'  # 582 Sugar No. 11 Futures
 
 class iVolChoicesIce(str, Enum):
     _b = STR_ICE_SYMBOL_B
-    _t =STR_ICE_SYMBOL_T
+    _t = STR_ICE_SYMBOL_T
     _g = STR_ICE_SYMBOL_G
     _n = STR_ICE_SYMBOL_N
     _cc = STR_ICE_SYMBOL_CC
@@ -566,6 +566,7 @@ class deltaOffsetChoices(str, Enum):
     _d35 = STR_DELTA_OFFSET_D035
     _d40 = STR_DELTA_OFFSET_D040
 
+
 STR_INTRADAY_PRICES_SYMBOL_A6 = 'a6'
 STR_INTRADAY_PRICES_SYMBOL_CL = 'cl'
 STR_INTRADAY_PRICES_SYMBOL_D6 = 'd6'
@@ -741,6 +742,7 @@ class futuresMonthChars(str, Enum):
     _x = STR_FUTURES_MONTH_NOVEMBER
     _z = STR_FUTURES_MONTH_DECEMBER
 
+
 STR_ORDERING_ASC = 'asc'
 STR_ORDERING_DESC = 'desc'
 
@@ -810,7 +812,7 @@ cme_arg_list = [
     'order'
 ]
 
-fx_arg_list= [
+fx_arg_list = [
     'symbol',
     'startdate',
     'enddate',

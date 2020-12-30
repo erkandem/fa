@@ -1,21 +1,21 @@
-from datetime import datetime as dt
 from datetime import date as Date
+from datetime import datetime as dt
+import typing as t
+
+from falib.contract import Contract
 import fastapi
+from fastapi import Depends
 from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
-from falib.contract import Contract
-from src.utils import guess_exchange_and_ust
-from src.db import engines
+from sqlalchemy.orm.session import Session
 
 from src.const import delta_choices_practical
-from typing import List
-from starlette.responses import Response
-import typing as t
-from sqlalchemy.orm.session import Session
-from src.db import get_pgivbase_db, get_options_rawdata_db
-from fastapi import Depends
-from src.db import results_proxy_to_list_of_dict
-from src.users import get_current_active_user, User
+from src.db import get_pgivbase_db
+from src.users import (
+    User,
+    get_current_active_user,
+)
+from src.utils import guess_exchange_and_ust
 
 router = fastapi.APIRouter()
 
@@ -39,9 +39,9 @@ class SurfaceValue(BaseModel):
 
 
 class SurfaceAggregate(BaseModel):
-        dt: Date
-        delta: str
-        values: SurfaceValue
+    dt: Date
+    delta: str
+    values: SurfaceValue
 
 
 @router.get(

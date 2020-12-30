@@ -1,23 +1,31 @@
 from collections import namedtuple
 from datetime import date as Date
+import typing as t
+
+from falib.contract import Contract
 import fastapi
+from fastapi import Depends
 from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
-from starlette.exceptions import HTTPException
-from starlette import status
-from src import const
-from falib.contract import Contract
-from src.const import OrderChoices
-from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic_new
-from src.db import results_proxy_to_list_of_dict
-from src.db import get_prices_intraday_db
-
-import typing as t
 from sqlalchemy.orm.session import Session
-from fastapi import Depends
-from src.users import get_current_active_user, User
-from src.const import futuresMonthChars, IntervalUnitChoices
+from starlette import status
+from starlette.exceptions import HTTPException
+
+from src import const
+from src.const import (
+    IntervalUnitChoices,
+    OrderChoices,
+    futuresMonthChars,
+)
+from src.db import get_prices_intraday_db
+from src.users import (
+    User,
+    get_current_active_user,
+)
+from src.utils import (
+    eod_ini_logic_new,
+    guess_exchange_and_ust,
+)
 
 router = fastapi.APIRouter()
 
@@ -111,9 +119,7 @@ async def pvp_query(args):
     args = guess_exchange_and_ust(args)
     if (
             args['ust'] == const.STR_UNDERLYING_SECURITY_TYPE_FUTURES
-            or args['ust'] is None
             and (args['year'] is None) or (args['month'] is None)
-
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -145,25 +151,25 @@ async def final_sql(nt: pvpQueryParams) -> str:
     return f'''
 
     WITH mima AS (
-            SELECT    MIN(close_value) AS abs_min, 
-                      MAX(close_value)  AS abs_max 
-            FROM      {nt.schema}.{nt.table} 
-            WHERE dt BETWEEN '{nt.startdate}' AND  '{nt.enddate}' 
-        ) 
+            SELECT    MIN(close_value) AS abs_min,
+                      MAX(close_value)  AS abs_max
+            FROM      {nt.schema}.{nt.table}
+            WHERE dt BETWEEN '{nt.startdate}' AND  '{nt.enddate}'
+        )
     SELECT  width_bucket(
                 tab.close_value,
                     (SELECT abs_min FROM mima LIMIT 1),
                     (SELECT abs_max FROM mima LIMIT 1),
                     {nt.buckets}
-                ) 
+                )
                 AS bucket,
-            SUM(tab.volume_value) AS sum_volume, 
-            MIN(tab.close_value) AS min_close, 
-            MAX(tab.close_value) AS max_close 
-    FROM      {nt.schema}.{nt.table} tab 
-    WHERE    tab.dt BETWEEN '{nt.startdate}' AND  '{nt.enddate}' 
-    GROUP BY bucket 
-    ORDER BY min_close; 
+            SUM(tab.volume_value) AS sum_volume,
+            MIN(tab.close_value) AS min_close,
+            MAX(tab.close_value) AS max_close
+    FROM      {nt.schema}.{nt.table} tab
+    WHERE    tab.dt BETWEEN '{nt.startdate}' AND  '{nt.enddate}'
+    GROUP BY bucket
+    ORDER BY min_close;
     '''
 
 

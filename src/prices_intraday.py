@@ -1,24 +1,37 @@
-from datetime import datetime as dt
 from datetime import date as Date
-import fastapi
-from pydantic import BaseModel
-from starlette.status import HTTP_400_BAD_REQUEST
-from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
-from falib.contract import Contract
-from src.const import OrderChoices
-from src.users import get_current_active_user, User
-from src.utils import eod_ini_logic_new
-from src.utils import guess_exchange_and_ust
-
-import typing as t
-from sqlalchemy.orm.session import Session
-from src.db import get_prices_intraday_db
-from src.const import IntervalUnitChoices, IntervalValueChoices
-from starlette.exceptions import HTTPException
+from datetime import datetime as dt
 import json
+import typing as t
+
+from falib.contract import Contract
+import fastapi
 from fastapi import Depends
-from src.db import results_proxy_to_list_of_dict
 from fastapi.responses import ORJSONResponse
+from pydantic import BaseModel
+from sqlalchemy.orm.session import Session
+from starlette.exceptions import HTTPException
+from starlette.status import (
+    HTTP_400_BAD_REQUEST,
+    HTTP_500_INTERNAL_SERVER_ERROR,
+)
+
+from src.const import (
+    IntervalUnitChoices,
+    IntervalValueChoices,
+    OrderChoices,
+)
+from src.db import (
+    get_prices_intraday_db,
+    results_proxy_to_list_of_dict,
+)
+from src.users import (
+    User,
+    get_current_active_user,
+)
+from src.utils import (
+    eod_ini_logic_new,
+    guess_exchange_and_ust,
+)
 
 router = fastapi.APIRouter()
 
@@ -146,7 +159,8 @@ async def select_price_data(args):
     if hash not in allowed_queries:
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST,
-            detail=f"received unit: `{args['iunit']}` and interval `{args['interval']}`. Valid pairs are: {valid_configs}")
+            detail=f"received unit: {args['iunit']} and interval {args['interval']}`."
+                   f" Valid pairs are: {valid_configs}")
     details = allowed_queries_configs[hash]
     args['multiplier'] = details['multiplier']
     if details['query'] == 'floor_extract':
@@ -169,20 +183,20 @@ async def select_via_floor_extract(args) -> str:
     SELECT (to_timestamp(
                 floor((extract('epoch' FROM dt) / {args['multiplier']}))
                  * {args['multiplier']}
-            ) AT TIME ZONE 'UTC')                          AS dt, 
-           MAX(tz_offset)                                  AS tz, 
-           (array_agg(open_value ORDER BY dt)) [1]         AS open, 
-           MAX(high_value)                                 AS high, 
-           MIN(low_value)                                  AS low, 
-           (array_agg(close_value ORDER BY dt DESC))[1]    AS close,  
-           SUM(volume_value)                               AS volume 
-    FROM   {args['schema']}.{args['table']} 
-    WHERE  dt BETWEEN '{args['startdate']}' AND '{args['enddate']}' 
+            ) AT TIME ZONE 'UTC')                          AS dt,
+           MAX(tz_offset)                                  AS tz,
+           (array_agg(open_value ORDER BY dt)) [1]         AS open,
+           MAX(high_value)                                 AS high,
+           MIN(low_value)                                  AS low,
+           (array_agg(close_value ORDER BY dt DESC))[1]    AS close,
+           SUM(volume_value)                               AS volume
+    FROM   {args['schema']}.{args['table']}
+    WHERE  dt BETWEEN '{args['startdate']}' AND '{args['enddate']}'
     -- create one integers (although double) for each row
     -- same like date_trunc() creates unqiue timestamps only with integers**
-    GROUP BY floor(extract('epoch' FROM dt) / {args['multiplier']})  
-    ORDER BY dt  {args['order']}  
-    LIMIT {args['limit']}; 
+    GROUP BY floor(extract('epoch' FROM dt) / {args['multiplier']})
+    ORDER BY dt  {args['order']}
+    LIMIT {args['limit']};
     '''
 
 
@@ -191,17 +205,17 @@ async def select_via_date_trunc(args) -> str:
     case, where the database takes care of truncating data by date
     """
     return f'''
-        SELECT   date_trunc('{args['iunit']}', dt)                    AS dt, 
-                 MAX(tz_offset)                                  AS tz, 
-                 (array_agg(open_value ORDER BY dt ASC))[1]      AS open, 
-                 MAX(high_value)                                 AS high, 
-                 MIN(low_value)                                  AS low, 
-                 (array_agg(close_value ORDER BY dt DESC))[1]    AS close, 
-                 SUM(volume_value)                               AS volume 
-        FROM     {args['schema']}.{args['table']} 
-        WHERE    dt BETWEEN '{args['startdate']}' AND '{args['enddate']}' 
+        SELECT   date_trunc('{args['iunit']}', dt)                    AS dt,
+                 MAX(tz_offset)                                  AS tz,
+                 (array_agg(open_value ORDER BY dt ASC))[1]      AS open,
+                 MAX(high_value)                                 AS high,
+                 MIN(low_value)                                  AS low,
+                 (array_agg(close_value ORDER BY dt DESC))[1]    AS close,
+                 SUM(volume_value)                               AS volume
+        FROM     {args['schema']}.{args['table']}
+        WHERE    dt BETWEEN '{args['startdate']}' AND '{args['enddate']}'
         GROUP BY date_trunc('{args['iunit']}', dt)
-        ORDER BY dt  {args['order']} 
+        ORDER BY dt  {args['order']}
         LIMIT    {args['limit']};'''
 
 
@@ -211,15 +225,15 @@ async def select_regular(args) -> str:
     """
     return f'''
         SELECT   dt AS dt,
-                 tz_offset AS tz, 
-                 open_value AS open, 
-                 high_value AS high, 
-                 low_value AS low, 
-                 close_value AS close, 
-                 volume_value AS volume 
-        FROM     {args['schema']}.{args['table']} 
-        WHERE    dt BETWEEN '{args['startdate']}' AND '{args['enddate']}' 
-        ORDER BY dt  {args['order']} 
+                 tz_offset AS tz,
+                 open_value AS open,
+                 high_value AS high,
+                 low_value AS low,
+                 close_value AS close,
+                 volume_value AS volume
+        FROM     {args['schema']}.{args['table']}
+        WHERE    dt BETWEEN '{args['startdate']}' AND '{args['enddate']}'
+        ORDER BY dt  {args['order']}
         LIMIT    {args['limit']};'''
 
 

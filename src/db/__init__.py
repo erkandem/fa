@@ -1,12 +1,12 @@
-import typing as t
 import logging
+import typing as t
 
-from sqlalchemy.engine import ResultProxy
+from databases import Database
 import sqlalchemy
+from sqlalchemy.engine import ResultProxy
 from sqlalchemy.orm import sessionmaker
 
 import appconfig
-from databases import Database
 
 logging.getLogger(__name__)
 

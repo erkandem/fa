@@ -1,26 +1,34 @@
 from collections import namedtuple
-from datetime import datetime as dt
-from datetime import timedelta
 from datetime import date as Date
-import fastapi
-from fastapi.responses import ORJSONResponse
+from datetime import datetime as dt
+import typing as t
 
 from falib.contract import Contract
-from src.const import OrderChoices, futuresMonthChars
-from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic_new
-import typing as t
-from sqlalchemy.orm.session import Session
-from src.db import get_prices_intraday_db
-from fastapi import Depends
-from src.db import results_proxy_to_list_of_dict
+from fastapi import (
+    APIRouter,
+    Depends,
+)
+from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
-from src.users import get_current_active_user, User
-from src import const
-from starlette.exceptions import HTTPException
+from sqlalchemy.orm.session import Session
 from starlette import status
+from starlette.exceptions import HTTPException
 
-router = fastapi.APIRouter()
+from src.const import (
+    OrderChoices,
+    futuresMonthChars,
+)
+from src.db import get_prices_intraday_db
+from src.users import (
+    User,
+    get_current_active_user,
+)
+from src.utils import (
+    eod_ini_logic_new,
+    guess_exchange_and_ust,
+)
+
+router = APIRouter()
 
 RegularFuturesParams = namedtuple(
     'regularFuturesParams',
@@ -104,11 +112,11 @@ async def eod_sql_delivery(args):
 
 async def final_sql(nt: RegularFuturesParams) -> str:
     return f'''
-        SELECT * 
+        SELECT *
         FROM {nt.schema}.{nt.table}
         WHERE dt  BETWEEN '{nt.startdate}' AND '{nt.enddate}'
         ORDER BY dt {nt.order}
-        LIMIT {nt.limit}; 
+        LIMIT {nt.limit};
     '''
 
 

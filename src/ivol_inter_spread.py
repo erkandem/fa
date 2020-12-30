@@ -1,26 +1,28 @@
-"""
-Route template
-
-"""
-from datetime import datetime as dt
 from datetime import date as Date
-import fastapi
-from fastapi.responses import ORJSONResponse
-from sqlalchemy.orm.session import Session
-
-from falib.contract import ContractSync
-from src.const import OrderChoices
-from src.const import tteChoices
-from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic_new
 import typing as t
 
-from src.const import time_to_var_func
-from src. const import deltaChoicesPractical
+from falib.contract import ContractSync
+import fastapi
 from fastapi import Depends
-from src.db import get_pgivbase_db
+from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
-from src.users import get_current_active_user, User
+from sqlalchemy.orm.session import Session
+
+from src.const import (
+    OrderChoices,
+    deltaChoicesPractical,
+    time_to_var_func,
+    tteChoices,
+)
+from src.db import get_pgivbase_db
+from src.users import (
+    User,
+    get_current_active_user,
+)
+from src.utils import (
+    eod_ini_logic_new,
+    guess_exchange_and_ust,
+)
 
 router = fastapi.APIRouter()
 
@@ -131,7 +133,7 @@ async def select_inter_ivol(args):
         FROM   {schema_one}.{table_one} first
         FULL OUTER JOIN  {schema_two}.{table_two}  second
             ON first.dt = second.dt
-        WHERE first.dt BETWEEN '{args['startdate']}' AND '{args['enddate']}' 
+        WHERE first.dt BETWEEN '{args['startdate']}' AND '{args['enddate']}'
         ORDER BY first.dt  {args['order'].upper()}
     )
     SELECT json_agg(data) FROM data;

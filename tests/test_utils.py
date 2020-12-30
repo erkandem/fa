@@ -1,7 +1,9 @@
 from datetime import datetime as dt
-from src import utils
+
 import pytest
 from starlette.exceptions import HTTPException
+
+from src import utils
 
 
 class TestValidators:
@@ -78,4 +80,3 @@ class TestEodIniLogicNew:
         args = {'enddate': dt(2019, 5, 20).date(), 'startdate': dt(2019, 5, 30).date()}
         data = utils.eod_ini_logic_new(args)
         assert dt.strptime(data['startdate'], '%Y-%m-%d') <= dt.strptime(data['enddate'], '%Y-%m-%d')
-

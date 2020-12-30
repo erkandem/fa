@@ -1,27 +1,33 @@
-"""
-Route template
-
-"""
 from datetime import date as Date
+import typing as t
 from typing import List
-import fastapi
-from fastapi.responses import ORJSONResponse
 
 from falib.contract import ContractSync
-from src.const import tteChoices
-from src.const import time_to_var_func
-from src.const import deltaChoicesPractical
-
-from src.utils import CinfoQueries
-from src.utils import eod_ini_logic_new
-from src.utils import guess_exchange_and_ust
-from pydantic import BaseModel
-import typing as t
-from sqlalchemy.orm.session import Session
-from src.db import get_pgivbase_db, get_options_rawdata_db
+import fastapi
 from fastapi import Depends
-from src.db import results_proxy_to_list_of_dict
-from src.users import get_current_active_user, User
+from fastapi.responses import ORJSONResponse
+from pydantic import BaseModel
+from sqlalchemy.orm.session import Session
+
+from src.const import (
+    deltaChoicesPractical,
+    time_to_var_func,
+    tteChoices,
+)
+from src.db import (
+    get_options_rawdata_db,
+    get_pgivbase_db,
+    results_proxy_to_list_of_dict,
+)
+from src.users import (
+    User,
+    get_current_active_user,
+)
+from src.utils import (
+    CinfoQueries,
+    eod_ini_logic_new,
+    guess_exchange_and_ust,
+)
 
 
 class IVolSummary(BaseModel):
@@ -243,7 +249,7 @@ async def select_statistics_single(args):
 
     schema = c.compose_2_part_schema_name()
     table = c.compose_ivol_final_table_name(args['delta'])
-    return f'''   SELECT 
+    return f'''   SELECT
                '{args['symbol']}'                                 AS symbol,
                (ARRAY_AGG(dt ORDER BY dt ASC))[1]::date           AS start_date,
                (ARRAY_AGG(dt ORDER BY dt DESC))[1]::date          AS end_date,

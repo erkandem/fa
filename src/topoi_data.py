@@ -27,29 +27,37 @@ self explaining way:
 """
 from datetime import datetime as dt
 import re
-import fastapi
-from fastapi import Body
-from fastapi import HTTPException
-import pydantic
-from fastapi.responses import ORJSONResponse
-from pydantic import BaseModel
-from starlette.responses import Response
-from starlette.status import HTTP_400_BAD_REQUEST
-from src.const import OrderChoices
-from src.const import PutCallChoices
-from src.const import iv_all_sym_choices, exchange_choices
-from src.const import ust_choices
-from src.const import dminusLimits
-from src.db import engines
 
-from src.utils import put_call_trafo
-from src.utils import eod_ini_logic_new
-from src.rawoption_data import get_schema_and_table_name
-from fastapi import Depends
-import typing as t
+import fastapi
+from fastapi import (
+    Body,
+    Depends,
+    HTTPException,
+)
+from fastapi.responses import ORJSONResponse
+import pydantic
+from pydantic import BaseModel
 from sqlalchemy.orm.session import Session
+from starlette.status import HTTP_400_BAD_REQUEST
+
+from src.const import (
+    OrderChoices,
+    PutCallChoices,
+    dminusLimits,
+    exchange_choices,
+    iv_all_sym_choices,
+    ust_choices,
+)
 from src.db import get_options_rawdata_db
-from src.users import get_current_active_user, User
+from src.rawoption_data import get_schema_and_table_name
+from src.users import (
+    User,
+    get_current_active_user,
+)
+from src.utils import (
+    eod_ini_logic_new,
+    put_call_trafo,
+)
 
 dml = dminusLimits(start=0, end=365*2)
 
@@ -234,12 +242,12 @@ async def top_x_oi_query(args: {}) -> str:
                                    ORDER BY bizdt DESC LIMIT 1
                           )
                  -- comment start --
-                 -- TODO: consider using average instead of implicitly using  
+                 -- TODO: consider using average instead of implicitly using
                  --       last value of `oi` or `volume`
                  -- TODO: enable sorting by `oi` or `volume`
                  -- TODO: enable "get top n after skipping top x"
-                 ORDER BY oi DESC  
-                 -- comment end -- 
+                 ORDER BY oi DESC
+                 -- comment end --
                  LIMIT {args['top_n']}
         ), summary AS (
                  SELECT   t.bizdt,
@@ -256,10 +264,10 @@ async def top_x_oi_query(args: {}) -> str:
                  ORDER BY t.bizdt,
                           t.{args['metric']} DESC
         ), resp AS (
-                   SELECT     bizdt, 
+                   SELECT     bizdt,
                               -- first json wrapper
                               jsonb_object_agg(strkpx, target_data) AS target_data
-                   FROM       summary 
+                   FROM       summary
                    -- replace missing values with 'null'
                    RIGHT JOIN (
                               (
@@ -271,8 +279,8 @@ async def top_x_oi_query(args: {}) -> str:
                                     FROM            summary) b) c
                    USING      (bizdt, strkpx)
                    GROUP BY   bizdt
-                   ORDER BY   bizdt DESC) 
+                   ORDER BY   bizdt DESC)
         -- second json wrapper
         SELECT jsonb_object_agg(bizdt, target_data)
-        FROM   resp; 
+        FROM   resp;
         '''

@@ -1,6 +1,7 @@
 from collections import namedtuple
-from starlette.status import  HTTP_400_BAD_REQUEST
-from starlette.exceptions import  HTTPException
+
+from starlette.exceptions import HTTPException
+from starlette.status import HTTP_400_BAD_REQUEST
 
 BaseContract = namedtuple(
     'BaseContract',

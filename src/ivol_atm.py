@@ -1,21 +1,31 @@
 from datetime import date as Date
-import fastapi
-from falib.contract import Contract
-from src.const import time_to_var_func
-from src.const import OrderChoices
-from src.const import tteChoices
-from src.const import deltaChoicesPractical
-from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic_new
 import typing as t
-from sqlalchemy.orm.session import Session
-from src.db import get_pgivbase_db
-from fastapi import Depends
-from src.db import results_proxy_to_list_of_dict
-from pydantic import BaseModel
-from src.users import get_current_active_user, User
-from fastapi.responses import ORJSONResponse
 
+from falib.contract import Contract
+import fastapi
+from fastapi import Depends
+from fastapi.responses import ORJSONResponse
+from pydantic import BaseModel
+from sqlalchemy.orm.session import Session
+
+from src.const import (
+    OrderChoices,
+    deltaChoicesPractical,
+    time_to_var_func,
+    tteChoices,
+)
+from src.db import (
+    get_pgivbase_db,
+    results_proxy_to_list_of_dict,
+)
+from src.users import (
+    User,
+    get_current_active_user,
+)
+from src.utils import (
+    eod_ini_logic_new,
+    guess_exchange_and_ust,
+)
 
 router = fastapi.APIRouter()
 
@@ -137,9 +147,9 @@ async def select_ivol(args):
     table = await c.compose_ivol_final_table_name(delta)
     sql = f'''
         SELECT dt, {args['tte']} AS value
-        FROM {schema}.{table}  
+        FROM {schema}.{table}
         WHERE dt BETWEEN '{args['startdate']}' AND '{args['enddate']}'
-        ORDER BY dt  {args['order']}; 
+        ORDER BY dt  {args['order']};
     '''
     return sql
 

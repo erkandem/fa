@@ -1,26 +1,38 @@
 from datetime import datetime as dt
 import re
-import fastapi
-import pydantic
-from fastapi.responses import ORJSONResponse
-
-from src.db import engines, results_proxy_to_list_of_dict
 import typing as t
 
-from src.const import ust_choices, dminusLimits
-from src.const import RAWOPTION_MAP, exchange_choices
-from src.const import metric_mapper_f
-from src.const import iv_all_sym_choices
-from src.utils import put_call_trafo
-from src.const import RawDataMetricChoices, PutCallChoices, OrderChoices
-from src.utils import CinfoQueries
-from src.utils import eod_ini_logic_new
+import fastapi
+from fastapi import Depends
+from fastapi.responses import ORJSONResponse
+import pydantic
 from pydantic import BaseModel
 from sqlalchemy.orm.session import Session
-from fastapi import Depends
 
-from src.db import get_options_rawdata_db
-from src.users import get_current_active_user, User
+from src.const import (
+    RAWOPTION_MAP,
+    OrderChoices,
+    PutCallChoices,
+    RawDataMetricChoices,
+    dminusLimits,
+    exchange_choices,
+    iv_all_sym_choices,
+    metric_mapper_f,
+    ust_choices,
+)
+from src.db import (
+    get_options_rawdata_db,
+    results_proxy_to_list_of_dict,
+)
+from src.users import (
+    User,
+    get_current_active_user,
+)
+from src.utils import (
+    CinfoQueries,
+    eod_ini_logic_new,
+    put_call_trafo,
+)
 
 drl = dminusLimits(start=0, end=365*3)
 
@@ -98,8 +110,8 @@ class RawOption(BaseModel):
 
     @pydantic.validator('ltd')
     def ltd_validator(cls, v):
-        if len(re.findall(r'^(\d{6})$', v)) == 0:
-            raise ValueError('expected format:  yyyymm')
+        if len(re.findall(r'^(\d{8})$', v)) == 0:
+            raise ValueError('expected format:  yyyymmdd')
         return v
 
 

@@ -1,19 +1,32 @@
 from datetime import datetime as dt
 import re
-import fastapi
-import pydantic
-from fastapi import Body
-
-from src.const import iv_all_sym_choices, exchange_choices
-from src.users import get_current_active_user, User
-from src.utils import eod_ini_logic_new
-from src.rawoption_data import get_schema_and_table_name
-from src.const import ust_choices
-from src.db import get_options_rawdata_db, results_proxy_to_list_of_dict
-from fastapi import Depends
 import typing as t
+
+import fastapi
+from fastapi import (
+    Body,
+    Depends,
+)
+import pydantic
 from pydantic import BaseModel
 from sqlalchemy.orm.session import Session
+
+from src.const import (
+    exchange_choices,
+    iv_all_sym_choices,
+    ust_choices,
+)
+from src.db import (
+    get_options_rawdata_db,
+    results_proxy_to_list_of_dict,
+)
+from src.rawoption_data import get_schema_and_table_name
+from src.users import (
+    User,
+    get_current_active_user,
+)
+from src.utils import eod_ini_logic_new
+
 
 class DeltaQuery(BaseModel):
     ust: str
@@ -185,18 +198,18 @@ def delta_query_sql(
         FROM {schema}.{table}
     -------------- (select the last LIMIT days  -------------
         WHERE bizdt BETWEEN '{startdate}' AND '{enddate}'
-        ORDER BY bizdt, strkpx DESC 
+        ORDER BY bizdt, strkpx DESC
     ), smry AS (
         ---------- apply different filtering with -----------
         ---------- respect to delta and moneyness -----------
         ---------- depending on put or call -----------------
-        (    
+        (
             SELECT   bizdt, putcall, strkpx, delta + 1 as delta, moneyness
             FROM ex
             WHERE bizdt  IN (SELECT DISTINCT bizdt FROM ex ORDER BY bizdt DESC)
                 AND moneyness >= 0
                 AND putcall = 0
-            ORDER BY strkpx DESC 
+            ORDER BY strkpx DESC
         ) UNION ALL (
             SELECT bizdt, putcall, strkpx, delta, moneyness
             FROM ex
@@ -204,7 +217,7 @@ def delta_query_sql(
                 AND moneyness < 0
                 AND putcall = 1
             ORDER BY strkpx DESC
-        ) 
+        )
     ), resp AS (
         ---------------- first JSON wrapper --------------------------
         SELECT bizdt, jsonb_object_agg(strkpx, delta) AS delta
@@ -220,6 +233,6 @@ def delta_query_sql(
            ORDER BY   bizdt DESC
     )
     --------------- final select and JSON wrapper -------------------
-    SELECT jsonb_object_agg(bizdt, delta) FROM resp; 
+    SELECT jsonb_object_agg(bizdt, delta) FROM resp;
     --------------------- and we are done ---------------------------
     '''

@@ -1,28 +1,33 @@
-"""
-Route template
-
-"""
 from datetime import date as Date
-import json
-import fastapi
-from fastapi import Header
-from fastapi.responses import ORJSONResponse
-from starlette.exceptions import HTTPException
-from starlette.status import HTTP_204_NO_CONTENT
-from falib.contract import ContractSync
-from falib.dayindex import get_day_index_table_name
-from falib.dayindex import get_day_index_schema_name
-from src.utils import guess_exchange_and_ust
-from src.db import results_proxy_to_list_of_dict
-
-import typing as t
-from sqlalchemy.orm.session import Session
-from fastapi import Depends
-
-from starlette.responses import Response
 from enum import Enum
-from src.db import get_options_rawdata_db
-from src.users import get_current_active_user, User
+import json
+import typing as t
+
+from falib.contract import ContractSync
+from falib.dayindex import (
+    get_day_index_schema_name,
+    get_day_index_table_name,
+)
+import fastapi
+from fastapi import (
+    Depends,
+    Header,
+)
+from fastapi.responses import ORJSONResponse
+from sqlalchemy.orm.session import Session
+from starlette.exceptions import HTTPException
+from starlette.responses import Response
+from starlette.status import HTTP_204_NO_CONTENT
+
+from src.db import (
+    get_options_rawdata_db,
+    results_proxy_to_list_of_dict,
+)
+from src.users import (
+    User,
+    get_current_active_user,
+)
+from src.utils import guess_exchange_and_ust
 
 router = fastapi.APIRouter()
 
@@ -88,7 +93,7 @@ async def to_csv(json_data: t.Dict[str, t.Any]) -> str:
             + '\n'
             + '\n'.join([
                 ','.join([str(row[key]) for key in keys])
-                 for row in json_data
+                for row in json_data
                 ])
     )
     return csv
@@ -108,7 +113,7 @@ async def get_all_relations(args: t.Dict, con: Session):
     schema = get_day_index_schema_name()
     table = get_day_index_table_name(c.compose_3_part_schema_name())
     sql = f'''
-        SELECT DISTINCT name 
+        SELECT DISTINCT name
         FROM {schema}.{table}
         WHERE bizdt = '{args["date"]}';
     '''
@@ -139,8 +144,8 @@ async def select_union_all_ltds(args, con):
     sql = 'WITH data AS ('
     for n, record in enumerate(relations):
         sql += f'''(
-            SELECT 
-                bizdt, undprice, putcall, 
+            SELECT
+                bizdt, undprice, putcall,
                 strkpx, settleprice, volume,
                 oi, yte, moneyness,
                 divyield, rfr, rawiv,

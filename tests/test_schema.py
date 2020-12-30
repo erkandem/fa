@@ -1,8 +1,11 @@
 import pytest
-from src.schema import validate_config
-from src.schema import _validate_config
-from src.schema import BaseContract
 from starlette.exceptions import HTTPException
+
+from src.schema import (
+    BaseContract,
+    _validate_config,
+    validate_config,
+)
 
 
 def test_validate_config():

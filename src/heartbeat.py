@@ -1,7 +1,8 @@
-from pydantic import BaseModel
 from datetime import datetime as dt
+
 import fastapi
 from fastapi.responses import ORJSONResponse
+from pydantic import BaseModel
 
 
 class HeartBeat(BaseModel):

@@ -7,3 +7,4 @@ pytest-asyncio  # run "async def" test functions via marker
 pytest-cov # test coverage
 pip-tools  # python environment management
 locust  # performance/load testing
+pre-commit # run linter, isort, etc.

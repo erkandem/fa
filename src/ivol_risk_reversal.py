@@ -1,31 +1,28 @@
-"""
-Route template
-
-"""
-from collections import namedtuple
-from datetime import datetime as dt
 from datetime import date as Date
-from datetime import timedelta
-import fastapi
-from fastapi.responses import ORJSONResponse
+import typing as t
 
 from falib.contract import ContractSync
-from src.const import time_to_var_func
-from src.const import OrderChoices
-from src.const import tteChoices
-from src.const import deltaChoicesPractical
-from src.const import deltaOffsetChoices
-from starlette.status import HTTP_400_BAD_REQUEST
-from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic_new
-from src.db import engines
+import fastapi
 from fastapi import Depends
-from src.db import get_pgivbase_db
+from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
-import typing as t
 from sqlalchemy.orm.session import Session
-from src.users import get_current_active_user, User
 
+from src.const import (
+    OrderChoices,
+    deltaChoicesPractical,
+    time_to_var_func,
+    tteChoices,
+)
+from src.db import get_pgivbase_db
+from src.users import (
+    User,
+    get_current_active_user,
+)
+from src.utils import (
+    eod_ini_logic_new,
+    guess_exchange_and_ust,
+)
 
 router = fastapi.APIRouter()
 
@@ -143,10 +140,10 @@ async def select_risk_reversal(args):
             first.dt,
             first.{args['tte']} - second.{args['tte']} AS value
         FROM            {schema}.{table_first}  first
-        FULL OUTER JOIN {schema}.{table_second} second 
-            ON first.dt = second.dt 
-        WHERE first.dt 
-            BETWEEN '{args['startdate']}' 
+        FULL OUTER JOIN {schema}.{table_second} second
+            ON first.dt = second.dt
+        WHERE first.dt
+            BETWEEN '{args['startdate']}'
             AND     '{args['enddate']}'
         ORDER BY first.dt {args['order']}
     )
@@ -157,7 +154,7 @@ async def select_risk_reversal(args):
 
 async def resolve_risk_reversal(args, con: Session):
     sql = await select_risk_reversal(args)
-    cursor =  con.execute(sql)
+    cursor = con.execute(sql)
     data = cursor.fetchall()
     if len(data) != 0 and len(data[0]) != 0:
         return data[0][0]
