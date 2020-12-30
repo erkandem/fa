@@ -1,20 +1,27 @@
 from datetime import date as Date
-import fastapi
-from fastapi.responses import ORJSONResponse
-
-from src.const import time_to_var_func
-from src.const import OrderChoices
-from src.const import tteChoices
-from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic_new
-from src.db import engines
 import typing as t
-from sqlalchemy.orm.session import Session
-from src.db import get_pgivbase_db
-from fastapi import Depends
-from pydantic import BaseModel
+
 from falib.contract import ContractSync
-from src.users import get_current_active_user, User
+import fastapi
+from fastapi import Depends
+from fastapi.responses import ORJSONResponse
+from pydantic import BaseModel
+from sqlalchemy.orm.session import Session
+
+from src.const import (
+    OrderChoices,
+    time_to_var_func,
+    tteChoices,
+)
+from src.db import get_pgivbase_db
+from src.users import (
+    User,
+    get_current_active_user,
+)
+from src.utils import (
+    eod_ini_logic_new,
+    guess_exchange_and_ust,
+)
 
 router = fastapi.APIRouter()
 

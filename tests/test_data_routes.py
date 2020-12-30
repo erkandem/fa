@@ -1,6 +1,10 @@
 from starlette.testclient import TestClient
+
 from app import app
-from src.users import get_current_active_user, User
+from src.users import (
+    User,
+    get_current_active_user,
+)
 
 client = TestClient(app)
 
@@ -68,7 +72,7 @@ def test_get_intraday_prices():
     with TestClient(app) as client:
         url = app.url_path_for('get_intraday_prices')
         response = client.get(
-            url= url,
+            url=url,
             params=params,
         )
     assert response.status_code == 200
@@ -531,4 +535,3 @@ def test_post_api_info_strikes():
             headers=headers,
         )
     assert response.status_code == 200
-

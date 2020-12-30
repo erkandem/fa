@@ -1,11 +1,12 @@
 from datetime import timedelta
 from enum import Enum
+from logging import getLogger
 import os
 import pathlib
-from logging import getLogger
 
 import dotenv
 import sentry_sdk
+
 logger = getLogger()
 
 # mark the application folder for convenience
@@ -87,7 +88,6 @@ class PostgresConfig:
             if not IVOLAPI_TESTING
             else ''.join([db_name, '_', TESTING_DB_SUFFIX])
         )
-
 
 
 # application database (users) etc
@@ -192,9 +192,9 @@ OPENAPI_SERVERS = (
 string = '''
     <!-- Default Statcounter code for api.volsurf.com https://api.volsurf.com -->
         <script type="text/javascript">
-            var sc_project=12144901; 
-            var sc_invisible=1; 
-            var sc_security="b6ffef77"; 
+            var sc_project=12144901;
+            var sc_invisible=1;
+            var sc_security="b6ffef77";
         </script>
         <script type="text/javascript" src="https://www.statcounter.com/counter/counter.js" async></script>
         <noscript>

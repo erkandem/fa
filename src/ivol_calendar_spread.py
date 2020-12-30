@@ -1,33 +1,36 @@
-"""
-Route template
-
-"""
 from datetime import date as Date
-import fastapi
-from fastapi import Depends
-from sqlalchemy.orm.session import Session
+import typing as t
 
 from falib.contract import ContractSync
-from src.const import OrderChoices
-from src.const import tteChoices
-from src.db import get_pgivbase_db
-from src.const import time_to_var_func
-from src.const import deltaChoicesPractical
-import typing as t
-from pydantic import BaseModel
-from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic_new
-from sqlalchemy.orm.session import Session
-from src.db import get_pgivbase_db
+import fastapi
 from fastapi import Depends
-from src.users import get_current_active_user, User
 from fastapi.responses import ORJSONResponse
+from pydantic import BaseModel
+from sqlalchemy.orm.session import Session
+
+from src.const import (
+    OrderChoices,
+    deltaChoicesPractical,
+    time_to_var_func,
+    tteChoices,
+)
+from src.db import get_pgivbase_db
+from src.users import (
+    User,
+    get_current_active_user,
+)
+from src.utils import (
+    eod_ini_logic_new,
+    guess_exchange_and_ust,
+)
 
 router = fastapi.APIRouter()
+
 
 class ivol_calendar(BaseModel):
     dt: Date
     value: float
+
 
 @router.get(
     '/ivol/calendar',
@@ -110,7 +113,7 @@ async def select_calendar_spread(args):
 
     sql = f'''
     WITH data AS (
-        SELECT 
+        SELECT
             first.dt as dt,
             first.{args['tte1']} - second.{args['tte2']} AS value
         FROM {schema}.{table_first} first

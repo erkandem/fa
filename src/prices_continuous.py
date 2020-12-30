@@ -1,22 +1,28 @@
 from collections import namedtuple
 from datetime import date
-import fastapi
-from pydantic import BaseModel
-from sqlalchemy.orm.session import Session
-
-from src.const import OrderChoices
-from src.const import nth_contract_choices
-from src.const import conti_futures_choices
-from src.utils import guess_exchange_and_ust
-from src.utils import eod_ini_logic_new
-from src.db import get_prices_intraday_db
-from fastapi import Depends
 import typing as t
+
+import fastapi
+from fastapi import Depends
+from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm.session import Session
-from fastapi.responses import ORJSONResponse
 
-from src.users import get_current_active_user, User
+from src.const import (
+    OrderChoices,
+    conti_futures_choices,
+    nth_contract_choices,
+)
+from src.db import get_prices_intraday_db
+from src.users import (
+    User,
+    get_current_active_user,
+)
+from src.utils import (
+    eod_ini_logic_new,
+    guess_exchange_and_ust,
+)
+
 router = fastapi.APIRouter()
 
 ContiEodParams = namedtuple(
@@ -309,10 +315,10 @@ async def eod_continuous_fut_array_sql_delivery(args: dict):
 
 async def select_all_from(nt: ContiEodParams) -> str:
     return f'''
-       SELECT * 
-       FROM {nt.schema}.{nt.table} 
+       SELECT *
+       FROM {nt.schema}.{nt.table}
        WHERE dt  BETWEEN '{nt.startdate}' AND '{nt.enddate}'
-       ORDER BY dt {nt.order} 
+       ORDER BY dt {nt.order}
        LIMIT {nt.limit};
     '''
 
@@ -349,8 +355,8 @@ async def select_conti_spread(args):
     args['nthcontract2'] = await nthcontract_to_column_mapping(args['nthcontract2'])
 
     return f'''
-        SELECT 
-            dt, 
+        SELECT
+            dt,
             {args['nthcontract1']} - {args['nthcontract2']} AS value
         FROM {args['schema']}.{args['table']}
         WHERE dt  BETWEEN '{args['startdate']}' AND '{args['enddate']}'

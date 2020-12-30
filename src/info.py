@@ -1,21 +1,34 @@
-import fastapi
-import pydantic
-from fastapi import Depends, Body, Query
-from src.const import pc_choices
-from src.const import PutCallChoices
-from src.users import get_current_active_user, User
-from src.utils import CinfoQueries
-
 from datetime import date as Date
-from typing import Union
-from src.rawoption_data import get_schema_and_table_name
-from src.db import get_options_rawdata_db, results_proxy_to_list_of_dict
 import typing as t
+from typing import Union
+
+import fastapi
+from fastapi import (
+    Body,
+    Depends,
+)
+from fastapi.responses import ORJSONResponse
+import pydantic
 from pydantic import BaseModel
 from sqlalchemy.orm.session import Session
-from fastapi.responses import ORJSONResponse
-from starlette.exceptions import HTTPException
 from starlette import status
+from starlette.exceptions import HTTPException
+
+from src.const import (
+    PutCallChoices,
+    pc_choices,
+)
+from src.db import (
+    get_options_rawdata_db,
+    results_proxy_to_list_of_dict,
+)
+from src.rawoption_data import get_schema_and_table_name
+from src.users import (
+    User,
+    get_current_active_user,
+)
+from src.utils import CinfoQueries
+
 
 class FirstAndLast(BaseModel):
     first_date: Date
@@ -62,8 +75,7 @@ async def get_api_info_usts(
     user: User = Depends(get_current_active_user),
 ):
     """return available ``ust``s"""
-    args = {}
-    sql = CinfoQueries.ust_f(args)
+    sql = CinfoQueries.ust_f()
     res = con.execute(sql).fetchall()
     return res
 

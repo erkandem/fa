@@ -1,15 +1,13 @@
 """
  $ locust -f locust_file.py --host=http://0.0.0.0:5000
 """
-import dotenv
-from datetime import(
-    datetime as dt,
-    timedelta,
-)
+from datetime import datetime as dt
+from datetime import timedelta
 import json
 import os
 import random
 
+import dotenv
 from locust import (
     HttpUser,
     TaskSet,
@@ -45,7 +43,9 @@ def get_auth_header():
         print(login_response.json())
         raise ValueError
 
+
 AUTHHEADER = get_auth_header()
+
 
 class WebsiteTasks(TaskSet):
     headers = {
@@ -55,6 +55,7 @@ class WebsiteTasks(TaskSet):
     def on_start(self):
         self.headers['User-Agent'] = ubuntu_firefox_ua_string
         self.headers.update(AUTHHEADER)
+
     @task(3)
     def heartbeat(self):
         self.client.get('/heartbeat', headers=self.headers)
@@ -88,7 +89,7 @@ class WebsiteTasks(TaskSet):
             'enddate': end_date.date().strftime('%Y-%m-%d'),
         }
         self.client.get(
-            f'/prices/eod/conti/array',
+            '/prices/eod/conti/array',
             headers=self.headers,
             params=params
         )

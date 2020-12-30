@@ -1,14 +1,17 @@
-from datetime import timedelta
 from datetime import datetime as dt
+from datetime import timedelta
+import typing as t
+
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_400_BAD_REQUEST
 
-from src.const import prices_etf_sym_choices
-from src.const import prices_fx_sym_choices
-from src.const import iv_ice_choices
-from src.const import intraday_prices_cme_sym_choices
+from src.const import (
+    intraday_prices_cme_sym_choices,
+    iv_ice_choices,
+    prices_etf_sym_choices,
+    prices_fx_sym_choices,
+)
 from src.schema import validate_config
-import typing as t
 
 
 def ensure_ust_and_exchange_are_set(args: t.Dict[str, t.Any]):
@@ -130,10 +133,10 @@ async def put_call_trafo(args: t.Dict[str, t.Any]) -> t.Dict[str, t.Any]:
 
 class CinfoQueries:
     @staticmethod
-    def ust_f(args: t.Dict[str, t.Any]):
-        return f'''
+    def ust_f():
+        return '''
             SELECT DISTINCT ust AS ust
-            FROM cinfo 
+            FROM cinfo
             ORDER BY ust;
         '''
 
@@ -157,7 +160,6 @@ class CinfoQueries:
                FROM {args['schema']}.{args['table']}
                ORDER BY bizdt
                LIMIT 1) AS first,
-            
               (SELECT DISTINCT bizdt
                FROM {args['schema']}.{args['table']}
                ORDER BY bizdt DESC
@@ -170,7 +172,7 @@ class CinfoQueries:
     def ust_where_exchange_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT DISTINCT ust AS ust
-            FROM cinfo 
+            FROM cinfo
             WHERE exchange = '{args['exchange']}'
             ORDER BY ust;
         '''
@@ -179,16 +181,16 @@ class CinfoQueries:
     def ust_where_symbol_f(args: t.Dict[str, t.Any]):
         return f'''
             SELECT DISTINCT ust AS ust
-            FROM cinfo 
+            FROM cinfo
             WHERE symbol = '{args['symbol']}'
             ORDER BY ust;
         '''
 
     @staticmethod
     def exchange_f(args: t.Dict[str, t.Any]) -> str:
-        return f'''
+        return '''
             SELECT DISTINCT exchange AS exchange
-            FROM cinfo 
+            FROM cinfo
             ORDER BY exchange;
         '''
 
@@ -196,7 +198,7 @@ class CinfoQueries:
     def exchange_where_ust_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT DISTINCT exchange AS exchange
-            FROM cinfo 
+            FROM cinfo
             WHERE ust = '{args['ust']}'
             ORDER BY exchange;
         '''
@@ -205,16 +207,16 @@ class CinfoQueries:
     def exchange_where_symbol_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT DISTINCT exchange AS exchange
-            FROM cinfo 
+            FROM cinfo
             WHERE symbol = '{args['symbol']}'
             ORDER BY exchange;
         '''
 
     @staticmethod
     def symbol_f(args: t.Dict[str, t.Any]) -> str:
-        return f'''
+        return '''
             SELECT DISTINCT symbol AS symbol
-            FROM cinfo 
+            FROM cinfo
             ORDER BY symbol;
         '''
 
@@ -222,7 +224,7 @@ class CinfoQueries:
     def symbol_where_ust_f(args: t.Dict[str, t.Any]):
         return f'''
             SELECT DISTINCT symbol AS symbol
-            FROM cinfo 
+            FROM cinfo
             WHERE ust = '{args['ust']}'
             ORDER BY ust;
         '''
@@ -231,7 +233,7 @@ class CinfoQueries:
     def symbol_where_exchange_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT DISTINCT symbol AS symbol
-            FROM cinfo 
+            FROM cinfo
             WHERE exchange = '{args['exchange']}'
             ORDER BY symbol;
         '''
@@ -240,7 +242,7 @@ class CinfoQueries:
     def symbol_where_ust_and_exchange_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
             SELECT DISTINCT symbol AS symbol
-            FROM            cinfo 
+            FROM            cinfo
             WHERE           exchange = '{args['exchange']}'
                 AND         ust = '{args['ust']}'
             ORDER BY        symbol;
@@ -250,7 +252,7 @@ class CinfoQueries:
     def ltd_where_ust_exchange_and_symbol_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
         SELECT DISTINCT ltd AS ltd
-        FROM            cinfo 
+        FROM            cinfo
         WHERE           symbol = '{args['symbol']}'
             AND         exchange = '{args['exchange']}'
             AND         ust = '{args['ust']}'
@@ -261,7 +263,7 @@ class CinfoQueries:
     def ltd_date_where_ust_exchange_and_symbol_f(args: t.Dict[str, t.Any]) -> str:
         return f'''
         SELECT DISTINCT ltd_date AS ltd
-        FROM            cinfo 
+        FROM            cinfo
         WHERE           symbol = '{args['symbol']}'
             AND         exchange = '{args['exchange']}'
             AND         ust = '{args['ust']}'
@@ -271,7 +273,7 @@ class CinfoQueries:
     @staticmethod
     def get_table_and_schema_by_ltd(args: t.Dict[str, t.Any]) -> str:
         return f'''
-            SELECT schema_name, table_name 
+            SELECT schema_name, table_name
             FROM    cinfo
             WHERE   ust = '{args['ust']}'
                 AND exchange = '{args['exchange']}'
@@ -282,7 +284,7 @@ class CinfoQueries:
     @staticmethod
     def get_table_and_schema_by_symbol(args: t.Dict[str, t.Any]) -> str:
         return f'''
-            SELECT schema_name, table_name 
+            SELECT schema_name, table_name
             FROM    cinfo
             WHERE   ust = '{args['ust']}'
                 AND exchange = '{args['exchange']}'
@@ -310,7 +312,7 @@ class CinfoQueries:
             'should actually reference to the month and year of the future. '
             'My second guess is that it is the second one')
         return f'''
-            SELECT schema_name, table_name 
+            SELECT schema_name, table_name
             FROM    cinfo
             WHERE   ust = '{args['ust']}'
                 AND exchange = '{args['exchange']}'
@@ -344,6 +346,6 @@ class CinfoQueries:
             FROM {args['schema']}.{args['table']}
             WHERE putcall = {args['putcall']}
             AND strkpx = {args['strkpx']}
-            GROUP BY strkpx 
+            GROUP BY strkpx
             ORDER BY strkpx;
         '''

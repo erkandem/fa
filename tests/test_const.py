@@ -1,6 +1,8 @@
-from src import const
 import random
+
 import pytest
+
+from src import const
 
 
 def test_const_metric_mapper():

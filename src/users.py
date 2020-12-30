@@ -1,16 +1,17 @@
-import json
-import os
-import uuid
-from datetime import(
+from datetime import (
     datetime,
     timedelta,
 )
+import json
 import logging
+import os
 import typing as t
+import uuid
 
+from databases.core import Connection
 from fastapi import (
-    Depends,
     APIRouter,
+    Depends,
     HTTPException,
     status,
 )
@@ -18,7 +19,7 @@ from fastapi.security import (
     OAuth2PasswordBearer,
     OAuth2PasswordRequestForm,
 )
-from jose import(
+from jose import (
     JWTError,
     jwt,
 )
@@ -36,11 +37,10 @@ from sqlalchemy.orm.session import Session
 
 import appconfig
 from src.db import (
+    get_async_users_db,
     get_users_db,
-    results_proxy_to_list_of_dict, get_async_users_db,
+    results_proxy_to_list_of_dict,
 )
-from databases.core import Connection
-
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ ROLE_STRINGS_SET = {
     USER_ROLE_STR,
 }
 
-from timeit import timeit
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                       Los User modeles                                      #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -177,7 +177,7 @@ class UserCrud:
         con.execute(users_table.delete().where(users_table.c.username == username))
         return True
 
-import asyncpg
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                       Los Utilities                                         #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
