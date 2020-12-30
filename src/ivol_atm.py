@@ -67,7 +67,7 @@ async def get_ivol(
         'startdate': startdate,
         'enddate': enddate,
         'dminus': dminus,
-        'tte': tte._value_,
+        'tte': tte.value,
         'delta': delta.value,
         'order': order.value
     }
@@ -113,7 +113,7 @@ async def get_atm_ivol(
         'startdate': startdate,
         'enddate': enddate,
         'dminus': dminus,
-        'tte': tte._value_,
+        'tte': tte.value,
         'delta': deltaChoicesPractical._d050.value,
         'order': order.value
     }

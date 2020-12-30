@@ -62,7 +62,7 @@ async def unique_operation_id(
         'symbol': symbol,
         'ust': ust,
         'exchange': exchange,
-        'tte': tte._value_,
+        'tte': tte.value,
         'startdate': startdate,
         'enddate': enddate,
         'dminus': dminus,

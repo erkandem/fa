@@ -96,6 +96,12 @@ class RawOption(BaseModel):
             raise ValueError('expected format:  yyyymm')
         return v
 
+    @pydantic.validator('ltd')
+    def ltd_validator(cls, v):
+        if len(re.findall(r'^(\d{6})$', v)) == 0:
+            raise ValueError('expected format:  yyyymm')
+        return v
+
 
 @router.post(
     '/option-data',

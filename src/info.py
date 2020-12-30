@@ -14,7 +14,8 @@ import typing as t
 from pydantic import BaseModel
 from sqlalchemy.orm.session import Session
 from fastapi.responses import ORJSONResponse
-
+from starlette.exceptions import HTTPException
+from starlette import status
 
 class FirstAndLast(BaseModel):
     first_date: Date
@@ -33,6 +34,8 @@ class GetStrikesModel(BaseModel):
     symbol: str
     putcall: PutCallChoices
     ltd: str
+    underlying_month: t.Optional[str]
+    option_month: t.Optional[str]
 
     @pydantic.validator('putcall')
     def putcall_validator(cls, v):
@@ -46,6 +49,7 @@ router = fastapi.APIRouter()
 
 class Ust(BaseModel):
     ust: str
+
 
 @router.get(
     '/usts',
@@ -66,6 +70,7 @@ async def get_api_info_usts(
 
 class Exchange(BaseModel):
     exchange: str
+
 
 @router.get(
     '/exchanges',
@@ -199,6 +204,11 @@ async def get_api_info_option_month_and_underlying_month(
         'symbol': symbol,
         'ltd': ltd,
     }
+    if ust != 'fut':
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Only relevant for futures(ust='fut')"
+        )
     sql = CinfoQueries.option_month_underlying_month_f(query)
     cursor = con.execute(sql)
     data = results_proxy_to_list_of_dict(cursor)
@@ -228,6 +238,30 @@ async def get_api_info_first_and_last(
 ):
     """
     return the first and last date of a option series data set
+
+    example query parameters:
+
+    ```json
+    {
+      "symbol": "cl",
+      "ust": "fut",
+      "exchange": "cme",
+      "ltd": "20201120",
+      "option_month": "202011",
+      "underlying_month": "202101"
+    }
+    ```
+
+    would lead to an response like:
+
+    ```json
+    [
+      {
+        "first":"2020-10-28",
+        "last":"2020-11-20"
+      }
+    ]
+    ```
     """
     args = {
         'ust': ust,
@@ -264,19 +298,23 @@ async def get_api_info_strikes(
         symbol: str,
         putcall: str,
         ltd: str,
+        underlying_month: str = None,
+        option_month: str = None,
         con: Session = Depends(get_options_rawdata_db),
         user: User = Depends(get_current_active_user),
 ):
     """
-    TODO: Validate parameters
     return the strikes available for an options chain
     """
+    # TODO: Validate parameters
     args = {
         'ust': ust,
         'exchange': exchange,
         'symbol': symbol,
         'putcall': putcall,
         'ltd': ltd,
+        'underlying_month': underlying_month,
+        'option_month': option_month,
     }
     result = await resolve_strikes(args, con)
     return result
@@ -306,6 +344,7 @@ async def post_api_info_strikes(
     return the strikes available for an options chain
 
     same as `GET` route, but containing the query within the body
+    For futures, 2 extra fields (``underlying_month``, ``option_month``) are required to identify the option chain.
     """
     args = data.dict()
     result = await resolve_strikes(args, con)

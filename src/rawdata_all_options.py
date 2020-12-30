@@ -50,6 +50,8 @@ async def get_all_options_single_underlying_single_day(
     A route template. Will set appropriate headers and forward
     the already serialized postgres response.
 
+    Currently only for ETFs (e.g. symbol='spy')
+
     - **symbol**: example: 'SPY' or 'spy' (case insensitive)
     - **ust**: underlying security type: 'eqt' e.g.
     - **exchange**: one of: 'usetf', e.g.

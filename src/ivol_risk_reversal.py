@@ -99,7 +99,7 @@ async def get_risk_reversal(
         'symbol': symbol,
         'ust': ust,
         'exchange': exchange,
-        'tte': tte._value_,
+        'tte': tte.value,
         'startdate': startdate,
         'enddate': enddate,
         'dminus': dminus,
